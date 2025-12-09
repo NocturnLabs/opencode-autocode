@@ -67,6 +67,49 @@
 
 ---
 
+## Session 2: 2025-12-08 17:37 PST
+
+### User Feedback Incorporated
+
+| Feedback                                                         | Resolution                                     |
+| ---------------------------------------------------------------- | ---------------------------------------------- |
+| Check existing MCP config at `~/.config/opencode/opencode.jsonc` | ✅ Reviewed - MCPs already configured globally |
+| Shell script runner is fine                                      | ✅ Confirmed approach                          |
+| Verify crate versions for CVEs                                   | ✅ Web searched all crates - no CVEs found     |
+| MCPs are global, no local setup needed                           | ✅ Updated plan - commands only, no MCP config |
+| Rename to auto-init, auto-continue                               | ✅ Updated command names                       |
+| Add auto-enhance command                                         | ✅ Added new command for enhancement discovery |
+| Prompts must be technology-agnostic                              | ✅ Rewrote all prompts to be agnostic          |
+| Add cargo check etc to allowlist                                 | ✅ Added Rust, Node, Python, Go toolchains     |
+| Chat history is supplemental, not authoritative                  | ✅ Updated MCP guidelines                      |
+
+### Research Conducted
+
+| Topic      | Version | CVE Status |
+| ---------- | ------- | ---------- |
+| clap       | 4.5.53  | ✅ No CVEs |
+| ratatui    | 0.29.0  | ✅ No CVEs |
+| crossterm  | 0.29.0  | ✅ No CVEs |
+| handlebars | 6.3.2   | ✅ No CVEs |
+| dialoguer  | 0.12.0  | ✅ No CVEs |
+| console    | 0.16.1  | ✅ No CVEs |
+
+### Files Examined
+
+| Time  | File                                | Action                                   |
+| ----- | ----------------------------------- | ---------------------------------------- |
+| 17:38 | `~/.config/opencode/opencode.jsonc` | Read - Verified global MCP configuration |
+
+### Decisions Made
+
+1. Commands renamed: `auto-init`, `auto-continue`, `auto-enhance`
+2. No local MCP config needed - use global
+3. Technology-agnostic prompts for reusability
+4. Expanded security allowlist with full toolchain support
+5. Chat History MCP documented as supplemental knowledge only
+
+---
+
 ## Upcoming Work (After Plan Approval)
 
 - [ ] Initialize Rust project with Cargo
