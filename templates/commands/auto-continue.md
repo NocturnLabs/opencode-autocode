@@ -122,7 +122,15 @@ If an edit or fix fails 3 times in a row:
 
 4. **TRY NEW APPROACH** - Based on research, try a fundamentally different solution
 
-5. **If still stuck after research** - Document findings and move to session end
+5. **If still stuck after 3 research-based attempts** - Document everything and **move to the next feature**:
+   ```
+   BLOCKED: [feature name]
+   Reason: [root cause if known]
+   Research findings: [what you learned]
+   Approaches tried: [list of different approaches]
+   Recommended next step: [suggestion for future session]
+   ```
+   Then pick the next highest-priority feature with `"passes": false` and continue working.
 
 Signs you are stuck (trigger research immediately):
 
