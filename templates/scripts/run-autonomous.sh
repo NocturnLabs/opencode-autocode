@@ -1,6 +1,9 @@
 #!/bin/bash
 # OpenCode Autonomous Agent Runner
 # Runs OpenCode in a loop with session management
+#
+# The loop continues automatically as long as the agent writes "CONTINUE"
+# to the .opencode-signal file at the end of each session.
 
 set -e
 
@@ -17,6 +20,12 @@ echo ""
 echo "Project directory: $(pwd)"
 echo "Max iterations: $MAX_ITERATIONS"
 echo ""
+echo "The agent will continue automatically between sessions."
+echo "Press Ctrl+C to stop the loop."
+echo ""
+
+# Clean up any existing signal file
+rm -f .opencode-signal
 
 iteration=0
 
@@ -35,40 +44,75 @@ while true; do
     echo "═══════════════════════════════════════════════════"
     echo ""
     
+    # Remove signal file before session
+    rm -f .opencode-signal
+    
     # Check if this is first run
     if [ ! -f "feature_list.json" ]; then
         echo "First run - using /auto-init command"
         echo ""
-        opencode /auto-init
+        opencode /auto-init || true
     else
         # Count remaining tests
-        remaining=$(grep -c '"passes": false' feature_list.json 2>/dev/null || echo "?")
+        remaining=$(grep -c '"passes": false' feature_list.json 2>/dev/null || echo "0")
         passing=$(grep -c '"passes": true' feature_list.json 2>/dev/null || echo "0")
         echo "Progress: $passing passing, $remaining remaining"
         echo ""
         
         # Check if all tests pass
         if [ "$remaining" = "0" ]; then
+            echo ""
             echo "🎉 All tests passing! Project complete!"
+            echo ""
             break
         fi
         
         echo "Continuing - using /auto-continue command"
         echo ""
-        opencode /auto-continue
+        opencode /auto-continue || true
     fi
     
     echo ""
-    echo "Session $iteration complete."
-    echo "Waiting ${DELAY_BETWEEN_SESSIONS}s before next session..."
-    echo "(Press Ctrl+C to pause)"
+    
+    # Check for continuation signal
+    if [ -f ".opencode-signal" ]; then
+        signal=$(cat .opencode-signal 2>/dev/null || echo "")
+        if [ "$signal" = "CONTINUE" ]; then
+            echo "✓ Received continuation signal"
+            echo "Session $iteration complete."
+            echo "Waiting ${DELAY_BETWEEN_SESSIONS}s before next session..."
+            echo "(Press Ctrl+C to pause)"
+            echo ""
+            sleep $DELAY_BETWEEN_SESSIONS
+            continue
+        elif [ "$signal" = "COMPLETE" ]; then
+            echo "✓ Received completion signal"
+            echo ""
+            echo "🎉 Project marked as complete by agent!"
+            break
+        fi
+    fi
+    
+    # No signal file found - session may have ended unexpectedly
+    echo "⚠ No continuation signal received."
     echo ""
-    sleep $DELAY_BETWEEN_SESSIONS
+    echo "The agent did not signal to continue."
+    echo "This could mean:"
+    echo "  - All work is complete"
+    echo "  - An error occurred"
+    echo "  - The agent needs manual intervention"
+    echo ""
+    echo "Options:"
+    echo "  - Run 'opencode /auto-continue' manually to resume"
+    echo "  - Run this script again to restart the loop"
+    echo "  - Check opencode-progress.txt for status"
+    echo ""
+    break
 done
 
 echo ""
 echo "═══════════════════════════════════════════════════"
-echo "  Autonomous session complete"
+echo "  Autonomous session ended"
 echo "═══════════════════════════════════════════════════"
 echo ""
 
@@ -78,6 +122,12 @@ if [ -f "feature_list.json" ]; then
     echo "Final status: $passing / $total tests passing"
 fi
 
+if [ -f "opencode-progress.txt" ]; then
+    echo ""
+    echo "Last progress update:"
+    tail -20 opencode-progress.txt
+fi
+
 echo ""
-echo "To continue later, run this script again."
-echo "To run enhancements discovery: opencode /auto-enhance"
+echo "To continue: ./scripts/run-autonomous.sh"
+echo "To enhance:  opencode /auto-enhance"

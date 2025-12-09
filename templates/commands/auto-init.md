@@ -3,6 +3,8 @@
 You are the FIRST agent in a long-running autonomous development process.
 Your job is to set up the foundation for all future coding agents.
 
+**CRITICAL: This is an AUTONOMOUS session. No user input required. Work → Signal → End.**
+
 ---
 
 ### FIRST: Read the Project Specification
@@ -138,7 +140,7 @@ the highest-priority features from feature_list.json. Remember:
 
 ---
 
-### ENDING THIS SESSION
+### ENDING THIS SESSION (CRITICAL!)
 
 Before your context fills up:
 
@@ -147,9 +149,26 @@ Before your context fills up:
 3. Ensure feature_list.json is complete and saved
 4. Leave the environment in a clean, working state
 
-The next agent will continue from here with a fresh context window.
+**THEN signal for continuation:**
+
+```bash
+echo "CONTINUE" > .opencode-signal
+```
+
+And output this exact message:
+
+```
+===SESSION_COMPLETE===
+Ready for next iteration.
+```
+
+This signals the runner script to start a new session automatically.
+
+**DO NOT wait for user input. DO NOT ask any questions. Just signal and end.**
 
 ---
 
 **Remember:** You have unlimited time across many sessions. Focus on
 quality over speed. Production-ready is the goal.
+
+**AUTONOMOUS MODE:** No user interaction. Work → Commit → Signal → End.

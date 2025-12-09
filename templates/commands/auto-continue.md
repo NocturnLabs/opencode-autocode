@@ -3,6 +3,8 @@
 You are continuing work on a long-running autonomous development task.
 This is a FRESH context window - you have no memory of previous sessions.
 
+**CRITICAL: This is an AUTONOMOUS session. You work until done, then signal for continuation.**
+
 ---
 
 ### STEP 1: GET YOUR BEARINGS (MANDATORY)
@@ -21,7 +23,27 @@ for the application you're building.
 
 ---
 
-### STEP 2: START DEVELOPMENT ENVIRONMENT (IF NOT RUNNING)
+### STEP 2: CHECK COMPLETION STATUS
+
+Check if all tests are passing:
+
+```bash
+grep -c '"passes": true' feature_list.json
+grep -c '"passes": false' feature_list.json
+```
+
+**If ALL tests pass (0 remaining):**
+
+- Write `===PROJECT_COMPLETE===` to signal completion
+- Exit gracefully
+
+**If tests remain:**
+
+- Continue to Step 3
+
+---
+
+### STEP 3: START DEVELOPMENT ENVIRONMENT (IF NOT RUNNING)
 
 If `init.sh` exists, run it to set up the environment:
 
@@ -34,7 +56,7 @@ Otherwise, start any required servers or services manually and document the proc
 
 ---
 
-### STEP 3: VERIFICATION TEST (CRITICAL!)
+### STEP 4: VERIFICATION TEST (CRITICAL!)
 
 **MANDATORY BEFORE NEW WORK:**
 
@@ -58,7 +80,7 @@ to the application's functionality.
 
 ---
 
-### STEP 4: CHOOSE ONE FEATURE TO IMPLEMENT
+### STEP 5: CHOOSE ONE FEATURE TO IMPLEMENT
 
 Look at feature_list.json and find the highest-priority feature with `"passes": false`.
 
@@ -67,7 +89,7 @@ It's okay if you only complete one feature - there will be more sessions.
 
 ---
 
-### STEP 5: IMPLEMENT THE FEATURE
+### STEP 6: IMPLEMENT THE FEATURE
 
 Implement the chosen feature thoroughly:
 
@@ -78,7 +100,7 @@ Implement the chosen feature thoroughly:
 
 ---
 
-### STEP 6: VERIFY THE FEATURE
+### STEP 7: VERIFY THE FEATURE
 
 **CRITICAL:** Test like a real user would.
 
@@ -89,7 +111,7 @@ Implement the chosen feature thoroughly:
 
 ---
 
-### STEP 7: UPDATE feature_list.json (CAREFULLY!)
+### STEP 8: UPDATE feature_list.json (CAREFULLY!)
 
 **YOU CAN ONLY MODIFY ONE FIELD: "passes"**
 
@@ -117,7 +139,7 @@ to:
 
 ---
 
-### STEP 8: COMMIT YOUR PROGRESS
+### STEP 9: COMMIT YOUR PROGRESS
 
 Make a descriptive git commit:
 
@@ -133,7 +155,7 @@ git commit -m "Implement [feature name] - verified end-to-end
 
 ---
 
-### STEP 9: UPDATE PROGRESS NOTES
+### STEP 10: UPDATE PROGRESS NOTES
 
 Update `opencode-progress.txt` with:
 
@@ -145,15 +167,26 @@ Update `opencode-progress.txt` with:
 
 ---
 
-### STEP 10: END SESSION CLEANLY
+### STEP 11: SIGNAL CONTINUATION (CRITICAL!)
 
-Before context fills up:
+**After completing Steps 1-10, you MUST signal that the loop should continue.**
 
-1. Commit all working code
-2. Update opencode-progress.txt
-3. Update feature_list.json if tests verified
-4. Ensure no uncommitted changes
-5. Leave app in working state (no broken features)
+Write the continuation signal to a file:
+
+```bash
+echo "CONTINUE" > .opencode-signal
+```
+
+Then output this exact message:
+
+```
+===SESSION_COMPLETE===
+Ready for next iteration.
+```
+
+This signals the runner script to start a new session automatically.
+
+**DO NOT wait for user input. DO NOT ask any questions. Just signal and end.**
 
 ---
 
@@ -192,8 +225,9 @@ When you need information, use MCPs in this order:
 - Documentation is updated
 
 **You have unlimited time.** Take as long as needed to get it right.
-The most important thing is that you leave the codebase in a clean state
-before terminating the session (Step 10).
+The most important thing is that you leave the codebase in a clean state.
+
+**AUTONOMOUS MODE:** No user interaction. Work → Commit → Signal → End.
 
 ---
 
