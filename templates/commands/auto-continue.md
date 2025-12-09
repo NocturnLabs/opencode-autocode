@@ -98,30 +98,40 @@ Implement the chosen feature thoroughly:
 3. Fix any issues discovered
 4. Verify the feature works end-to-end
 
-**CRITICAL: RETRY LIMITS**
+**CRITICAL: RETRY LIMITS AND RESEARCH PROTOCOL**
 
 If an edit or fix fails 3 times in a row:
 
-- **STOP trying the same approach**
-- Document the issue in `opencode-progress.txt`
-- **Skip to a different feature** or move to session end
-- Do NOT get stuck in infinite retry loops
+1. **STOP** - Do NOT try the same approach again
+2. **DOCUMENT** - Write the blocker to `opencode-progress.txt`:
 
-Signs you are stuck:
+   ```
+   BLOCKED: [feature name] - [brief reason]
+   Attempted: [what you tried]
+   ```
+
+3. **RESEARCH** - Begin a comprehensive search using ALL available tools:
+
+   - **sequential-thinking**: Break down the problem systematically
+   - **deepwiki**: Look up official documentation for the library/framework
+   - **perplexica**: Search the web for similar issues and solutions
+   - **chat-history**: Check if you've solved similar problems before
+   - **Read the actual error messages** carefully
+   - **Read related source files** to understand context
+   - **Check imports and dependencies** that might be missing
+
+4. **TRY NEW APPROACH** - Based on research, try a fundamentally different solution
+
+5. **If still stuck after research** - Document findings and move to session end
+
+Signs you are stuck (trigger research immediately):
 
 - Repeating "Let me try a different approach" multiple times
 - Same file edit failing with "oldString and newString must be different"
 - Same compilation error appearing after multiple fix attempts
+- Trying the same fix pattern with minor variations
 
-When stuck, write to progress file:
-
-```
-BLOCKED: [feature name] - [brief reason]
-Attempted fixes: [what you tried]
-Next session should: [suggested approach]
-```
-
-Then proceed to commit what works and end the session cleanly.
+**NEVER** get stuck in infinite retry loops. Research FIRST, then act.
 
 ---
 
