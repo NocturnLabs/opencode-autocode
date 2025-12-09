@@ -1,9 +1,9 @@
 #!/bin/bash
 # OpenCode Autonomous Agent Runner
-# Runs OpenCode in a loop with automatic session continuation
+# Runs OpenCode in batch mode with automatic session continuation
 #
-# This script assumes that if OpenCode exits successfully (exit code 0),
-# the session completed and should continue to the next iteration.
+# Uses 'opencode run --command' which executes a command and exits,
+# rather than starting the interactive TUI.
 
 set -e
 
@@ -20,11 +20,12 @@ echo ""
 echo "Project directory: $(pwd)"
 echo "Max iterations: $MAX_ITERATIONS"
 echo ""
-echo "Sessions will continue automatically."
+echo "Sessions will run in batch mode and continue automatically."
 echo "Press Ctrl+C to stop."
 echo ""
 
 iteration=0
+SESSION_ID=""
 
 while true; do
     iteration=$((iteration + 1))
@@ -44,8 +45,8 @@ while true; do
     
     # Check if feature_list.json exists to determine command
     if [ ! -f "feature_list.json" ]; then
-        echo "→ First run: /auto-init"
-        COMMAND="/auto-init"
+        echo "→ First run: auto-init"
+        COMMAND="auto-init"
     else
         # Count remaining tests
         remaining=$(grep -c '"passes": false' feature_list.json 2>/dev/null || echo "0")
@@ -60,15 +61,24 @@ while true; do
             break
         fi
         
-        COMMAND="/auto-continue"
+        COMMAND="auto-continue"
     fi
     
-    echo "→ Running: opencode $COMMAND"
+    echo "→ Running: opencode run --command /$COMMAND"
     echo ""
     
-    # Run opencode - capture exit code
+    # Build the opencode run command with session continuation
+    OPENCODE_CMD="opencode run --command /$COMMAND"
+    
+    # Continue session if we have one
+    if [ -n "$SESSION_ID" ]; then
+        OPENCODE_CMD="$OPENCODE_CMD --session $SESSION_ID"
+        echo "→ Continuing session: $SESSION_ID"
+    fi
+    
+    # Run opencode in batch mode - capture exit code
     EXIT_CODE=0
-    opencode "$COMMAND" || EXIT_CODE=$?
+    $OPENCODE_CMD || EXIT_CODE=$?
     
     echo ""
     echo "→ OpenCode exited with code: $EXIT_CODE"
@@ -77,7 +87,7 @@ while true; do
     if [ "$EXIT_CODE" != "0" ]; then
         echo ""
         echo "⚠ OpenCode exited with error."
-        echo "Check logs and run manually: opencode $COMMAND"
+        echo "Check logs and run manually: opencode run --command /$COMMAND"
         break
     fi
     
