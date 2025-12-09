@@ -67,8 +67,8 @@ while true; do
     echo "→ Running: opencode run --command /$COMMAND"
     echo ""
     
-    # Build the opencode run command with session continuation
-    OPENCODE_CMD="opencode run --command /$COMMAND"
+    # Build the opencode run command with session continuation and DEBUG logging
+    OPENCODE_CMD="opencode run --command /$COMMAND --log-level DEBUG"
     
     # Continue session if we have one
     if [ -n "$SESSION_ID" ]; then
