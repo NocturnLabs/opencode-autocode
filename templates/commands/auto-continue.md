@@ -98,6 +98,31 @@ Implement the chosen feature thoroughly:
 3. Fix any issues discovered
 4. Verify the feature works end-to-end
 
+**CRITICAL: RETRY LIMITS**
+
+If an edit or fix fails 3 times in a row:
+
+- **STOP trying the same approach**
+- Document the issue in `opencode-progress.txt`
+- **Skip to a different feature** or move to session end
+- Do NOT get stuck in infinite retry loops
+
+Signs you are stuck:
+
+- Repeating "Let me try a different approach" multiple times
+- Same file edit failing with "oldString and newString must be different"
+- Same compilation error appearing after multiple fix attempts
+
+When stuck, write to progress file:
+
+```
+BLOCKED: [feature name] - [brief reason]
+Attempted fixes: [what you tried]
+Next session should: [suggested approach]
+```
+
+Then proceed to commit what works and end the session cleanly.
+
 ---
 
 ### STEP 7: VERIFY THE FEATURE
