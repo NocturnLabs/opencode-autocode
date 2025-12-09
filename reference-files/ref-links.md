@@ -1,0 +1,1 @@
+- OpenCode Docs: https://opencode.ai/docs
