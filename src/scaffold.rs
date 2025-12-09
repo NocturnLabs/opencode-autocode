@@ -34,11 +34,11 @@ pub fn scaffold_custom(output_dir: &Path, spec_path: &Path) -> Result<()> {
 fn scaffold_with_spec(output_dir: &Path, spec_content: &str) -> Result<()> {
     // Create directory structure
     let opencode_dir = output_dir.join(".opencode");
-    let commands_dir = opencode_dir.join("commands");
+    let command_dir = opencode_dir.join("command");  // OpenCode expects singular "command"
     let scripts_dir = output_dir.join("scripts");
 
-    fs::create_dir_all(&commands_dir)
-        .with_context(|| format!("Failed to create commands directory: {}", commands_dir.display()))?;
+    fs::create_dir_all(&command_dir)
+        .with_context(|| format!("Failed to create command directory: {}", command_dir.display()))?;
     fs::create_dir_all(&scripts_dir)
         .with_context(|| format!("Failed to create scripts directory: {}", scripts_dir.display()))?;
 
@@ -49,20 +49,20 @@ fn scaffold_with_spec(output_dir: &Path, spec_content: &str) -> Result<()> {
     println!("   📄 Created app_spec.txt");
 
     // Write command files
-    let auto_init_path = commands_dir.join("auto-init.md");
+    let auto_init_path = command_dir.join("auto-init.md");
     fs::write(&auto_init_path, AUTO_INIT_TEMPLATE)
         .with_context(|| format!("Failed to write auto-init.md: {}", auto_init_path.display()))?;
-    println!("   📄 Created .opencode/commands/auto-init.md");
+    println!("   📄 Created .opencode/command/auto-init.md");
 
-    let auto_continue_path = commands_dir.join("auto-continue.md");
+    let auto_continue_path = command_dir.join("auto-continue.md");
     fs::write(&auto_continue_path, AUTO_CONTINUE_TEMPLATE)
         .with_context(|| format!("Failed to write auto-continue.md: {}", auto_continue_path.display()))?;
-    println!("   📄 Created .opencode/commands/auto-continue.md");
+    println!("   📄 Created .opencode/command/auto-continue.md");
 
-    let auto_enhance_path = commands_dir.join("auto-enhance.md");
+    let auto_enhance_path = command_dir.join("auto-enhance.md");
     fs::write(&auto_enhance_path, AUTO_ENHANCE_TEMPLATE)
         .with_context(|| format!("Failed to write auto-enhance.md: {}", auto_enhance_path.display()))?;
-    println!("   📄 Created .opencode/commands/auto-enhance.md");
+    println!("   📄 Created .opencode/command/auto-enhance.md");
 
     // Write runner script
     let runner_path = scripts_dir.join("run-autonomous.sh");
