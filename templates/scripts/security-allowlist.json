@@ -1,0 +1,95 @@
+{
+  "description": "Allowed commands for autonomous coding sessions",
+  "note": "This is a reference file - OpenCode handles permissions through its own configuration",
+  "allowed_commands": {
+    "file_inspection": [
+      "ls",
+      "cat",
+      "head",
+      "tail",
+      "wc",
+      "grep",
+      "find",
+      "tree"
+    ],
+    "file_operations": [
+      "cp",
+      "mkdir",
+      "chmod",
+      "touch",
+      "mv"
+    ],
+    "directory": [
+      "pwd",
+      "cd"
+    ],
+    "rust_toolchain": [
+      "cargo",
+      "rustc",
+      "rustup",
+      "cargo-watch",
+      "cargo check",
+      "cargo test",
+      "cargo run",
+      "cargo fmt",
+      "cargo clippy",
+      "cargo doc"
+    ],
+    "node_toolchain": [
+      "npm",
+      "node",
+      "npx",
+      "pnpm",
+      "bun",
+      "yarn",
+      "npm run",
+      "npm test",
+      "npm start",
+      "npm install"
+    ],
+    "python_toolchain": [
+      "python",
+      "python3",
+      "pip",
+      "pip3",
+      "uv",
+      "uvx",
+      "pytest",
+      "ruff",
+      "mypy"
+    ],
+    "go_toolchain": [
+      "go",
+      "go build",
+      "go test",
+      "go run",
+      "go fmt"
+    ],
+    "version_control": [
+      "git"
+    ],
+    "process_management": [
+      "ps",
+      "lsof",
+      "sleep",
+      "pkill",
+      "kill"
+    ],
+    "utilities": [
+      "echo",
+      "date",
+      "which",
+      "env",
+      "export"
+    ]
+  },
+  "blocked_patterns": [
+    "rm -rf /",
+    "rm -rf ~",
+    "sudo",
+    "curl | bash",
+    "wget | bash",
+    "chmod 777",
+    "> /dev/sda"
+  ]
+}

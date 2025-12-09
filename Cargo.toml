@@ -1,0 +1,34 @@
+[package]
+name = "opencode-autocode"
+version = "0.1.0"
+edition = "2021"
+description = "Scaffold autonomous coding plugin for OpenCode"
+authors = ["CodingInCarhartts"]
+license = "MIT"
+
+[dependencies]
+# CLI - v4.5.53 (Nov 2025, no CVEs)
+clap = { version = "4.5", features = ["derive"] }
+
+# TUI - v0.29.0 (stable, no CVEs)
+ratatui = "0.29"
+crossterm = "0.29"
+
+# Serialization - stable, no CVEs
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+# Templating - v6.3.2 (latest stable, no CVEs)
+handlebars = "6.3"
+
+# Interactive prompts - v0.12.0 (2025, no CVEs)
+dialoguer = "0.12"
+console = "0.16"
+
+# Filesystem utilities
+walkdir = "2"
+
+# Error handling
+anyhow = "1"
+thiserror = "2"
