@@ -69,8 +69,9 @@ while true; do
     echo "→ Running: opencode run --command /$COMMAND"
     echo ""
     
-    # Build the opencode run command with DEBUG logging (uses default model from config)
-    OPENCODE_CMD="opencode run --command /$COMMAND --log-level DEBUG"
+    # Build the opencode run command with DEBUG logging
+    # Model format: provider/model (no quotes around value)
+    OPENCODE_CMD="opencode run --command /$COMMAND --model opencode/grok-code --log-level DEBUG"
     
     # Continue session if we have one
     if [ -n "$SESSION_ID" ]; then
