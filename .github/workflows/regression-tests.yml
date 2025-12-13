@@ -1,0 +1,83 @@
+name: Regression Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run regression tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  regression-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        components: clippy, rustfmt
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Run unit tests
+      run: cargo test --verbose
+
+    - name: Run linting
+      run: |
+        cargo clippy -- -D warnings
+        cargo fmt --check
+
+    - name: Run regression tests
+      run: ./tests/regression/run_regression_tests.sh
+
+    - name: Upload regression test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: regression-test-results
+        path: tests/regression/results/
+
+    - name: Comment on PR with regression results
+      if: github.event_name == 'pull_request' && failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+
+          // Read the summary report
+          const summaryPath = path.join('tests', 'regression', 'results', 'summary_report.md');
+          let summary = '## Regression Test Results\n\n';
+          if (fs.existsSync(summaryPath)) {
+            summary += fs.readFileSync(summaryPath, 'utf8');
+          } else {
+            summary += 'Regression test results not found.\n';
+          }
+
+          // Post comment on PR
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: summary
+          });
+
+    - name: Fail on regressions
+      if: failure()
+      run: |
+        echo "Regression tests failed! Check the test results above."
+        exit 1

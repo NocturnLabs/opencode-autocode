@@ -84,6 +84,13 @@ def main() -> None:
         print("  export ANTHROPIC_API_KEY='your-api-key-here'")
         return
 
+    # Validate regression test directory exists
+    regression_dir = Path("tests/regression")
+    if not regression_dir.exists():
+        print("Error: Regression test directory not found at tests/regression")
+        print("Make sure you're running from the project root")
+        return
+
     # Automatically place projects in generations/ directory unless already specified
     project_dir = args.project_dir
     if not str(project_dir).startswith("generations/"):

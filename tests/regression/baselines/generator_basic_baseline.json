@@ -1,0 +1,13 @@
+{
+  "test_name": "basic_generator_test",
+  "expected_result": {
+    "should_pass": true,
+    "expected_duration_ms": 50
+  },
+  "performance_baseline": {
+    "max_duration_ms": 100,
+    "avg_duration_ms": 50,
+    "min_duration_ms": 25
+  },
+  "last_updated": "2024-12-12T00:00:00Z"
+}

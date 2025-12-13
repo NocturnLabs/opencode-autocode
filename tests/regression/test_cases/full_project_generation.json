@@ -1,0 +1,13 @@
+{
+  "name": "full_project_generation_test",
+  "category": "integration",
+  "test_type": "full_project_generation",
+  "config": {
+    "project_idea": "A task management web application",
+    "expected_files": [
+      "package.json",
+      "src/App.js",
+      "README.md"
+    ]
+  }
+}

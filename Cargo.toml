@@ -1,3 +1,6 @@
+[workspace]
+members = ["tests/regression"]
+
 [package]
 name = "opencode-autocode"
 version = "0.1.0"
@@ -32,3 +35,11 @@ walkdir = "2"
 # Error handling
 anyhow = "1"
 thiserror = "2"
+
+# XML parsing and diff generation (for spec validation)
+quick-xml = "0.37"
+similar = "2.6"
+
+[dev-dependencies]
+# Temporary files for testing
+tempfile = "3"

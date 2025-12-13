@@ -38,10 +38,20 @@ ALLOWED_COMMANDS = {
     "pkill",  # For killing dev servers; validated separately
     # Script execution
     "init.sh",  # Init scripts; validated separately
+    # Shell and build tools for regression testing
+    "bash",  # For running shell scripts
+    "cargo",  # For building Rust components
+    # Regression testing
+    "./run_regression_tests.sh",  # Regression test runner; validated separately
 }
 
 # Commands that need additional validation even when in the allowlist
-COMMANDS_NEEDING_EXTRA_VALIDATION = {"pkill", "chmod", "init.sh"}
+COMMANDS_NEEDING_EXTRA_VALIDATION = {
+    "pkill",
+    "chmod",
+    "init.sh",
+    "./run_regression_tests.sh",
+}
 
 
 def split_command_segments(command_string: str) -> list[str]:
@@ -276,6 +286,31 @@ def validate_init_script(command_string: str) -> tuple[bool, str]:
     return False, f"Only ./init.sh is allowed, got: {script}"
 
 
+def validate_regression_test_command(command_string: str) -> tuple[bool, str]:
+    """
+    Validate regression test commands - only allow the official script.
+
+    Returns:
+        Tuple of (is_allowed, reason_if_blocked)
+    """
+    try:
+        tokens = shlex.split(command_string)
+    except ValueError:
+        return False, "Could not parse regression test command"
+
+    if not tokens:
+        return False, "Empty command"
+
+    # Only allow the official regression test script
+    script = tokens[0]
+    if script == "./run_regression_tests.sh" or script.endswith(
+        "/run_regression_tests.sh"
+    ):
+        return True, ""
+
+    return False, f"Only ./run_regression_tests.sh is allowed, got: {script}"
+
+
 def get_command_for_validation(cmd: str, segments: list[str]) -> str:
     """
     Find the specific command segment that contains the given command.
@@ -353,6 +388,10 @@ async def bash_security_hook(input_data, tool_use_id=None, context=None):
                     return {"decision": "block", "reason": reason}
             elif cmd == "init.sh":
                 allowed, reason = validate_init_script(cmd_segment)
+                if not allowed:
+                    return {"decision": "block", "reason": reason}
+            elif cmd == "./run_regression_tests.sh":
+                allowed, reason = validate_regression_test_command(cmd_segment)
                 if not allowed:
                     return {"decision": "block", "reason": reason}
 

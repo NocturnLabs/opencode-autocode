@@ -1,7 +1,7 @@
 //! CLI argument parsing using clap
 
 use anyhow::{bail, Result};
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 /// OpenCode Autonomous Coding Plugin Scaffolder
@@ -11,6 +11,10 @@ use std::path::PathBuf;
 #[command(version)]
 #[command(about = "Scaffold autonomous coding plugin for OpenCode", long_about = None)]
 pub struct Cli {
+    /// Subcommand to run
+    #[command(subcommand)]
+    pub command: Option<Commands>,
+
     /// Use the default app spec template
     #[arg(short, long, conflicts_with_all = ["spec", "interactive"])]
     pub default: bool,
@@ -27,9 +31,55 @@ pub struct Cli {
     #[arg(short, long, value_name = "DIR")]
     pub output: Option<PathBuf>,
 
+    /// Preview mode: show what files would be created without creating them
+    #[arg(long, visible_alias = "preview")]
+    pub dry_run: bool,
+
     /// Initialize git repository after scaffolding
     #[arg(long)]
     pub git_init: bool,
+
+    /// Path to custom config file (default: autocode.toml in current directory)
+    #[arg(long, value_name = "FILE")]
+    pub config: Option<PathBuf>,
+}
+
+/// Subcommands for the CLI
+#[derive(Subcommand, Debug)]
+pub enum Commands {
+    /// Manage project templates
+    Templates {
+        #[command(subcommand)]
+        action: TemplateAction,
+    },
+    /// Launch interactive spec editor (TUI)
+    Edit,
+    /// Run regression checks on feature_list.json
+    RegressionCheck {
+        /// Path to feature_list.json (defaults to ./feature_list.json)
+        #[arg(short, long, value_name = "FILE")]
+        feature_list: Option<PathBuf>,
+
+        /// Only check features matching this category
+        #[arg(short, long)]
+        category: Option<String>,
+
+        /// Verbose output showing each test
+        #[arg(short, long)]
+        verbose: bool,
+    },
+}
+
+/// Template subcommand actions
+#[derive(Subcommand, Debug)]
+pub enum TemplateAction {
+    /// List all available templates
+    List,
+    /// Use a specific template
+    Use {
+        /// Name of the template to use
+        name: String,
+    },
 }
 
 /// The mode of operation for the scaffolder
@@ -68,11 +118,14 @@ mod tests {
     #[test]
     fn test_default_mode() {
         let cli = Cli {
+            command: None,
             default: true,
             spec: None,
             interactive: false,
             output: None,
+            dry_run: false,
             git_init: false,
+            config: None,
         };
         assert!(matches!(cli.mode().unwrap(), Mode::Default));
     }
@@ -80,11 +133,14 @@ mod tests {
     #[test]
     fn test_interactive_mode() {
         let cli = Cli {
+            command: None,
             default: false,
             spec: None,
             interactive: true,
             output: None,
+            dry_run: false,
             git_init: false,
+            config: None,
         };
         assert!(matches!(cli.mode().unwrap(), Mode::Interactive));
     }

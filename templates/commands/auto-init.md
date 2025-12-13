@@ -7,6 +7,24 @@ Your job is to set up the foundation for all future coding agents.
 
 ---
 
+### SECURITY CONSTRAINTS (MANDATORY - READ FIRST!)
+
+**Before executing ANY commands, you MUST:**
+
+1. Read `scripts/security-allowlist.json` if it exists
+2. Check the `blocked_patterns` array for commands you must NEVER run
+3. Only use commands listed in `allowed_commands` categories
+
+**BLOCKED PATTERNS ARE ABSOLUTE:**
+- If a command matches ANY pattern in `blocked_patterns`, DO NOT RUN IT
+- No exceptions, even if it seems necessary for the task
+- If you need a blocked command, document the blocker and move on
+
+Example: If `"cargo build"` is in blocked_patterns, you may NOT run `cargo build`,
+`cargo build --release`, or any variation. Find an alternative approach.
+
+---
+
 ### FIRST: Read the Project Specification
 
 Start by reading `app_spec.txt` in your working directory. This file contains
@@ -37,7 +55,8 @@ end-to-end test cases appropriate for the technology stack specified.
       "Step 2: Perform action",
       "Step 3: Verify expected result"
     ],
-    "passes": false
+    "passes": false,
+    "verification_command": "npm test -- --grep 'feature-name'"
   },
   {
     "category": "style",
@@ -52,6 +71,16 @@ end-to-end test cases appropriate for the technology stack specified.
 ]
 ```
 
+**Field Descriptions:**
+- `category`: "functional", "style", "integration", "performance"
+- `description`: Clear description of what the feature does and what this test verifies
+- `steps`: Human-readable verification steps (always required)
+- `passes`: Starts as `false`, changed to `true` only after thorough verification
+- `verification_command` (OPTIONAL): Shell command that validates the feature automatically
+  - Use for features with automated tests (unit/integration/e2e)
+  - Enables fast regression checking in long-running projects
+  - Omit for features requiring manual verification only
+
 **Requirements for feature_list.json:**
 
 - Include comprehensive tests covering all features in the spec
@@ -60,6 +89,7 @@ end-to-end test cases appropriate for the technology stack specified.
 - Order features by priority: fundamental features first
 - ALL tests start with `"passes": false`
 - Cover every feature in the spec exhaustively
+- **Add `verification_command` where possible** to enable automated regression testing
 
 **CRITICAL INSTRUCTION:**
 IT IS CATASTROPHIC TO REMOVE OR EDIT FEATURES IN FUTURE SESSIONS.
@@ -107,14 +137,19 @@ mentioned in the spec.
 
 When you need information, use MCPs in this order:
 
-1. **chat-history** - Check for similar problems/solutions you've seen before
+1. **mgrep** - For searching code and files (ALWAYS prefer over grep)
+   - Efficient pattern matching with minimal context window usage
+   - Use for finding code patterns, function definitions, usages
+   - Fallback to grep only for simple line counting or when mgrep unavailable
+
+2. **chat-history** - Check for similar problems/solutions you've seen before
    (Note: This is supplemental knowledge only, not authoritative)
 
-2. **deepwiki** - Look up library/framework documentation
+3. **deepwiki** - Look up library/framework documentation
 
-3. **perplexica** - Web search when local knowledge is insufficient
+4. **perplexica** - Web search when local knowledge is insufficient
 
-4. **sequential-thinking** - Use for complex problem decomposition
+5. **sequential-thinking** - Use for complex problem decomposition
 
 ---
 

@@ -1,0 +1,10 @@
+{
+  "name": "spec_validation_test",
+  "category": "functional",
+  "test_type": "spec_validation",
+  "config": {
+    "spec_content": "<project_specification>\n<project_name>Test Project</project_name>\n<overview>A test project</overview>\n<technology_stack>\n<frontend>React</frontend>\n</technology_stack>\n<core_features>\n<feature1>Add items</feature1>\n<feature2>Remove items</feature2>\n</core_features>\n<success_criteria>\n- App works\n</success_criteria>\n</project_specification>",
+    "expected_valid": true,
+    "expected_features_count": 2
+  }
+}

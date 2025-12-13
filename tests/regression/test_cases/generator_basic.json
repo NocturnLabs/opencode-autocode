@@ -1,0 +1,13 @@
+{
+  "name": "basic_generator_test",
+  "category": "functional",
+  "test_type": "generator_prompt",
+  "config": {
+    "input": "A simple todo app",
+    "expected_contains": [
+      "A simple todo app",
+      "<project_specification>",
+      "{{IDEA}}"
+    ]
+  }
+}

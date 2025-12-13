@@ -7,6 +7,24 @@ This is a FRESH context window - you have no memory of previous sessions.
 
 ---
 
+### SECURITY CONSTRAINTS (MANDATORY - READ FIRST!)
+
+**Before executing ANY commands, you MUST:**
+
+1. Read `scripts/security-allowlist.json` if it exists
+2. Check the `blocked_patterns` array for commands you must NEVER run
+3. Only use commands listed in `allowed_commands` categories
+
+**BLOCKED PATTERNS ARE ABSOLUTE:**
+- If a command matches ANY pattern in `blocked_patterns`, DO NOT RUN IT
+- No exceptions, even if it seems necessary for the task
+- If you need a blocked command, document the blocker and move on
+
+Example: If `"cargo build"` is in blocked_patterns, you may NOT run `cargo build`,
+`cargo build --release`, or any variation. Find an alternative approach.
+
+---
+
 ### STEP 1: GET YOUR BEARINGS (MANDATORY)
 
 Start by orienting yourself. Examine the project structure:
@@ -25,8 +43,15 @@ for the application you're building.
 
 ### STEP 2: CHECK COMPLETION STATUS
 
-Check if all tests are passing:
+Check if all tests are passing. Use the **mgrep** MCP for efficient searching:
 
+```
+# Use mgrep MCP (preferred - smaller context window footprint)
+mgrep: search for '"passes": false' in feature_list.json
+mgrep: search for '"passes": true' in feature_list.json
+```
+
+**Fallback (only if mgrep unavailable):**
 ```bash
 grep -c '"passes": true' feature_list.json
 grep -c '"passes": false' feature_list.json
@@ -56,15 +81,27 @@ Otherwise, start any required servers or services manually and document the proc
 
 ---
 
-### STEP 4: VERIFICATION TEST (CRITICAL!)
+### STEP 4: FULL REGRESSION TEST (CRITICAL!)
 
 **MANDATORY BEFORE NEW WORK:**
 
 The previous session may have introduced bugs. Before implementing anything
-new, you MUST verify that existing passing features still work.
+new, you MUST verify that ALL existing passing features still work.
 
-Run 1-2 of the feature tests marked as `"passes": true` that are most core
-to the application's functionality.
+1. **Get the count of passing features:**
+   ```bash
+   grep -c '"passes": true' feature_list.json
+   ```
+
+2. **Run verification for EVERY feature marked as passing:**
+   - If the project has automated tests, run them: `npm test`, `cargo test`, `pytest`, etc.
+   - For features with `verification_command`, execute that command
+   - For manual-only features, walk through the documented steps
+
+3. **Log the results:**
+   ```
+   STARTUP REGRESSION CHECK: X/Y tests verified, Z failures detected
+   ```
 
 **If you find ANY issues:**
 
@@ -86,6 +123,76 @@ Look at feature_list.json and find the highest-priority feature with `"passes": 
 
 Focus on completing one feature perfectly in this session before moving on.
 It's okay if you only complete one feature - there will be more sessions.
+
+---
+
+### STEP 5.5: VERBALIZED SAMPLING (APPROACH EXPLORATION)
+
+**Before implementing, explore diverse implementation approaches using Verbalized Sampling.**
+
+This step helps overcome "mode collapse" and unlock creative solutions that typical responses suppress.
+
+#### 5.5.1 Check for Cached Approaches
+
+First, check if VS results already exist for this feature:
+
+```bash
+# Check cache file
+cat .vs-cache/$(echo "FEATURE_NAME" | md5sum | cut -d' ' -f1).json 2>/dev/null
+```
+
+If cached approaches exist and are still relevant, skip to step 5.5.3.
+
+#### 5.5.2 Generate Diverse Approaches
+
+If no cache exists, use the Verbalized Sampling prompt to generate 10 distinct approaches:
+
+1. Extract feature context from `feature_list.json` and `app_spec.txt`
+2. Identify existing codebase patterns using **mgrep**
+3. Generate approaches with probability scores spanning the full distribution
+
+The approaches should include:
+- 2+ conventional (high probability ~0.8-0.9)
+- 3+ alternative (medium probability ~0.4-0.6)  
+- 3+ creative (low probability <0.2)
+
+Cache the results:
+```bash
+mkdir -p .vs-cache
+# Save approaches JSON to cache
+```
+
+#### 5.5.3 Select Best Approach (Context-Aware)
+
+A secondary analysis selects the best approach based on **project context, NOT probability**.
+
+Selection criteria (in order):
+1. **Project Alignment** - fits architecture and goals
+2. **Codebase Consistency** - matches existing patterns
+3. **Technical Fit** - appropriate for tech stack
+4. **Feature Requirements** - handles specific needs
+5. **Maintainability** - easy to extend
+
+**IMPORTANT:** Low-probability approaches may be the best choice if they fit the project context better.
+
+#### 5.5.4 Document Selection
+
+Record the selected approach in `opencode-progress.txt`:
+
+```
+VERBALIZED_SAMPLING: [feature name]
+Selected Approach: [brief description]
+Original Probability: [score from VS]
+Selection Reason: [why this was chosen over alternatives]
+Key Techniques: [main patterns/libraries to use]
+```
+
+#### 5.5.5 Fallback Behavior
+
+If VS fails (API error, parsing failure):
+1. Log the failure to `opencode-progress.txt`
+2. Proceed directly to Step 6 with conventional implementation
+3. Document that VS was skipped
 
 ---
 
@@ -112,6 +219,7 @@ If an edit or fix fails 3 times in a row:
 
 3. **RESEARCH** - Begin a comprehensive search using ALL available tools:
 
+   - **mgrep**: Search codebase efficiently (preferred over grep - smaller context window)
    - **sequential-thinking**: Break down the problem systematically
    - **deepwiki**: Look up official documentation for the library/framework
    - **perplexica**: Search the web for similar issues and solutions
@@ -151,6 +259,44 @@ Signs you are stuck (trigger research immediately):
 - Don't just test in isolation - verify the whole workflow
 - Check for edge cases
 - Verify error handling
+
+---
+
+### STEP 7.5: REGRESSION CHECKPOINT (MANDATORY!)
+
+**Before marking a new feature as passing, verify you haven't broken anything.**
+
+This checkpoint runs after EVERY feature implementation to ensure long-running
+projects stay stable throughout development.
+
+1. **Get the list of all currently passing features:**
+   ```bash
+   grep -c '"passes": true' feature_list.json
+   ```
+
+2. **Run verification for EACH passing feature:**
+   - Execute automated tests if available
+   - Run any `verification_command` fields
+   - For complex features, test the critical path
+
+3. **If ANY regression is detected:**
+   - Immediately mark that feature as `"passes": false`
+   - Document in `opencode-progress.txt`:
+     ```
+     REGRESSION DETECTED: [regressed feature name]
+     Caused by: [current feature being implemented]
+     Symptoms: [what broke]
+     ```
+   - Fix the regression BEFORE continuing with new work
+   - Only after fixing, mark BOTH features as passing
+
+4. **Log the checkpoint results:**
+   ```
+   REGRESSION CHECKPOINT: X/Y tests still passing after [feature name]
+   ```
+
+**Why every feature?** This autonomous agent is designed for long-running projects.
+Catching regressions immediately is cheaper than debugging cascading failures later.
 
 ---
 
@@ -237,14 +383,19 @@ This signals the runner script to start a new session automatically.
 
 When you need information, use MCPs in this order:
 
-1. **chat-history** - Quick check for relevant past solutions
+1. **mgrep** - For searching code and files (ALWAYS prefer over grep)
+   - Efficient pattern matching with minimal context window usage
+   - Use for finding code patterns, function definitions, usages
+   - Fallback to grep only for simple line counting or when mgrep unavailable
+
+2. **chat-history** - Quick check for relevant past solutions
    (Note: Supplemental knowledge only, not authoritative)
 
-2. **deepwiki** - Official documentation lookup
+3. **deepwiki** - Official documentation lookup
 
-3. **perplexica** - Broader web search for solutions and patterns
+4. **perplexica** - Broader web search for solutions and patterns
 
-4. **sequential-thinking** - For complex reasoning tasks:
+5. **sequential-thinking** - For complex reasoning tasks:
    - Breaking down difficult problems
    - Planning refactors
    - Debugging complex issues

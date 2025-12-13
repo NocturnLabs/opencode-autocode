@@ -5,6 +5,16 @@ based on popular patterns, best practices, and community recommendations.
 
 ---
 
+### SECURITY CONSTRAINTS (MANDATORY)
+
+**Before executing ANY commands:**
+
+1. Read `scripts/security-allowlist.json` if it exists
+2. Check the `blocked_patterns` array - commands matching these are FORBIDDEN
+3. Only use commands listed in `allowed_commands` categories
+
+---
+
 ### STEP 1: UNDERSTAND THE PROJECT
 
 Read app_spec.txt and feature_list.json to understand:
@@ -159,10 +169,14 @@ But only if explicitly told to do so. By default, just propose.
 
 This command relies heavily on MCPs:
 
-1. **perplexica** (PRIMARY) - Search for trends and popular features
-2. **deepwiki** - Look up official best practices
-3. **chat-history** - Check what worked before
-4. **sequential-thinking** - Evaluate and prioritize findings
+1. **mgrep** - Search codebase efficiently when analyzing existing code
+   - Prefer over grep for smaller context window footprint
+   - Use for understanding current implementation patterns
+
+2. **perplexica** (PRIMARY) - Search for trends and popular features
+3. **deepwiki** - Look up official best practices
+4. **chat-history** - Check what worked before
+5. **sequential-thinking** - Evaluate and prioritize findings
 
 Use Sequential Thinking to organize your findings and determine priority.
 

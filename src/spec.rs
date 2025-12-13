@@ -33,7 +33,7 @@ impl AppSpec {
         }
     }
 
-    /// Convert to app_spec.txt format (XML-like structure used by the prompts)
+    /// Convert to app_spec.md format (XML-like structure used by the prompts)
     pub fn to_spec_text(&self) -> String {
         let mut output = String::new();
 

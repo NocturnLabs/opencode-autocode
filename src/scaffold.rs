@@ -20,18 +20,18 @@ const SECURITY_ALLOWLIST: &str = include_str!("../templates/scripts/security-all
 
 /// Scaffold with the default embedded app spec
 pub fn scaffold_default(output_dir: &Path) -> Result<()> {
-    scaffold_with_spec(output_dir, DEFAULT_APP_SPEC)
+    scaffold_with_spec_text(output_dir, DEFAULT_APP_SPEC)
 }
 
 /// Scaffold with a custom app spec file
 pub fn scaffold_custom(output_dir: &Path, spec_path: &Path) -> Result<()> {
     let spec_content = fs::read_to_string(spec_path)
         .with_context(|| format!("Failed to read spec file: {}", spec_path.display()))?;
-    scaffold_with_spec(output_dir, &spec_content)
+    scaffold_with_spec_text(output_dir, &spec_content)
 }
 
-/// Core scaffolding logic
-fn scaffold_with_spec(output_dir: &Path, spec_content: &str) -> Result<()> {
+/// Scaffold with raw spec text (used by AI-generated spec flow)
+pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<()> {
     // Create directory structure
     let opencode_dir = output_dir.join(".opencode");
     let command_dir = opencode_dir.join("command");  // OpenCode expects singular "command"
@@ -42,11 +42,11 @@ fn scaffold_with_spec(output_dir: &Path, spec_content: &str) -> Result<()> {
     fs::create_dir_all(&scripts_dir)
         .with_context(|| format!("Failed to create scripts directory: {}", scripts_dir.display()))?;
 
-    // Write app_spec.txt
-    let spec_path = output_dir.join("app_spec.txt");
+    // Write app_spec.md
+    let spec_path = output_dir.join("app_spec.md");
     fs::write(&spec_path, spec_content)
-        .with_context(|| format!("Failed to write app_spec.txt: {}", spec_path.display()))?;
-    println!("   📄 Created app_spec.txt");
+        .with_context(|| format!("Failed to write app_spec.md: {}", spec_path.display()))?;
+    println!("   📄 Created app_spec.md");
 
     // Write command files
     let auto_init_path = command_dir.join("auto-init.md");
@@ -97,5 +97,37 @@ fn scaffold_with_spec(output_dir: &Path, spec_content: &str) -> Result<()> {
 /// Scaffold with an AppSpec struct (used by TUI)
 pub fn scaffold_from_spec(output_dir: &Path, spec: &crate::spec::AppSpec) -> Result<()> {
     let spec_text = spec.to_spec_text();
-    scaffold_with_spec(output_dir, &spec_text)
+    scaffold_with_spec_text(output_dir, &spec_text)
+}
+
+/// Preview what files would be created without actually creating them
+pub fn preview_scaffold(output_dir: &Path) {
+    use console::style;
+    
+    let opencode_dir = output_dir.join(".opencode");
+    let command_dir = opencode_dir.join("command");
+    let scripts_dir = output_dir.join("scripts");
+
+    println!("\n{}", style("📋 Preview: Files that would be created").cyan().bold());
+    println!("{}", style("─".repeat(50)).dim());
+    
+    // Directories
+    println!("\n{}", style("Directories:").yellow());
+    println!("   📁 {}", style(opencode_dir.display()).dim());
+    println!("   📁 {}", style(command_dir.display()).dim());
+    println!("   📁 {}", style(scripts_dir.display()).dim());
+    
+    // Files
+    println!("\n{}", style("Files:").yellow());
+    println!("   📄 {}", style(output_dir.join("app_spec.md").display()).green());
+    println!("   📄 {}", style(command_dir.join("auto-init.md").display()).green());
+    println!("   📄 {}", style(command_dir.join("auto-continue.md").display()).green());
+    println!("   📄 {}", style(command_dir.join("auto-enhance.md").display()).green());
+    println!("   📄 {}", style(scripts_dir.join("run-autonomous.sh").display()).green());
+    println!("   📄 {}", style(scripts_dir.join("security-allowlist.json").display()).green());
+    println!("   📄 {}", style(output_dir.join("opencode-progress.txt").display()).green());
+    
+    println!("\n{}", style("─".repeat(50)).dim());
+    println!("{}", style("Total: 3 directories, 7 files").cyan());
+    println!("{}", style("Run without --dry-run to create these files.").dim());
 }

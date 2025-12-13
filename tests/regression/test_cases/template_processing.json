@@ -1,0 +1,16 @@
+{
+  "name": "template_processing_test",
+  "category": "integration",
+  "test_type": "template_processing",
+  "config": {
+    "template_name": "api-rest",
+    "template_vars": {
+      "project_name": "My API",
+      "port": "3000"
+    },
+    "expected_content": [
+      "My API",
+      "port: 3000"
+    ]
+  }
+}

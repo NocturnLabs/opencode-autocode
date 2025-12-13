@@ -1,0 +1,15 @@
+{
+  "name": "end_to_end_workflow_test",
+  "category": "integration",
+  "test_type": "end_to_end",
+  "config": {
+    "input_idea": "A simple calculator app",
+    "expected_outputs": [
+      "project_specification",
+      "technology_stack",
+      "core_features"
+    ],
+    "validate_spec": true,
+    "check_templates": true
+  }
+}

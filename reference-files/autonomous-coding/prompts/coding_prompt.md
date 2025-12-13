@@ -50,7 +50,25 @@ Otherwise, start servers manually and document the process.
 The previous session may have introduced bugs. Before implementing anything
 new, you MUST run verification tests.
 
-Run 1-2 of the feature tests marked as `"passes": true` that are most core to the app's functionality to verify they still work.
+#### 3.1: Run Regression Tests
+
+First, run the automated regression test suite to ensure no existing functionality was broken:
+
+```bash
+cd ../../tests/regression
+./run_regression_tests.sh
+cd -
+```
+
+**If regression tests fail:**
+- STOP immediately
+- Do not implement new features
+- Fix any regressions first
+- Only proceed when all regression tests pass
+
+#### 3.2: Manual Feature Verification
+
+Then run 1-2 of the feature tests marked as `"passes": true` that are most core to the app's functionality to verify they still work.
 For example, if this were a chat app, you should perform a test that logs into the app, sends a message, and gets a response.
 
 **If you find ANY issues (functional or visual):**
@@ -156,6 +174,21 @@ Before context fills up:
 3. Update feature_list.json if tests verified
 4. Ensure no uncommitted changes
 5. Leave app in working state (no broken features)
+
+#### 10.1: Final Regression Test Check
+
+Run regression tests one final time to ensure your changes didn't introduce any regressions:
+
+```bash
+cd ../../tests/regression
+./run_regression_tests.sh
+cd -
+```
+
+**If final regression tests fail:**
+- Do not mark any tests as passing
+- Document the regression in claude-progress.txt
+- The next session will need to fix the regression first
 
 ---
 

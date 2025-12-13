@@ -2,17 +2,301 @@
 
 use anyhow::Result;
 use console::style;
-use dialoguer::{Confirm, Input, MultiSelect, Select};
+use dialoguer::{Confirm, Editor, Input, MultiSelect, Select};
+use std::fs;
 use std::path::Path;
 
-use crate::scaffold::scaffold_from_spec;
+use crate::generator::{generate_spec_from_idea, refine_spec_from_idea};
+use crate::scaffold::{scaffold_default, scaffold_from_spec, scaffold_with_spec_text, scaffold_custom};
 use crate::spec::{AppSpec, Feature, Priority, TechStack};
+use crate::validation::{print_diff, validate_spec};
+
+/// Interactive mode options
+enum InteractiveMode {
+    /// Generate spec from an idea using AI
+    Generated,
+    /// Manual form-based spec creation
+    Manual,
+    /// Use an existing spec file
+    FromSpecFile,
+    /// Use the built-in default spec
+    Default,
+}
 
 /// Run the interactive TUI to build an app spec
 pub fn run_interactive(output_dir: &Path) -> Result<()> {
     println!("\n{}", style("═══════════════════════════════════════════════════").cyan());
     println!("{}", style("  OpenCode Autonomous Plugin - Interactive Setup").cyan().bold());
     println!("{}\n", style("═══════════════════════════════════════════════════").cyan());
+
+    // Mode selection
+    let mode_idx = Select::new()
+        .with_prompt("How would you like to create your project spec?")
+        .items(&[
+            "🤖 Generated (idea-based) - AI researches and creates full spec",
+            "📝 Manual (form-based) - Fill out project details step by step",
+            "📁 From spec file - Use an existing app_spec.md file",
+            "⚡ Default - Use the built-in default specification",
+        ])
+        .default(0)
+        .interact()?;
+
+    let mode = match mode_idx {
+        0 => InteractiveMode::Generated,
+        1 => InteractiveMode::Manual,
+        2 => InteractiveMode::FromSpecFile,
+        _ => InteractiveMode::Default,
+    };
+
+    match mode {
+        InteractiveMode::Generated => run_generated_mode(output_dir, None),
+        InteractiveMode::Manual => run_manual_mode(output_dir),
+        InteractiveMode::FromSpecFile => run_from_spec_file_mode(output_dir),
+        InteractiveMode::Default => run_default_mode(output_dir),
+    }
+}
+
+/// Run from an existing spec file
+fn run_from_spec_file_mode(output_dir: &Path) -> Result<()> {
+    println!("\n{}", style("─── Spec File Mode ───").yellow().bold());
+    
+    let spec_path: String = Input::new()
+        .with_prompt("Path to spec file")
+        .default("app_spec.md".to_string())
+        .interact_text()?;
+    
+    let spec_path = std::path::PathBuf::from(&spec_path);
+    
+    if !spec_path.exists() {
+        println!("{} {}", style("Error:").red().bold(), style("Spec file not found.").red());
+        return Ok(());
+    }
+    
+    scaffold_custom(output_dir, &spec_path)?;
+    println!("\n{}", style("✅ Project scaffolded from spec file!").green().bold());
+    
+    Ok(())
+}
+
+/// Run with the default built-in spec
+fn run_default_mode(output_dir: &Path) -> Result<()> {
+    println!("\n{}", style("─── Default Mode ───").yellow().bold());
+    println!("{}", style("Using the built-in default specification.").dim());
+    
+    let confirm = Confirm::new()
+        .with_prompt("Scaffold project with default spec?")
+        .default(true)
+        .interact()?;
+    
+    if confirm {
+        scaffold_default(output_dir)?;
+        println!("\n{}", style("✅ Project scaffolded with default spec!").green().bold());
+    } else {
+        println!("{}", style("Cancelled.").red());
+    }
+    
+    Ok(())
+}
+
+/// Run the AI-generated spec mode with validation and refinement
+fn run_generated_mode(output_dir: &Path, initial_model: Option<&str>) -> Result<()> {
+    println!("\n{}", style("─── AI Spec Generation ───").yellow().bold());
+    println!("{}", style("Describe your project idea and the AI will research and create a comprehensive spec.").dim());
+    println!("{}\n", style("The AI will use web search and documentation tools to find best practices.").dim());
+
+    // Ask for optional custom model
+    let model_input: String = Input::new()
+        .with_prompt("Model to use (leave empty for default)")
+        .default(initial_model.unwrap_or("").to_string())
+        .allow_empty(true)
+        .interact_text()?;
+    
+    let model: Option<&str> = if model_input.trim().is_empty() {
+        None
+    } else {
+        Some(model_input.trim())
+    };
+
+    // Get the user's idea 
+    let idea: String = Input::new()
+        .with_prompt("Describe your project idea")
+        .interact_text()?;
+
+    if idea.trim().is_empty() {
+        println!("{}", style("No idea provided. Exiting.").red());
+        return Ok(());
+    }
+
+    // Add clear separator before generation output
+    println!("\n{}", style("─────────────────────────────────────────────").dim());
+
+    // Generate the spec using OpenCode with model
+    use std::io::Write;
+    let mut spec_text = match generate_spec_from_idea(&idea, model, |msg| {
+        print!("{}", msg);
+        // Flush to ensure output appears immediately
+        let _ = std::io::stdout().flush();
+    }) {
+        Ok(spec) => spec,
+        Err(e) => {
+            println!("\n{} {}", style("Error:").red().bold(), e);
+            println!("{}", style("Would you like to try manual mode instead?").dim());
+            
+            let try_manual = Confirm::new()
+                .with_prompt("Switch to manual mode?")
+                .default(true)
+                .interact()?;
+
+            if try_manual {
+                return run_manual_mode(output_dir);
+            } else {
+                return Ok(());
+            }
+        }
+    };
+
+    // Store model for potential regeneration/refinement
+    let model_owned = model.map(|s| s.to_string());
+
+    // Validation and refinement loop
+    loop {
+        // Validate the spec
+        println!("\n{}", style("─── Validating Specification ───").cyan().bold());
+        
+        let validation = validate_spec(&spec_text)?;
+        validation.print();
+
+        if !validation.is_valid {
+            println!("\n{}", style("The spec has validation errors that should be fixed.").red());
+        }
+
+        // Show preview
+        println!("\n{}", style("═══════════════════════════════════════════════════").green());
+        println!("{}", style("  Generated Specification Preview").green().bold());
+        println!("{}\n", style("═══════════════════════════════════════════════════").green());
+
+        let preview_lines: Vec<&str> = spec_text.lines().take(25).collect();
+        for line in &preview_lines {
+            println!("  {}", style(line).dim());
+        }
+        if spec_text.lines().count() > 25 {
+            println!("  {}", style(format!("... ({} more lines)", spec_text.lines().count() - 25)).dim());
+        }
+
+        println!();
+
+        // Action menu with refine option
+        let mut options = vec![
+            "✅ Accept and scaffold project",
+            "✏️  Edit spec manually",
+            "📄 Save spec to file and review later",
+            "🔧 Refine idea - Improve current spec with additional instructions",
+            "🔄 Regenerate with different idea",
+            "❌ Cancel",
+        ];
+
+        // Add warning hint if not valid
+        if !validation.is_valid {
+            options[0] = "⚠️  Accept anyway (has errors)";
+        }
+
+        let action = Select::new()
+            .with_prompt("What would you like to do?")
+            .items(&options)
+            .default(if validation.is_valid { 0 } else { 1 })
+            .interact()?;
+
+        match action {
+            0 => {
+                // Accept and scaffold
+                if !validation.is_valid {
+                    let confirm = Confirm::new()
+                        .with_prompt("The spec has validation errors. Scaffold anyway?")
+                        .default(false)
+                        .interact()?;
+                    if !confirm {
+                        continue;
+                    }
+                }
+                scaffold_with_spec_text(output_dir, &spec_text)?;
+                println!("\n{}", style("✅ Project scaffolded successfully!").green().bold());
+                break;
+            }
+            1 => {
+                // Edit spec manually
+                println!("{}", style("Opening editor... (save and close to continue)").dim());
+                
+                if let Some(edited) = Editor::new().edit(&spec_text)? {
+                    let old_spec = spec_text.clone();
+                    spec_text = edited;
+                    
+                    // Show diff
+                    print_diff(&old_spec, &spec_text);
+                    println!("{}", style("Spec updated. Re-validating...").cyan());
+                } else {
+                    println!("{}", style("No changes made.").dim());
+                }
+                // Continue loop to re-validate
+            }
+            2 => {
+                // Save to file for review
+                let spec_path = output_dir.join("app_spec.md");
+                fs::write(&spec_path, &spec_text)?;
+                println!("\n{} {}", 
+                    style("📄 Spec saved to:").cyan(), 
+                    style(spec_path.display()).green()
+                );
+                println!("{}", style("Review the file and run the scaffolder again with -s flag to use it.").dim());
+                break;
+            }
+            3 => {
+                // Refine idea - improve current spec with additional instructions
+                println!("\n{}", style("─── Refine Specification ───").yellow().bold());
+                println!("{}", style("Provide additional instructions to improve the current spec.").dim());
+                
+                let refinement: String = Input::new()
+                    .with_prompt("Refinement instructions")
+                    .interact_text()?;
+                
+                if refinement.trim().is_empty() {
+                    println!("{}", style("No refinement instructions provided.").dim());
+                    continue;
+                }
+
+                println!("\n{}", style("─────────────────────────────────────────────").dim());
+
+                match refine_spec_from_idea(&spec_text, &refinement, model_owned.as_deref(), |msg| {
+                    print!("{}", msg);
+                    let _ = std::io::stdout().flush();
+                }) {
+                    Ok(refined) => {
+                        spec_text = refined;
+                        println!("\n{}", style("Specification refined. Re-validating...").cyan());
+                    }
+                    Err(e) => {
+                        println!("\n{} {}", style("Refinement failed:").red().bold(), e);
+                        println!("{}", style("Keeping the previous specification.").dim());
+                    }
+                }
+                // Continue loop to re-validate
+            }
+            4 => {
+                // Regenerate with different idea
+                return run_generated_mode(output_dir, model_owned.as_deref());
+            }
+            _ => {
+                println!("{}", style("Cancelled.").red());
+                break;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Run the manual form-based spec mode (existing functionality)
+fn run_manual_mode(output_dir: &Path) -> Result<()> {
+    println!("\n{}", style("─── Manual Spec Creation ───").yellow().bold());
 
     // Project name
     let project_name: String = Input::new()

@@ -7,10 +7,34 @@
 
 set -e
 
+# Config loading function - reads from autocode.toml with fallback to defaults
+read_config() {
+    local key="$1"
+    local default="$2"
+    local config_file="${CONFIG_FILE:-autocode.toml}"
+    
+    if [ -f "$config_file" ]; then
+        # Simple TOML parsing - extract value for key
+        local value=$(grep -E "^${key}\s*=" "$config_file" 2>/dev/null | head -1 | sed 's/.*=\s*//' | tr -d '"' | tr -d "'")
+        if [ -n "$value" ]; then
+            # Expand $HOME if present
+            echo "${value/\$HOME/$HOME}"
+            return
+        fi
+    fi
+    echo "$default"
+}
+
+# Load configuration values
 PROJECT_DIR="${1:-.}"
 MAX_ITERATIONS="${2:-unlimited}"
-DELAY_BETWEEN_SESSIONS=5
-LOG_DIR="$HOME/Work/local-work/opencode-logs"
+
+# Read config values (with defaults)
+DELAY_BETWEEN_SESSIONS=$(read_config "delay_between_sessions" "5")
+LOG_DIR=$(read_config "log_dir" "$HOME/Work/local-work/opencode-logs")
+AUTONOMOUS_MODEL=$(read_config "autonomous" "opencode/grok-code")
+LOG_LEVEL=$(read_config "log_level" "DEBUG")
+
 LOG_FILE="$LOG_DIR/session-$(date '+%Y%m%d-%H%M%S').log"
 
 cd "$PROJECT_DIR"
@@ -21,6 +45,8 @@ echo "════════════════════════�
 echo ""
 echo "Project directory: $(pwd)"
 echo "Max iterations: $MAX_ITERATIONS"
+echo "Model: $AUTONOMOUS_MODEL"
+echo "Delay between sessions: ${DELAY_BETWEEN_SESSIONS}s"
 echo ""
 echo "Sessions will run in batch mode and continue automatically."
 echo "Press Ctrl+C to stop."
@@ -69,9 +95,9 @@ while true; do
     echo "→ Running: opencode run --command /$COMMAND"
     echo ""
     
-    # Build the opencode run command with DEBUG logging
+    # Build the opencode run command with config values
     # Model format: provider/model, command without leading slash
-    OPENCODE_CMD="opencode run --command $COMMAND --model opencode/grok-code --log-level DEBUG"
+    OPENCODE_CMD="opencode run --command $COMMAND --model $AUTONOMOUS_MODEL --log-level $LOG_LEVEL"
     
     # Continue session if we have one
     if [ -n "$SESSION_ID" ]; then

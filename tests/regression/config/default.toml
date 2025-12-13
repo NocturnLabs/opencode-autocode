@@ -1,0 +1,31 @@
+# Regression Testing Configuration
+# This file configures the regression testing suite for opencode-autocode
+
+base_dir = "tests/regression"
+fixtures_dir = "tests/regression/fixtures"
+baselines_dir = "tests/regression/baselines"
+test_cases_dir = "tests/regression/test_cases"
+results_dir = "tests/regression/results"
+
+[execution]
+# Timeout for individual tests in seconds
+test_timeout_seconds = 300
+# Maximum number of concurrent tests
+max_concurrent_tests = 4
+# Whether to stop on first failure
+fail_fast = false
+
+[execution.environment]
+# Environment variables to set during testing
+RUST_BACKTRACE = "1"
+RUST_LOG = "debug"
+
+[reporting]
+# Whether to generate detailed reports
+detailed_reports = true
+# Whether to compare results with baselines
+baseline_comparison = true
+# Report output formats
+output_formats = ["json", "html", "summary"]
+# Whether to save results for future baseline comparison
+save_results = true

@@ -6,6 +6,7 @@ Core agent interaction functions for running autonomous coding sessions.
 """
 
 import asyncio
+import subprocess
 from pathlib import Path
 from typing import Optional
 
@@ -18,6 +19,43 @@ from prompts import get_initializer_prompt, get_coding_prompt, copy_spec_to_proj
 
 # Configuration
 AUTO_CONTINUE_DELAY_SECONDS = 3
+
+
+async def run_regression_tests(project_dir: Path) -> str:
+    """
+    Run regression tests and return status.
+
+    Args:
+        project_dir: The project directory
+
+    Returns:
+        "pass" if tests pass, "fail" with details if they fail, "error" if execution fails
+    """
+    try:
+        # Change to regression test directory (relative to project root)
+        regression_dir = project_dir.parent / "tests" / "regression"
+
+        if not regression_dir.exists():
+            return "error: Regression test directory not found"
+
+        # Run regression tests
+        result = await asyncio.create_subprocess_exec(
+            "./run_regression_tests.sh",
+            cwd=str(regression_dir),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+
+        stdout, stderr = await result.communicate()
+
+        if result.returncode == 0:
+            return "pass"
+        else:
+            error_msg = stderr.decode() if stderr else "Unknown error"
+            return f"fail: {error_msg}"
+
+    except Exception as e:
+        return f"error: {str(e)}"
 
 
 async def run_agent_session(
@@ -171,9 +209,22 @@ async def run_autonomous_agent(
 
         # Handle status
         if status == "continue":
-            print(f"\nAgent will auto-continue in {AUTO_CONTINUE_DELAY_SECONDS}s...")
-            print_progress_summary(project_dir)
-            await asyncio.sleep(AUTO_CONTINUE_DELAY_SECONDS)
+            # Run regression tests to ensure no functionality was broken
+            print("\n🧪 Running regression tests...")
+            regression_status = await run_regression_tests(project_dir)
+
+            if regression_status == "pass":
+                print("✅ Regression tests passed")
+                print(
+                    f"\nAgent will auto-continue in {AUTO_CONTINUE_DELAY_SECONDS}s..."
+                )
+                print_progress_summary(project_dir)
+                await asyncio.sleep(AUTO_CONTINUE_DELAY_SECONDS)
+            else:
+                print(f"❌ Regression tests failed: {regression_status}")
+                print("\n⚠️  Stopping agent to prevent accumulation of regressions.")
+                print("Please fix the regression before continuing.")
+                break
 
         elif status == "error":
             print("\nSession encountered an error")
