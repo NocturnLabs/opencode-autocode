@@ -1,31 +1,15 @@
 {
   "total_tests": 6,
-  "passed_tests": 2,
-  "failed_tests": 4,
-  "total_duration_ms": 112,
+  "passed_tests": 6,
+  "failed_tests": 0,
+  "total_duration_ms": 92,
   "results": [
-    {
-      "name": "basic_generator_test",
-      "category": "functional",
-      "passed": false,
-      "duration_ms": 0,
-      "error_message": "Expected '<project_specification>' not found in output",
-      "metadata": {}
-    },
-    {
-      "name": "spec_validation_test",
-      "category": "functional",
-      "passed": true,
-      "duration_ms": 0,
-      "error_message": null,
-      "metadata": {}
-    },
     {
       "name": "cli_mode_test",
       "category": "functional",
-      "passed": false,
-      "duration_ms": 111,
-      "error_message": "Expected 'USAGE' not found in output",
+      "passed": true,
+      "duration_ms": 91,
+      "error_message": null,
       "metadata": {}
     },
     {
@@ -39,17 +23,33 @@
     {
       "name": "full_project_generation_test",
       "category": "integration",
-      "passed": false,
+      "passed": true,
       "duration_ms": 0,
-      "error_message": "Expected file not found: \"/tmp/.tmpx4K0UI/test_project/package.json\"",
+      "error_message": null,
+      "metadata": {}
+    },
+    {
+      "name": "basic_generator_test",
+      "category": "functional",
+      "passed": true,
+      "duration_ms": 0,
+      "error_message": null,
+      "metadata": {}
+    },
+    {
+      "name": "spec_validation_test",
+      "category": "functional",
+      "passed": true,
+      "duration_ms": 0,
+      "error_message": null,
       "metadata": {}
     },
     {
       "name": "template_processing_test",
       "category": "integration",
-      "passed": false,
+      "passed": true,
       "duration_ms": 0,
-      "error_message": "Expected content 'My API' not found in rendered template",
+      "error_message": null,
       "metadata": {}
     }
   ]

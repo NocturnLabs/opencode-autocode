@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! Template library for project scaffolding
 //!
 //! Provides pre-built templates for common project types.
@@ -48,10 +49,10 @@ pub fn get_templates() -> Vec<Template> {
 /// List all available templates
 pub fn list_templates() {
     let templates = get_templates();
-    
+
     println!("\n{}", style("📚 Available Templates").cyan().bold());
     println!("{}", style("─".repeat(50)).dim());
-    
+
     for template in &templates {
         println!(
             "\n  {} {}",
@@ -60,10 +61,16 @@ pub fn list_templates() {
         );
         println!("    {}", style(template.description).dim());
     }
-    
+
     println!("\n{}", style("─".repeat(50)).dim());
-    println!("{}", style("Use: opencode-autocode templates use <name>").dim());
-    println!("{}", style("Or run with -i for interactive selection").dim());
+    println!(
+        "{}",
+        style("Use: opencode-autocode templates use <name>").dim()
+    );
+    println!(
+        "{}",
+        style("Or run with -i for interactive selection").dim()
+    );
 }
 
 /// Get a template by name
@@ -83,15 +90,14 @@ pub fn use_template(name: &str, output_dir: &Path) -> Result<()> {
         }
     };
 
-    println!("\n{} {}", 
-        style("Using template:").cyan(), 
+    println!(
+        "\n{} {}",
+        style("Using template:").cyan(),
         style(template.display_name).green().bold()
     );
-    
+
     // Get project name
-    let project_name: String = Input::new()
-        .with_prompt("Project name")
-        .interact_text()?;
+    let project_name: String = Input::new().with_prompt("Project name").interact_text()?;
 
     // Get description
     let description: String = Input::new()
@@ -99,7 +105,8 @@ pub fn use_template(name: &str, output_dir: &Path) -> Result<()> {
         .interact_text()?;
 
     // Fill in placeholders
-    let spec = template.content
+    let spec = template
+        .content
         .replace("{{PROJECT_NAME}}", &project_name)
         .replace("{{DESCRIPTION}}", &description);
 
@@ -109,8 +116,11 @@ pub fn use_template(name: &str, output_dir: &Path) -> Result<()> {
 
     // Scaffold
     crate::scaffold::scaffold_with_spec_text(output_dir, &spec)?;
-    
-    println!("\n{}", style("✅ Project scaffolded from template!").green().bold());
+
+    println!(
+        "\n{}",
+        style("✅ Project scaffolded from template!").green().bold()
+    );
 
     Ok(())
 }
@@ -118,9 +128,12 @@ pub fn use_template(name: &str, output_dir: &Path) -> Result<()> {
 /// Interactive template selection
 pub fn select_template_interactive(output_dir: &Path) -> Result<()> {
     let templates = get_templates();
-    
+
     println!("\n{}", style("📚 Template Library").cyan().bold());
-    println!("{}\n", style("Select a project template to get started quickly.").dim());
+    println!(
+        "{}\n",
+        style("Select a project template to get started quickly.").dim()
+    );
 
     let items: Vec<String> = templates
         .iter()
@@ -134,11 +147,9 @@ pub fn select_template_interactive(output_dir: &Path) -> Result<()> {
         .interact()?;
 
     let template = &templates[selection];
-    
+
     // Get project name
-    let project_name: String = Input::new()
-        .with_prompt("Project name")
-        .interact_text()?;
+    let project_name: String = Input::new().with_prompt("Project name").interact_text()?;
 
     // Get description
     let description: String = Input::new()
@@ -146,19 +157,26 @@ pub fn select_template_interactive(output_dir: &Path) -> Result<()> {
         .interact_text()?;
 
     // Fill in placeholders
-    let spec = template.content
+    let spec = template
+        .content
         .replace("{{PROJECT_NAME}}", &project_name)
         .replace("{{DESCRIPTION}}", &description);
 
     // Validate
-    println!("\n{}", style("─── Validating Specification ───").cyan().bold());
+    println!(
+        "\n{}",
+        style("─── Validating Specification ───").cyan().bold()
+    );
     let validation = crate::validation::validate_spec(&spec)?;
     validation.print();
 
     // Scaffold
     crate::scaffold::scaffold_with_spec_text(output_dir, &spec)?;
-    
-    println!("\n{}", style("✅ Project scaffolded from template!").green().bold());
+
+    println!(
+        "\n{}",
+        style("✅ Project scaffolded from template!").green().bold()
+    );
 
     Ok(())
 }

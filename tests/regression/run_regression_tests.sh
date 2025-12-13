@@ -5,7 +5,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 REGRESSION_DIR="$PROJECT_ROOT/tests/regression"
 
 # Colors for output
@@ -115,7 +115,7 @@ export REGRESSION_BASELINE_COMPARISON="$BASELINE_COMPARISON"
 export REGRESSION_FAIL_FAST="$FAIL_FAST"
 export REGRESSION_VERBOSE="$VERBOSE"
 
-if ./target/release/opencode-regression-tests; then
+if "../../target/release/opencode-regression-tests"; then
     print_status $GREEN "Regression tests completed successfully"
 else
     print_status $RED "Regression tests failed"

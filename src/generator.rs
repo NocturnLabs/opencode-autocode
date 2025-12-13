@@ -28,7 +28,11 @@ const REFINE_PROMPT: &str = include_str!("../templates/refine_prompt.md");
 ///
 /// # Returns
 /// The generated specification text (XML format)
-pub fn generate_spec_from_idea<F>(idea: &str, model: Option<&str>, mut on_output: F) -> Result<String>
+pub fn generate_spec_from_idea<F>(
+    idea: &str,
+    model: Option<&str>,
+    mut on_output: F,
+) -> Result<String>
 where
     F: FnMut(&str),
 {
@@ -42,7 +46,10 @@ where
     let opencode_path = which_opencode(&config)?;
 
     let model_to_use = model.unwrap_or(&config.models.default);
-    on_output(&format!("🔍 Researching your idea with OpenCode (model: {})...\n", model_to_use));
+    on_output(&format!(
+        "🔍 Researching your idea with OpenCode (model: {})...\n",
+        model_to_use
+    ));
     on_output("   (This may take a minute as the AI researches best practices)\n\n");
 
     // Run opencode with the prompt
@@ -74,7 +81,9 @@ where
         }
     }
 
-    let status = child.wait().context("Failed to wait for opencode process")?;
+    let status = child
+        .wait()
+        .context("Failed to wait for opencode process")?;
 
     if !status.success() {
         bail!(
@@ -118,7 +127,10 @@ where
     let opencode_path = which_opencode(&config)?;
 
     let model_to_use = model.unwrap_or(&config.models.default);
-    on_output(&format!("🔧 Refining specification with OpenCode (model: {})...\n", model_to_use));
+    on_output(&format!(
+        "🔧 Refining specification with OpenCode (model: {})...\n",
+        model_to_use
+    ));
     on_output("   (Applying your refinement instructions)\n\n");
 
     // Run opencode with the prompt
@@ -150,7 +162,9 @@ where
         }
     }
 
-    let status = child.wait().context("Failed to wait for opencode process")?;
+    let status = child
+        .wait()
+        .context("Failed to wait for opencode process")?;
 
     if !status.success() {
         bail!(

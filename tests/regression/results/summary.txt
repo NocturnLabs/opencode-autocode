@@ -1,7 +1,7 @@
 Regression Test Summary
 =====================
 Total Tests: 6
-Passed: 2
-Failed: 4
-Success Rate: 33.3%
-Total Duration: 0.11s
+Passed: 6
+Failed: 0
+Success Rate: 100.0%
+Total Duration: 0.09s

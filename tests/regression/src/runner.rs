@@ -1,9 +1,9 @@
-use crate::config::{RegressionConfig, ExecutionConfig, ReportingConfig};
+use crate::config::RegressionConfig;
 use crate::functional_tests;
 use crate::integration_tests;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::time::{Duration, Instant};
 use tokio::time::timeout;
 
@@ -147,7 +147,8 @@ impl RegressionRunner {
         let result = timeout(
             Duration::from_secs(config.execution.test_timeout_seconds),
             Self::execute_test_case(config, &test_case),
-        ).await;
+        )
+        .await;
 
         let duration = start_time.elapsed();
 
@@ -211,9 +212,7 @@ impl RegressionRunner {
             "error_handling" => {
                 integration_tests::test_error_handling(config, &test_case.config).await
             }
-            _ => {
-                Err(format!("Unknown test type: {}", test_case.test_type).into())
-            }
+            _ => Err(format!("Unknown test type: {}", test_case.test_type).into()),
         }
     }
 
@@ -223,14 +222,24 @@ impl RegressionRunner {
         std::fs::create_dir_all(&self.config.results_dir)?;
 
         // Generate JSON report
-        if self.config.reporting.output_formats.contains(&"json".to_string()) {
+        if self
+            .config
+            .reporting
+            .output_formats
+            .contains(&"json".to_string())
+        {
             let json_path = self.config.results_dir.join("results.json");
             let json_content = serde_json::to_string_pretty(summary)?;
             std::fs::write(json_path, json_content)?;
         }
 
         // Generate summary text report
-        if self.config.reporting.output_formats.contains(&"summary".to_string()) {
+        if self
+            .config
+            .reporting
+            .output_formats
+            .contains(&"summary".to_string())
+        {
             let summary_path = self.config.results_dir.join("summary.txt");
             let summary_content = format!(
                 "Regression Test Summary\n\

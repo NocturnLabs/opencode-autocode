@@ -49,7 +49,9 @@ impl AutomatedTestRunner {
     }
 
     /// Run tests with automation and baseline comparison
-    pub async fn run_automated_tests(&self) -> Result<AutomatedTestSummary, Box<dyn std::error::Error>> {
+    pub async fn run_automated_tests(
+        &self,
+    ) -> Result<AutomatedTestSummary, Box<dyn std::error::Error>> {
         // Run the basic test suite
         let summary = self.run_basic_tests().await?;
 
@@ -74,7 +76,10 @@ impl AutomatedTestRunner {
     }
 
     /// Compare test results with baselines
-    fn compare_with_baselines(&self, summary: &TestSummary) -> Result<BaselineComparison, Box<dyn std::error::Error>> {
+    fn compare_with_baselines(
+        &self,
+        summary: &TestSummary,
+    ) -> Result<BaselineComparison, Box<dyn std::error::Error>> {
         let mut regressions = Vec::new();
         let mut improvements = Vec::new();
         let mut new_tests = Vec::new();
@@ -103,7 +108,11 @@ impl AutomatedTestRunner {
     }
 
     /// Compare a single test result with its baseline
-    fn compare_single_result(&self, result: &TestResult, baseline: &TestBaseline) -> TestComparison {
+    fn compare_single_result(
+        &self,
+        result: &TestResult,
+        baseline: &TestBaseline,
+    ) -> TestComparison {
         // Check if pass/fail status changed
         if result.passed != baseline.expected_result.should_pass {
             return TestComparison::Regression(RegressionDetails {
@@ -111,17 +120,27 @@ impl AutomatedTestRunner {
                 issue_type: "status_change".to_string(),
                 description: format!(
                     "Test status changed from {} to {}",
-                    if baseline.expected_result.should_pass { "pass" } else { "fail" },
+                    if baseline.expected_result.should_pass {
+                        "pass"
+                    } else {
+                        "fail"
+                    },
                     if result.passed { "pass" } else { "fail" }
                 ),
-                severity: if result.passed { "improvement" } else { "regression" }.to_string(),
+                severity: if result.passed {
+                    "improvement"
+                } else {
+                    "regression"
+                }
+                .to_string(),
             });
         }
 
         // Check performance regression
         if let Some(expected_duration) = baseline.expected_result.expected_duration_ms {
             let performance_factor = result.duration_ms as f64 / expected_duration as f64;
-            if performance_factor > 2.0 { // More than 2x slower
+            if performance_factor > 2.0 {
+                // More than 2x slower
                 return TestComparison::Regression(RegressionDetails {
                     test_name: result.name.clone(),
                     issue_type: "performance".to_string(),
@@ -131,13 +150,16 @@ impl AutomatedTestRunner {
                     ),
                     severity: "performance_regression".to_string(),
                 });
-            } else if performance_factor < 0.5 { // More than 2x faster
+            } else if performance_factor < 0.5 {
+                // More than 2x faster
                 return TestComparison::Improvement(ImprovementDetails {
                     test_name: result.name.clone(),
                     improvement_type: "performance".to_string(),
                     description: format!(
                         "Performance improvement: {}ms vs expected {}ms ({:.1}x faster)",
-                        result.duration_ms, expected_duration, 1.0 / performance_factor
+                        result.duration_ms,
+                        expected_duration,
+                        1.0 / performance_factor
                     ),
                 });
             }
@@ -179,20 +201,34 @@ impl AutomatedTestRunner {
     ) -> Result<String, Box<dyn std::error::Error>> {
         let mut report = String::new();
         report.push_str("# Regression Test Summary Report\n\n");
-        report.push_str(&format!("**Execution Time:** {:.2}s\n", summary.total_duration_ms as f64 / 1000.0));
+        report.push_str(&format!(
+            "**Execution Time:** {:.2}s\n",
+            summary.total_duration_ms as f64 / 1000.0
+        ));
         report.push_str(&format!("**Tests Run:** {}\n", summary.total_tests));
-        report.push_str(&format!("**Passed:** {} ({:.1}%)\n",
+        report.push_str(&format!(
+            "**Passed:** {} ({:.1}%)\n",
             summary.passed_tests,
-            (summary.passed_tests as f64 / summary.total_tests as f64) * 100.0));
+            (summary.passed_tests as f64 / summary.total_tests as f64) * 100.0
+        ));
         report.push_str(&format!("**Failed:** {}\n", summary.failed_tests));
-        report.push_str(&format!("**Regressions:** {}\n", comparison.regressions.len()));
-        report.push_str(&format!("**Improvements:** {}\n", comparison.improvements.len()));
+        report.push_str(&format!(
+            "**Regressions:** {}\n",
+            comparison.regressions.len()
+        ));
+        report.push_str(&format!(
+            "**Improvements:** {}\n",
+            comparison.improvements.len()
+        ));
         report.push_str(&format!("**New Tests:** {}\n", comparison.new_tests.len()));
 
         if !comparison.regressions.is_empty() {
             report.push_str("\n## 🚨 Regressions Detected\n\n");
             for regression in &comparison.regressions {
-                report.push_str(&format!("- **{}**: {}\n", regression.test_name, regression.description));
+                report.push_str(&format!(
+                    "- **{}**: {}\n",
+                    regression.test_name, regression.description
+                ));
             }
         }
 
@@ -214,9 +250,15 @@ impl AutomatedTestRunner {
         report.push_str("|-----------|--------|----------|----------|\n");
 
         for result in &summary.results {
-            let status = if result.passed { "✅ PASS" } else { "❌ FAIL" };
-            report.push_str(&format!("| {} | {} | {}ms | {} |\n",
-                result.name, status, result.duration_ms, result.category));
+            let status = if result.passed {
+                "✅ PASS"
+            } else {
+                "❌ FAIL"
+            };
+            report.push_str(&format!(
+                "| {} | {} | {}ms | {} |\n",
+                result.name, status, result.duration_ms, result.category
+            ));
         }
 
         // Baseline comparison
@@ -226,16 +268,20 @@ impl AutomatedTestRunner {
             if !comparison.regressions.is_empty() {
                 report.push_str("### Regressions\n\n");
                 for regression in &comparison.regressions {
-                    report.push_str(&format!("- **{}** ({}) - {}\n",
-                        regression.test_name, regression.severity, regression.description));
+                    report.push_str(&format!(
+                        "- **{}** ({}) - {}\n",
+                        regression.test_name, regression.severity, regression.description
+                    ));
                 }
             }
 
             if !comparison.improvements.is_empty() {
                 report.push_str("\n### Improvements\n\n");
                 for improvement in &comparison.improvements {
-                    report.push_str(&format!("- **{}** - {}\n",
-                        improvement.test_name, improvement.description));
+                    report.push_str(&format!(
+                        "- **{}** - {}\n",
+                        improvement.test_name, improvement.description
+                    ));
                 }
             }
         }
@@ -244,14 +290,19 @@ impl AutomatedTestRunner {
     }
 
     /// Generate baseline update recommendations
-    fn generate_baseline_updates(&self, summary: &TestSummary) -> Result<String, Box<dyn std::error::Error>> {
+    fn generate_baseline_updates(
+        &self,
+        summary: &TestSummary,
+    ) -> Result<String, Box<dyn std::error::Error>> {
         let mut updates = String::new();
         updates.push_str("# Baseline Update Recommendations\n\n");
 
         for result in &summary.results {
             if result.passed {
-                updates.push_str(&format!("- Update baseline for **{}**: duration {}ms\n",
-                    result.name, result.duration_ms));
+                updates.push_str(&format!(
+                    "- Update baseline for **{}**: duration {}ms\n",
+                    result.name, result.duration_ms
+                ));
             }
         }
 
@@ -259,7 +310,9 @@ impl AutomatedTestRunner {
     }
 
     /// Load baseline data from files
-    fn load_baselines(baselines_dir: &Path) -> Result<HashMap<String, TestBaseline>, Box<dyn std::error::Error>> {
+    fn load_baselines(
+        baselines_dir: &Path,
+    ) -> Result<HashMap<String, TestBaseline>, Box<dyn std::error::Error>> {
         let mut baselines = HashMap::new();
 
         if !baselines_dir.exists() {

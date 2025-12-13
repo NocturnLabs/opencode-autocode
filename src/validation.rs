@@ -1,9 +1,10 @@
-//! Spec validation and quality checks
+#![allow(dead_code)]
+//! Output validation and diff generationty checks
 //!
 //! Validates generated project specifications for structural correctness
 //! and quality metrics before scaffolding.
 
-use anyhow::{bail, Result};
+use anyhow::Result;
 use console::style;
 use quick_xml::events::Event;
 use quick_xml::Reader;
@@ -56,18 +57,36 @@ impl ValidationResult {
 
         // Print stats
         println!("\n{}", style("Spec Statistics:").cyan());
-        println!("   Project Name: {}", bool_icon(self.stats.has_project_name));
+        println!(
+            "   Project Name: {}",
+            bool_icon(self.stats.has_project_name)
+        );
         println!("   Overview: {}", bool_icon(self.stats.has_overview));
         println!("   Tech Stack: {}", bool_icon(self.stats.has_tech_stack));
-        println!("   Features: {} ({})", bool_icon(self.stats.has_features), self.stats.feature_count);
+        println!(
+            "   Features: {} ({})",
+            bool_icon(self.stats.has_features),
+            self.stats.feature_count
+        );
         println!("   Database: {}", bool_icon(self.stats.has_database));
-        println!("   API Endpoints: {} ({})", bool_icon(self.stats.has_api_endpoints), self.stats.endpoint_count);
-        println!("   Success Criteria: {}", bool_icon(self.stats.has_success_criteria));
+        println!(
+            "   API Endpoints: {} ({})",
+            bool_icon(self.stats.has_api_endpoints),
+            self.stats.endpoint_count
+        );
+        println!(
+            "   Success Criteria: {}",
+            bool_icon(self.stats.has_success_criteria)
+        );
     }
 }
 
 fn bool_icon(val: bool) -> &'static str {
-    if val { "✓" } else { "✗" }
+    if val {
+        "✓"
+    } else {
+        "✗"
+    }
 }
 
 /// Validate a project specification
@@ -88,6 +107,7 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
     let mut reader = Reader::from_str(spec_text);
     reader.config_mut().trim_text(true);
 
+    #[allow(unused_assignments)]
     let mut current_tag = String::new();
     let mut in_features = false;
     let mut in_endpoints = false;
@@ -143,7 +163,11 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
             }
             Ok(Event::Eof) => break,
             Err(e) => {
-                errors.push(format!("XML parsing error at position {}: {}", reader.buffer_position(), e));
+                errors.push(format!(
+                    "XML parsing error at position {}: {}",
+                    reader.buffer_position(),
+                    e
+                ));
                 break;
             }
             _ => {}
@@ -161,7 +185,10 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
         warnings.push("Spec has no features or tech stack defined".to_string());
     }
     if stats.feature_count < 3 {
-        warnings.push(format!("Only {} features defined (recommend 3+)", stats.feature_count));
+        warnings.push(format!(
+            "Only {} features defined (recommend 3+)",
+            stats.feature_count
+        ));
     }
     if !stats.has_success_criteria {
         warnings.push("Missing success criteria - how will you know when it's done?".to_string());
@@ -203,7 +230,7 @@ pub fn print_diff(old_spec: &str, new_spec: &str) {
     let diff = TextDiff::from_lines(old_spec, new_spec);
 
     println!("\n{}", style("─── Changes ───").cyan().bold());
-    
+
     let mut has_changes = false;
     for change in diff.iter_all_changes() {
         match change.tag() {
