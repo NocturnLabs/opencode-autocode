@@ -1,3 +1,4 @@
+#![allow(dead_code, clippy::too_many_arguments)]
 //! Verbalized Sampling implementation for diverse approach generation
 //!
 //! This module implements the Verbalized Sampling technique to overcome LLM mode collapse

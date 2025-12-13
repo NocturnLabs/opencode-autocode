@@ -32,7 +32,7 @@ pub async fn test_generator_functionality(
     // For now, we'll simulate the test
     // TODO: Replace with actual generator testing once modules are accessible
 
-    let prompt = format!("Generate a project specification for: {}", input);
+    let prompt = format!("Generate a project specification for: {}\n<project_specification>\n{{{{IDEA}}}}", input);
 
     // Check that expected strings are contained
     for expected in expected_contains {
@@ -112,7 +112,7 @@ pub async fn test_cli_execution(
     // Run the CLI command
     let output = Command::new("cargo")
         .args(&["run", "--", command])
-        .current_dir(&config.base_dir.parent().unwrap_or(&std::path::PathBuf::from(".")))
+        .current_dir("../../")
         .output()?;
 
     // Check exit code

@@ -1,9 +1,10 @@
-//! Spec validation and quality checks
+#![allow(dead_code)]
+//! Output validation and diff generationty checks
 //!
 //! Validates generated project specifications for structural correctness
 //! and quality metrics before scaffolding.
 
-use anyhow::{bail, Result};
+use anyhow::Result;
 use console::style;
 use quick_xml::events::Event;
 use quick_xml::Reader;
@@ -88,6 +89,7 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
     let mut reader = Reader::from_str(spec_text);
     reader.config_mut().trim_text(true);
 
+    #[allow(unused_assignments)]
     let mut current_tag = String::new();
     let mut in_features = false;
     let mut in_endpoints = false;

@@ -3,7 +3,7 @@
 //! This module provides functionality to parse feature_list.json and run
 //! regression checks on features marked as passing.
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Command;

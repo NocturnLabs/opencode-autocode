@@ -1,8 +1,10 @@
+#![allow(dead_code)]
 //! App specification schema
 
 use serde::{Deserialize, Serialize};
 
 /// Application specification - technology agnostic
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppSpec {
     pub project_name: String,
@@ -88,7 +90,7 @@ impl AppSpec {
         if let Some(ref endpoints) = self.api_endpoints {
             output.push_str("  <api_endpoints>\n");
             for ep in endpoints {
-                output.push_str(&format!("    <endpoint>\n"));
+                output.push_str("    <endpoint>\n");
                 output.push_str(&format!("      <method>{}</method>\n", ep.method));
                 output.push_str(&format!("      <path>{}</path>\n", ep.path));
                 output.push_str(&format!("      <description>{}</description>\n", ep.description));

@@ -32,7 +32,7 @@ pub fn run_interactive(output_dir: &Path) -> Result<()> {
     // Mode selection
     let mode_idx = Select::new()
         .with_prompt("How would you like to create your project spec?")
-        .items(&[
+        .items([
             "🤖 Generated (idea-based) - AI researches and creates full spec",
             "📝 Manual (form-based) - Fill out project details step by step",
             "📁 From spec file - Use an existing app_spec.md file",
@@ -341,7 +341,7 @@ fn run_manual_mode(output_dir: &Path) -> Result<()> {
 
         let priority_idx = Select::new()
             .with_prompt("Priority")
-            .items(&["Critical", "High", "Medium", "Low"])
+            .items(["Critical", "High", "Medium", "Low"])
             .default(2)
             .interact()?;
 

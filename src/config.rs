@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! Configuration loading and management
 //!
 //! Loads configuration from `autocode.toml` at the project root,
@@ -17,7 +18,7 @@ const CONFIG_FILENAME: &str = "autocode.toml";
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Application configuration - all sections from autocode.toml
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
 pub struct Config {
     pub models: ModelsConfig,
@@ -368,22 +369,7 @@ impl Default for UiConfig {
 // Default Implementation for Main Config
 // ─────────────────────────────────────────────────────────────────────────────
 
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            models: ModelsConfig::default(),
-            paths: PathsConfig::default(),
-            autonomous: AutonomousConfig::default(),
-            agent: AgentConfig::default(),
-            verbalized_sampling: VerbalizedSamplingConfig::default(),
-            mcp: McpConfig::default(),
-            features: FeaturesConfig::default(),
-            scaffolding: ScaffoldingConfig::default(),
-            security: SecurityConfig::default(),
-            ui: UiConfig::default(),
-        }
-    }
-}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Config Loading Implementation

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 //! Template library for project scaffolding
 //!
 //! Provides pre-built templates for common project types.
@@ -11,6 +12,7 @@ use std::path::Path;
 const WEB_APP_TEMPLATE: &str = include_str!("../templates/projects/web-app-fullstack.md");
 const CLI_TOOL_TEMPLATE: &str = include_str!("../templates/projects/cli-tool.md");
 const API_REST_TEMPLATE: &str = include_str!("../templates/projects/api-rest.md");
+
 
 /// Template metadata
 #[derive(Debug, Clone)]

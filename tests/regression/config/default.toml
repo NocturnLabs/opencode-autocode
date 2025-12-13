@@ -1,11 +1,11 @@
 # Regression Testing Configuration
 # This file configures the regression testing suite for opencode-autocode
 
-base_dir = "tests/regression"
-fixtures_dir = "tests/regression/fixtures"
-baselines_dir = "tests/regression/baselines"
-test_cases_dir = "tests/regression/test_cases"
-results_dir = "tests/regression/results"
+base_dir = "."
+fixtures_dir = "fixtures"
+baselines_dir = "baselines"
+test_cases_dir = "test_cases"
+results_dir = "results"
 
 [execution]
 # Timeout for individual tests in seconds
