@@ -1,9 +1,9 @@
-use crate::config::{ExecutionConfig, RegressionConfig, ReportingConfig};
+use crate::config::RegressionConfig;
 use crate::functional_tests;
 use crate::integration_tests;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::time::{Duration, Instant};
 use tokio::time::timeout;
 

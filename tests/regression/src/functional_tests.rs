@@ -5,14 +5,12 @@
 
 use crate::config::RegressionConfig;
 use std::collections::HashMap;
-use std::time::Instant;
 
 /// Test the code generation functionality
 pub async fn test_generator_functionality(
-    config: &RegressionConfig,
+    _config: &RegressionConfig,
     test_config: &HashMap<String, serde_json::Value>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let start_time = Instant::now();
 
     // Extract test parameters
     let input = test_config
@@ -51,7 +49,7 @@ pub async fn test_generator_functionality(
 
 /// Test specification validation functionality
 pub async fn test_spec_validation(
-    config: &RegressionConfig,
+    _config: &RegressionConfig,
     test_config: &HashMap<String, serde_json::Value>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let spec_content = test_config
@@ -100,7 +98,7 @@ pub async fn test_spec_validation(
 
 /// Test CLI functionality
 pub async fn test_cli_execution(
-    config: &RegressionConfig,
+    _config: &RegressionConfig,
     test_config: &HashMap<String, serde_json::Value>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     use std::process::Command;
@@ -154,7 +152,7 @@ pub async fn test_cli_execution(
 
 /// Test end-to-end workflow
 pub async fn test_end_to_end_workflow(
-    config: &RegressionConfig,
+    _config: &RegressionConfig,
     test_config: &HashMap<String, serde_json::Value>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let input_idea = test_config

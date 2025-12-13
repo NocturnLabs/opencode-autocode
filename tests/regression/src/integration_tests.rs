@@ -9,7 +9,7 @@ use std::process::Command;
 
 /// Test the complete project generation workflow
 pub async fn test_full_project_generation(
-    config: &RegressionConfig,
+    _config: &RegressionConfig,
     test_config: &HashMap<String, serde_json::Value>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let project_idea = test_config
@@ -53,7 +53,7 @@ pub async fn test_full_project_generation(
 
 /// Test template processing and rendering
 pub async fn test_template_processing(
-    config: &RegressionConfig,
+    _config: &RegressionConfig,
     test_config: &HashMap<String, serde_json::Value>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let template_name = test_config
@@ -94,7 +94,7 @@ pub async fn test_template_processing(
 
 /// Test CLI command sequences
 pub async fn test_cli_command_sequence(
-    config: &RegressionConfig,
+    _config: &RegressionConfig,
     test_config: &HashMap<String, serde_json::Value>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let commands = test_config
@@ -133,7 +133,7 @@ pub async fn test_cli_command_sequence(
 
 /// Test error handling and recovery
 pub async fn test_error_handling(
-    config: &RegressionConfig,
+    _config: &RegressionConfig,
     test_config: &HashMap<String, serde_json::Value>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let invalid_input = test_config
