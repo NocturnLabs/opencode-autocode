@@ -11,7 +11,6 @@ pub async fn test_generator_functionality(
     _config: &RegressionConfig,
     test_config: &HashMap<String, serde_json::Value>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-
     // Extract test parameters
     let input = test_config
         .get("input")
