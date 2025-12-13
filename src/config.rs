@@ -369,8 +369,6 @@ impl Default for UiConfig {
 // Default Implementation for Main Config
 // ─────────────────────────────────────────────────────────────────────────────
 
-
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Config Loading Implementation
 // ─────────────────────────────────────────────────────────────────────────────
@@ -384,12 +382,14 @@ impl Config {
         };
 
         if config_path.exists() {
-            let content = fs::read_to_string(&config_path)
-                .with_context(|| format!("Failed to read config file: {}", config_path.display()))?;
-            
-            let mut config: Config = toml::from_str(&content)
-                .with_context(|| format!("Failed to parse config file: {}", config_path.display()))?;
-            
+            let content = fs::read_to_string(&config_path).with_context(|| {
+                format!("Failed to read config file: {}", config_path.display())
+            })?;
+
+            let mut config: Config = toml::from_str(&content).with_context(|| {
+                format!("Failed to parse config file: {}", config_path.display())
+            })?;
+
             config.expand_env_vars();
             Ok(config)
         } else {
@@ -401,10 +401,10 @@ impl Config {
     pub fn load_from_file(path: &Path) -> Result<Self> {
         let content = fs::read_to_string(path)
             .with_context(|| format!("Failed to read config file: {}", path.display()))?;
-        
+
         let mut config: Config = toml::from_str(&content)
             .with_context(|| format!("Failed to parse config file: {}", path.display()))?;
-        
+
         config.expand_env_vars();
         Ok(config)
     }
@@ -431,13 +431,13 @@ impl Config {
 /// Expand environment variables in a string (e.g., $HOME, ${HOME})
 fn expand_env_var(s: &str) -> String {
     let mut result = s.to_string();
-    
+
     // Handle $HOME specifically (most common case)
     if let Ok(home) = env::var("HOME") {
         result = result.replace("$HOME", &home);
         result = result.replace("${HOME}", &home);
     }
-    
+
     regex_lite_expand(&result)
 }
 
@@ -445,7 +445,7 @@ fn expand_env_var(s: &str) -> String {
 fn regex_lite_expand(s: &str) -> String {
     let mut result = String::new();
     let mut chars = s.chars().peekable();
-    
+
     while let Some(c) = chars.next() {
         if c == '$' {
             if chars.peek() == Some(&'{') {
@@ -470,7 +470,7 @@ fn regex_lite_expand(s: &str) -> String {
             result.push(c);
         }
     }
-    
+
     result
 }
 

@@ -80,7 +80,11 @@ pub async fn test_template_processing(
     for expected in expected_content {
         if let Some(expected_str) = expected.as_str() {
             if !rendered.contains(expected_str) {
-                return Err(format!("Expected content '{}' not found in rendered template", expected_str).into());
+                return Err(format!(
+                    "Expected content '{}' not found in rendered template",
+                    expected_str
+                )
+                .into());
             }
         }
     }
@@ -112,7 +116,12 @@ pub async fn test_cli_command_sequence(
             if let Some(expected) = expected_outputs.get(i) {
                 if let Some(expected_str) = expected.as_str() {
                     if !output.contains(expected_str) {
-                        return Err(format!("Command {}: Expected '{}' not found in output", i + 1, expected_str).into());
+                        return Err(format!(
+                            "Command {}: Expected '{}' not found in output",
+                            i + 1,
+                            expected_str
+                        )
+                        .into());
                     }
                 }
             }
@@ -173,7 +182,10 @@ fn validate_project_spec(_spec: &str) -> Result<(), Box<dyn std::error::Error>> 
     Ok(())
 }
 
-fn generate_project_structure(project_dir: &std::path::Path, _spec: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn generate_project_structure(
+    project_dir: &std::path::Path,
+    _spec: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     // Simulate project structure generation
     std::fs::create_dir_all(project_dir.join("src"))?;
     std::fs::File::create(project_dir.join("package.json"))?;
@@ -182,7 +194,10 @@ fn generate_project_structure(project_dir: &std::path::Path, _spec: &str) -> Res
     Ok(())
 }
 
-fn process_template(_template_name: &str, vars: &serde_json::Map<String, serde_json::Value>) -> Result<String, Box<dyn std::error::Error>> {
+fn process_template(
+    _template_name: &str,
+    vars: &serde_json::Map<String, serde_json::Value>,
+) -> Result<String, Box<dyn std::error::Error>> {
     // Simulate template processing
     let mut output = String::from("Rendered template content\n");
     for (key, value) in vars {
@@ -191,21 +206,22 @@ fn process_template(_template_name: &str, vars: &serde_json::Map<String, serde_j
     // Also include the raw values to ensure string matching works for "port: 3000" etc regardless of quotes
     // (Value::String debug print includes quotes, so manual formatting is safer for test expectations)
     if let Some(port) = vars.get("port").and_then(|v| v.as_str()) {
-         output.push_str(&format!("port: {}\n", port));
+        output.push_str(&format!("port: {}\n", port));
     }
     Ok(output)
 }
 
 fn execute_cli_command(command: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let output = Command::new("sh")
-        .arg("-c")
-        .arg(command)
-        .output()?;
+    let output = Command::new("sh").arg("-c").arg(command).output()?;
 
     if output.status.success() {
         Ok(String::from_utf8_lossy(&output.stdout).to_string())
     } else {
-        Err(format!("Command failed: {}", String::from_utf8_lossy(&output.stderr)).into())
+        Err(format!(
+            "Command failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        )
+        .into())
     }
 }
 

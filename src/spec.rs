@@ -40,7 +40,10 @@ impl AppSpec {
         let mut output = String::new();
 
         output.push_str("<project_specification>\n");
-        output.push_str(&format!("  <project_name>{}</project_name>\n\n", self.project_name));
+        output.push_str(&format!(
+            "  <project_name>{}</project_name>\n\n",
+            self.project_name
+        ));
 
         output.push_str("  <overview>\n");
         output.push_str(&format!("    {}\n", self.overview));
@@ -49,10 +52,16 @@ impl AppSpec {
         if let Some(ref tech) = self.technology {
             output.push_str("  <technology_stack>\n");
             if !tech.languages.is_empty() {
-                output.push_str(&format!("    <languages>{}</languages>\n", tech.languages.join(", ")));
+                output.push_str(&format!(
+                    "    <languages>{}</languages>\n",
+                    tech.languages.join(", ")
+                ));
             }
             if !tech.frameworks.is_empty() {
-                output.push_str(&format!("    <frameworks>{}</frameworks>\n", tech.frameworks.join(", ")));
+                output.push_str(&format!(
+                    "    <frameworks>{}</frameworks>\n",
+                    tech.frameworks.join(", ")
+                ));
             }
             if !tech.tools.is_empty() {
                 output.push_str(&format!("    <tools>{}</tools>\n", tech.tools.join(", ")));
@@ -62,9 +71,15 @@ impl AppSpec {
 
         output.push_str("  <core_features>\n");
         for feature in &self.features {
-            output.push_str(&format!("    <feature priority=\"{}\">\n", feature.priority.as_str()));
+            output.push_str(&format!(
+                "    <feature priority=\"{}\">\n",
+                feature.priority.as_str()
+            ));
             output.push_str(&format!("      <name>{}</name>\n", feature.name));
-            output.push_str(&format!("      <description>{}</description>\n", feature.description));
+            output.push_str(&format!(
+                "      <description>{}</description>\n",
+                feature.description
+            ));
             if !feature.sub_features.is_empty() {
                 output.push_str("      <sub_features>\n");
                 for sub in &feature.sub_features {
@@ -93,7 +108,10 @@ impl AppSpec {
                 output.push_str("    <endpoint>\n");
                 output.push_str(&format!("      <method>{}</method>\n", ep.method));
                 output.push_str(&format!("      <path>{}</path>\n", ep.path));
-                output.push_str(&format!("      <description>{}</description>\n", ep.description));
+                output.push_str(&format!(
+                    "      <description>{}</description>\n",
+                    ep.description
+                ));
                 output.push_str("    </endpoint>\n");
             }
             output.push_str("  </api_endpoints>\n\n");

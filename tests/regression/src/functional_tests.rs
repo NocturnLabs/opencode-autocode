@@ -32,7 +32,10 @@ pub async fn test_generator_functionality(
     // For now, we'll simulate the test
     // TODO: Replace with actual generator testing once modules are accessible
 
-    let prompt = format!("Generate a project specification for: {}\n<project_specification>\n{{{{IDEA}}}}", input);
+    let prompt = format!(
+        "Generate a project specification for: {}\n<project_specification>\n{{{{IDEA}}}}",
+        input
+    );
 
     // Check that expected strings are contained
     for expected in expected_contains {
@@ -70,18 +73,26 @@ pub async fn test_spec_validation(
     // TODO: Replace with actual spec validation testing
 
     // Simulate validation
-    let is_valid = spec_content.contains("<project_specification>") &&
-                   spec_content.contains("<project_name>") &&
-                   spec_content.contains("<overview>");
+    let is_valid = spec_content.contains("<project_specification>")
+        && spec_content.contains("<project_name>")
+        && spec_content.contains("<overview>");
 
     let features_count = spec_content.matches("<feature").count();
 
     if is_valid != expected_valid {
-        return Err(format!("Validation result mismatch: expected {}, got {}", expected_valid, is_valid).into());
+        return Err(format!(
+            "Validation result mismatch: expected {}, got {}",
+            expected_valid, is_valid
+        )
+        .into());
     }
 
     if features_count != expected_features_count {
-        return Err(format!("Features count mismatch: expected {}, got {}", expected_features_count, features_count).into());
+        return Err(format!(
+            "Features count mismatch: expected {}, got {}",
+            expected_features_count, features_count
+        )
+        .into());
     }
 
     Ok(())
@@ -117,8 +128,12 @@ pub async fn test_cli_execution(
 
     // Check exit code
     if output.status.code() != Some(expected_exit_code) {
-        return Err(format!("Exit code mismatch: expected {}, got {:?}",
-                          expected_exit_code, output.status.code()).into());
+        return Err(format!(
+            "Exit code mismatch: expected {}, got {:?}",
+            expected_exit_code,
+            output.status.code()
+        )
+        .into());
     }
 
     // Check output contains expected strings
@@ -189,7 +204,9 @@ pub async fn test_end_to_end_workflow(
     for expected in expected_outputs {
         if let Some(expected_str) = expected.as_str() {
             if !spec.contains(expected_str) {
-                return Err(format!("Expected '{}' not found in specification", expected_str).into());
+                return Err(
+                    format!("Expected '{}' not found in specification", expected_str).into(),
+                );
             }
         }
     }

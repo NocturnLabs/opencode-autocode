@@ -31,13 +31,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Total Tests: {}", basic_summary.total_tests);
     println!("Passed: {}", basic_summary.passed_tests);
     println!("Failed: {}", basic_summary.failed_tests);
-    println!("Success Rate: {:.1}%",
-             if basic_summary.total_tests > 0 {
-                 (basic_summary.passed_tests as f64 / basic_summary.total_tests as f64) * 100.0
-             } else {
-                 0.0
-             });
-    println!("Total Duration: {:.2}s", basic_summary.total_duration_ms as f64 / 1000.0);
+    println!(
+        "Success Rate: {:.1}%",
+        if basic_summary.total_tests > 0 {
+            (basic_summary.passed_tests as f64 / basic_summary.total_tests as f64) * 100.0
+        } else {
+            0.0
+        }
+    );
+    println!(
+        "Total Duration: {:.2}s",
+        basic_summary.total_duration_ms as f64 / 1000.0
+    );
     println!("Regressions: {}", comparison.regressions.len());
     println!("Improvements: {}", comparison.improvements.len());
     println!("New Tests: {}", comparison.new_tests.len());
@@ -53,7 +58,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("\n❌ Failed Tests:");
         for result in &basic_summary.results {
             if !result.passed {
-                println!("  - {}: {}", result.name, result.error_message.as_deref().unwrap_or("Unknown error"));
+                println!(
+                    "  - {}: {}",
+                    result.name,
+                    result.error_message.as_deref().unwrap_or("Unknown error")
+                );
             }
         }
         std::process::exit(1);
@@ -67,8 +76,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Save reports to files
     println!("\n📄 Saving reports...");
     std::fs::write("results/summary_report.md", &summary.reports.summary_report)?;
-    std::fs::write("results/detailed_report.md", &summary.reports.detailed_report)?;
-    std::fs::write("results/baseline_updates.md", &summary.reports.baseline_updates)?;
+    std::fs::write(
+        "results/detailed_report.md",
+        &summary.reports.detailed_report,
+    )?;
+    std::fs::write(
+        "results/baseline_updates.md",
+        &summary.reports.baseline_updates,
+    )?;
     println!("Reports saved to results/ directory");
 
     Ok(())

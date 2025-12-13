@@ -143,7 +143,8 @@ impl App {
         if let Some(section) = self.selected_section().cloned() {
             self.content.insert(section, self.edit_buffer.clone());
             self.editing = false;
-            self.status_message = "Saved! | j/k: navigate | Enter: edit | q: quit | s: save".to_string();
+            self.status_message =
+                "Saved! | j/k: navigate | Enter: edit | q: quit | s: save".to_string();
         }
     }
 
@@ -171,15 +172,44 @@ impl App {
     }
 
     fn generate_spec(&self) -> String {
-        let project_name = self.content.get(&SpecSection::ProjectName).map(|s| s.as_str()).unwrap_or("Untitled");
-        let overview = self.content.get(&SpecSection::Overview).map(|s| s.as_str()).unwrap_or("");
-        let tech_stack = self.content.get(&SpecSection::TechStack).map(|s| s.as_str()).unwrap_or("");
-        let features = self.content.get(&SpecSection::Features).map(|s| s.as_str()).unwrap_or("");
-        let database = self.content.get(&SpecSection::Database).map(|s| s.as_str()).unwrap_or("");
-        let api = self.content.get(&SpecSection::ApiEndpoints).map(|s| s.as_str()).unwrap_or("");
-        let criteria = self.content.get(&SpecSection::SuccessCriteria).map(|s| s.as_str()).unwrap_or("");
+        let project_name = self
+            .content
+            .get(&SpecSection::ProjectName)
+            .map(|s| s.as_str())
+            .unwrap_or("Untitled");
+        let overview = self
+            .content
+            .get(&SpecSection::Overview)
+            .map(|s| s.as_str())
+            .unwrap_or("");
+        let tech_stack = self
+            .content
+            .get(&SpecSection::TechStack)
+            .map(|s| s.as_str())
+            .unwrap_or("");
+        let features = self
+            .content
+            .get(&SpecSection::Features)
+            .map(|s| s.as_str())
+            .unwrap_or("");
+        let database = self
+            .content
+            .get(&SpecSection::Database)
+            .map(|s| s.as_str())
+            .unwrap_or("");
+        let api = self
+            .content
+            .get(&SpecSection::ApiEndpoints)
+            .map(|s| s.as_str())
+            .unwrap_or("");
+        let criteria = self
+            .content
+            .get(&SpecSection::SuccessCriteria)
+            .map(|s| s.as_str())
+            .unwrap_or("");
 
-        format!(r#"<project_specification>
+        format!(
+            r#"<project_specification>
 <project_name>{}</project_name>
 
 <overview>
@@ -246,7 +276,7 @@ pub fn run_editor(output_dir: &Path) -> Result<()> {
                     KeyCode::Char('s') => {
                         // Save and scaffold
                         let spec = app.generate_spec();
-                        
+
                         // Restore terminal first
                         disable_raw_mode()?;
                         execute!(
@@ -257,15 +287,27 @@ pub fn run_editor(output_dir: &Path) -> Result<()> {
                         terminal.show_cursor()?;
 
                         // Validate and scaffold
-                        println!("\n{}", style("─── Validating Specification ───").cyan().bold());
+                        println!(
+                            "\n{}",
+                            style("─── Validating Specification ───").cyan().bold()
+                        );
                         let validation = crate::validation::validate_spec(&spec)?;
                         validation.print();
 
                         if validation.is_valid {
                             crate::scaffold::scaffold_with_spec_text(output_dir, &spec)?;
-                            println!("\n{}", style("✅ Project scaffolded successfully!").green().bold());
+                            println!(
+                                "\n{}",
+                                style("✅ Project scaffolded successfully!").green().bold()
+                            );
                         } else {
-                            println!("\n{}", style("⚠️  Spec has validation errors. Fix them before scaffolding.").yellow());
+                            println!(
+                                "\n{}",
+                                style(
+                                    "⚠️  Spec has validation errors. Fix them before scaffolding."
+                                )
+                                .yellow()
+                            );
                         }
                         return Ok(());
                     }
@@ -313,7 +355,9 @@ fn ui(f: &mut Frame, app: &mut App) {
         .iter()
         .map(|s| {
             let style = if app.editing && app.selected_section() == Some(s) {
-                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
             } else {
                 Style::default()
             };
@@ -323,13 +367,21 @@ fn ui(f: &mut Frame, app: &mut App) {
 
     let list = List::new(items)
         .block(Block::default().title(" Sections ").borders(Borders::ALL))
-        .highlight_style(Style::default().bg(Color::Blue).add_modifier(Modifier::BOLD))
+        .highlight_style(
+            Style::default()
+                .bg(Color::Blue)
+                .add_modifier(Modifier::BOLD),
+        )
         .highlight_symbol("▶ ");
 
     f.render_stateful_widget(list, content_chunks[0], &mut app.list_state);
 
     // Editor pane
-    let editor_title = if app.editing { " Editor [EDITING] " } else { " Editor " };
+    let editor_title = if app.editing {
+        " Editor [EDITING] "
+    } else {
+        " Editor "
+    };
     let editor_content = if app.editing {
         format!("{}▏", &app.edit_buffer) // Show cursor
     } else {

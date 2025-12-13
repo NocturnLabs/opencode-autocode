@@ -34,13 +34,9 @@ fn main() -> Result<()> {
                     templates::list_templates();
                     Ok(())
                 }
-                TemplateAction::Use { name } => {
-                    templates::use_template(name, &output_dir)
-                }
+                TemplateAction::Use { name } => templates::use_template(name, &output_dir),
             },
-            Commands::Edit => {
-                editor::run_editor(&output_dir)
-            }
+            Commands::Edit => editor::run_editor(&output_dir),
             Commands::RegressionCheck {
                 feature_list,
                 category,
@@ -54,13 +50,13 @@ fn main() -> Result<()> {
                     anyhow::bail!("Feature list not found: {}", feature_path.display());
                 }
 
-                println!("🔍 Running regression check on {}...", feature_path.display());
+                println!(
+                    "🔍 Running regression check on {}...",
+                    feature_path.display()
+                );
 
-                let summary = regression::run_regression_check(
-                    &feature_path,
-                    category.as_deref(),
-                    *verbose,
-                )?;
+                let summary =
+                    regression::run_regression_check(&feature_path, category.as_deref(), *verbose)?;
 
                 regression::report_results(&summary);
 
@@ -91,7 +87,7 @@ fn main() -> Result<()> {
         }
         Mode::Interactive => {
             tui::run_interactive(&output_dir)?;
-            return Ok(());  // TUI handles its own output
+            return Ok(()); // TUI handles its own output
         }
     }
 

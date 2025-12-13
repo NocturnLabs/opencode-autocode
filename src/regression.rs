@@ -155,28 +155,13 @@ pub fn report_results(summary: &RegressionSummary) {
     println!("       REGRESSION CHECK SUMMARY");
     println!("════════════════════════════════════════");
     println!();
-    println!(
-        "Total features:        {}",
-        summary.total_features
-    );
-    println!(
-        "Features checked:      {}",
-        summary.passing_features
-    );
+    println!("Total features:        {}", summary.total_features);
+    println!("Features checked:      {}", summary.passing_features);
     println!();
     println!("Automated tests:");
-    println!(
-        "  ✓ Passed:           {}",
-        summary.automated_passed
-    );
-    println!(
-        "  ✗ Failed:           {}",
-        summary.automated_failed
-    );
-    println!(
-        "  ○ Manual required:  {}",
-        summary.manual_required
-    );
+    println!("  ✓ Passed:           {}", summary.automated_passed);
+    println!("  ✗ Failed:           {}", summary.automated_failed);
+    println!("  ○ Manual required:  {}", summary.manual_required);
     println!();
 
     if summary.automated_failed > 0 {

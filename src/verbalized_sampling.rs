@@ -223,7 +223,9 @@ where
         }
     }
 
-    let status = child.wait().context("Failed to wait for opencode process")?;
+    let status = child
+        .wait()
+        .context("Failed to wait for opencode process")?;
 
     if !status.success() {
         bail!(
@@ -326,7 +328,9 @@ where
         }
     }
 
-    let status = child.wait().context("Failed to wait for opencode process")?;
+    let status = child
+        .wait()
+        .context("Failed to wait for opencode process")?;
 
     if !status.success() {
         bail!(
@@ -341,7 +345,9 @@ where
     on_output(&format!(
         "✅ Selected approach #{} (probability: {:.2})\n",
         selection.selected_index + 1,
-        approaches.responses.get(selection.selected_index)
+        approaches
+            .responses
+            .get(selection.selected_index)
             .map(|a| a.probability)
             .unwrap_or(0.0)
     ));
