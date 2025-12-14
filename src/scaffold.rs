@@ -18,6 +18,9 @@ const RUN_AUTONOMOUS_SCRIPT: &str = include_str!("../templates/scripts/run-auton
 /// Embedded security allowlist
 const SECURITY_ALLOWLIST: &str = include_str!("../templates/scripts/security-allowlist.json");
 
+/// Embedded user configuration template
+const USER_CONFIG_TEMPLATE: &str = include_str!("../templates/autocode-user.toml");
+
 /// Scaffold with the default embedded app spec
 pub fn scaffold_default(output_dir: &Path) -> Result<()> {
     scaffold_with_spec_text(output_dir, DEFAULT_APP_SPEC)
@@ -123,6 +126,16 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     })?;
     println!("   📄 Created opencode-progress.txt");
 
+    // Write user configuration file
+    let config_path = output_dir.join("autocode.toml");
+    fs::write(&config_path, USER_CONFIG_TEMPLATE).with_context(|| {
+        format!(
+            "Failed to write autocode.toml: {}",
+            config_path.display()
+        )
+    })?;
+    println!("   ⚙️  Created autocode.toml");
+
     Ok(())
 }
 
@@ -184,9 +197,13 @@ pub fn preview_scaffold(output_dir: &Path) {
         "   📄 {}",
         style(output_dir.join("opencode-progress.txt").display()).green()
     );
+    println!(
+        "   ⚙️  {}",
+        style(output_dir.join("autocode.toml").display()).green()
+    );
 
     println!("\n{}", style("─".repeat(50)).dim());
-    println!("{}", style("Total: 3 directories, 7 files").cyan());
+    println!("{}", style("Total: 3 directories, 8 files").cyan());
     println!(
         "{}",
         style("Run without --dry-run to create these files.").dim()
