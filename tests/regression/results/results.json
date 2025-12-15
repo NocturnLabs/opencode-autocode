@@ -2,13 +2,21 @@
   "total_tests": 6,
   "passed_tests": 6,
   "failed_tests": 0,
-  "total_duration_ms": 92,
+  "total_duration_ms": 563,
   "results": [
     {
-      "name": "cli_mode_test",
+      "name": "basic_generator_test",
       "category": "functional",
       "passed": true,
-      "duration_ms": 91,
+      "duration_ms": 0,
+      "error_message": null,
+      "metadata": {}
+    },
+    {
+      "name": "spec_validation_test",
+      "category": "functional",
+      "passed": true,
+      "duration_ms": 0,
       "error_message": null,
       "metadata": {}
     },
@@ -29,26 +37,18 @@
       "metadata": {}
     },
     {
-      "name": "basic_generator_test",
-      "category": "functional",
-      "passed": true,
-      "duration_ms": 0,
-      "error_message": null,
-      "metadata": {}
-    },
-    {
-      "name": "spec_validation_test",
-      "category": "functional",
-      "passed": true,
-      "duration_ms": 0,
-      "error_message": null,
-      "metadata": {}
-    },
-    {
       "name": "template_processing_test",
       "category": "integration",
       "passed": true,
       "duration_ms": 0,
+      "error_message": null,
+      "metadata": {}
+    },
+    {
+      "name": "cli_mode_test",
+      "category": "functional",
+      "passed": true,
+      "duration_ms": 562,
       "error_message": null,
       "metadata": {}
     }

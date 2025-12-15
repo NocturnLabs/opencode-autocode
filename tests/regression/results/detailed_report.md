@@ -4,12 +4,12 @@
 
 | Test Name | Status | Duration | Category |
 |-----------|--------|----------|----------|
-| cli_mode_test | ✅ PASS | 91ms | functional |
-| end_to_end_workflow_test | ✅ PASS | 0ms | integration |
-| full_project_generation_test | ✅ PASS | 0ms | integration |
 | basic_generator_test | ✅ PASS | 0ms | functional |
 | spec_validation_test | ✅ PASS | 0ms | functional |
+| end_to_end_workflow_test | ✅ PASS | 0ms | integration |
+| full_project_generation_test | ✅ PASS | 0ms | integration |
 | template_processing_test | ✅ PASS | 0ms | integration |
+| cli_mode_test | ✅ PASS | 562ms | functional |
 
 ## Baseline Comparison
 
