@@ -3,6 +3,7 @@
 //! A CLI tool that scaffolds an autonomous coding plugin for OpenCode,
 //! enhanced with custom MCP integrations.
 
+mod autonomous;
 mod cli;
 mod config;
 mod editor;
@@ -64,6 +65,9 @@ fn main() -> Result<()> {
                     std::process::exit(1);
                 }
                 Ok(())
+            }
+            Commands::Autonomous { limit, config } => {
+                autonomous::run(*limit, config.as_deref())
             }
         };
     }

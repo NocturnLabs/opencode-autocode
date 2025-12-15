@@ -36,6 +36,9 @@ walkdir = "2"
 anyhow = "1"
 thiserror = "2"
 
+# Date/time for autonomous runner
+chrono = "0.4"
+
 # XML parsing and diff generation (for spec validation)
 quick-xml = "0.37"
 similar = "2.6"

@@ -68,6 +68,16 @@ pub enum Commands {
         #[arg(short, long)]
         verbose: bool,
     },
+    /// Run the autonomous agent loop (replaces run-autonomous.sh)
+    Autonomous {
+        /// Maximum number of iterations (default: unlimited)
+        #[arg(short, long)]
+        limit: Option<usize>,
+
+        /// Path to custom config file (default: autocode.toml)
+        #[arg(short, long, value_name = "FILE")]
+        config: Option<PathBuf>,
+    },
 }
 
 /// Template subcommand actions
