@@ -47,7 +47,7 @@ jobs:
         cargo fmt --check
 
     - name: Run regression tests
-      run: ./tests/regression/run_regression_tests.sh
+      run: make regression
 
     - name: Upload regression test results
       uses: actions/upload-artifact@v4

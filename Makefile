@@ -25,7 +25,7 @@ regression: build
 	@echo "═══════════════════════════════════════════════════"
 	cargo test
 	cd tests/regression && cargo build --release
-	./target/release/opencode-autocode regression-check --verbose
+	cd tests/regression && ../../target/release/opencode-regression-tests
 
 # Run the autonomous agent (convenience target)
 autonomous: build
