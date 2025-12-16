@@ -128,12 +128,8 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
 
     // Write user configuration file
     let config_path = output_dir.join("autocode.toml");
-    fs::write(&config_path, USER_CONFIG_TEMPLATE).with_context(|| {
-        format!(
-            "Failed to write autocode.toml: {}",
-            config_path.display()
-        )
-    })?;
+    fs::write(&config_path, USER_CONFIG_TEMPLATE)
+        .with_context(|| format!("Failed to write autocode.toml: {}", config_path.display()))?;
     println!("   ⚙️  Created autocode.toml");
 
     Ok(())

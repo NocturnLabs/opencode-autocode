@@ -115,10 +115,7 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
         match result {
             SessionResult::Continue => {
                 println!("→ Session complete, continuing...");
-                println!(
-                    "→ Next session in {}s (Ctrl+C to stop)",
-                    delay
-                );
+                println!("→ Next session in {}s (Ctrl+C to stop)", delay);
                 thread::sleep(Duration::from_secs(delay as u64));
             }
             SessionResult::Complete => {
@@ -129,7 +126,10 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
             SessionResult::Error(msg) => {
                 println!();
                 println!("⚠ OpenCode exited with error: {}", msg);
-                println!("Check logs and run manually: opencode run --command /{}", command);
+                println!(
+                    "Check logs and run manually: opencode run --command /{}",
+                    command
+                );
                 break;
             }
             SessionResult::Stopped => {
@@ -151,7 +151,11 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
     let feature_path = Path::new(feature_list_file);
     if feature_path.exists() {
         let (passing, remaining) = count_feature_status(feature_path)?;
-        println!("Status: {} / {} tests passing", passing, passing + remaining);
+        println!(
+            "Status: {} / {} tests passing",
+            passing,
+            passing + remaining
+        );
     }
 
     println!();
@@ -195,12 +199,13 @@ fn run_opencode_session(
         println!("→ Continuing session: {}", sid);
     }
 
-    let status = cmd
-        .status()
-        .context("Failed to execute opencode command")?;
+    let status = cmd.status().context("Failed to execute opencode command")?;
 
     println!();
-    println!("→ OpenCode exited with code: {}", status.code().unwrap_or(-1));
+    println!(
+        "→ OpenCode exited with code: {}",
+        status.code().unwrap_or(-1)
+    );
 
     if !status.success() {
         return Ok(SessionResult::Error(format!(

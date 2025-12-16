@@ -1,0 +1,5 @@
+2025-12-16T01:04:43.3760000Z Requested labels: ubuntu-latest
+2025-12-16T01:04:43.3760000Z Job defined at: NocturnLabs/opencode-autocode/.github/workflows/regression-tests.yml@refs/heads/main
+2025-12-16T01:04:43.3760000Z Waiting for a runner to pick up this job...
+2025-12-16T01:04:43.3850000Z Job is about to start running on the hosted runner: GitHub Actions 1000000132
+2025-12-16T01:04:43.3850000Z Job is waiting for a hosted runner to come online.

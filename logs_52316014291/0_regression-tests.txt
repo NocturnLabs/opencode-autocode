@@ -1,0 +1,787 @@
+﻿2025-12-16T01:04:46.5757975Z Current runner version: '2.329.0'
+2025-12-16T01:04:46.5841315Z ##[group]Runner Image Provisioner
+2025-12-16T01:04:46.5842922Z Hosted Compute Agent
+2025-12-16T01:04:46.5844042Z Version: 20251202.455
+2025-12-16T01:04:46.5844970Z Commit: 6c10caca4910e198df60de23adf20ad317c474e3
+2025-12-16T01:04:46.5846112Z Build Date: 2025-12-02T15:56:59Z
+2025-12-16T01:04:46.5847327Z Worker ID: {1cc4f040-c74e-45fe-a410-86a21d7dcacc}
+2025-12-16T01:04:46.5848549Z ##[endgroup]
+2025-12-16T01:04:46.5849468Z ##[group]Operating System
+2025-12-16T01:04:46.5850512Z Ubuntu
+2025-12-16T01:04:46.5851297Z 24.04.3
+2025-12-16T01:04:46.5851991Z LTS
+2025-12-16T01:04:46.5873389Z ##[endgroup]
+2025-12-16T01:04:46.5874222Z ##[group]Runner Image
+2025-12-16T01:04:46.5875195Z Image: ubuntu-24.04
+2025-12-16T01:04:46.5876231Z Version: 20251208.163.1
+2025-12-16T01:04:46.5878045Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20251208.163/images/ubuntu/Ubuntu2404-Readme.md
+2025-12-16T01:04:46.5880807Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20251208.163
+2025-12-16T01:04:46.5882940Z ##[endgroup]
+2025-12-16T01:04:46.5885128Z ##[group]GITHUB_TOKEN Permissions
+2025-12-16T01:04:46.5887818Z Contents: read
+2025-12-16T01:04:46.5888671Z Issues: write
+2025-12-16T01:04:46.5889562Z Metadata: read
+2025-12-16T01:04:46.5890365Z PullRequests: write
+2025-12-16T01:04:46.5891227Z ##[endgroup]
+2025-12-16T01:04:46.5915010Z Secret source: Actions
+2025-12-16T01:04:46.5916287Z Prepare workflow directory
+2025-12-16T01:04:46.6561618Z Prepare all required actions
+2025-12-16T01:04:46.6786639Z Getting action download info
+2025-12-16T01:04:47.3964173Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2025-12-16T01:04:47.5209569Z Download action repository 'actions-rust-lang/setup-rust-toolchain@v1' (SHA:1780873c7b576612439a134613cc4cc74ce5538c)
+2025-12-16T01:04:47.9642499Z Download action repository 'actions/cache@v3' (SHA:6f8efc29b200d32929f49075959781ed54ec270c)
+2025-12-16T01:04:48.1213871Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2025-12-16T01:04:48.2465550Z Download action repository 'actions/github-script@v6' (SHA:d7906e4ad0b1822421a7e6a35d5ca353c962f410)
+2025-12-16T01:04:48.9141815Z Getting action download info
+2025-12-16T01:04:49.0899312Z Download action repository 'Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1' (SHA:f13886b937689c021905a6b90929199931d60db1)
+2025-12-16T01:04:49.8818492Z Complete job name: regression-tests
+2025-12-16T01:04:49.9612611Z ##[group]Run actions/checkout@v4
+2025-12-16T01:04:49.9613969Z with:
+2025-12-16T01:04:49.9614759Z   repository: NocturnLabs/opencode-autocode
+2025-12-16T01:04:49.9616119Z   token: ***
+2025-12-16T01:04:49.9616829Z   ssh-strict: true
+2025-12-16T01:04:49.9617556Z   ssh-user: git
+2025-12-16T01:04:49.9618326Z   persist-credentials: true
+2025-12-16T01:04:49.9619173Z   clean: true
+2025-12-16T01:04:49.9619919Z   sparse-checkout-cone-mode: true
+2025-12-16T01:04:49.9620876Z   fetch-depth: 1
+2025-12-16T01:04:49.9621588Z   fetch-tags: false
+2025-12-16T01:04:49.9622738Z   show-progress: true
+2025-12-16T01:04:49.9623571Z   lfs: false
+2025-12-16T01:04:49.9624259Z   submodules: false
+2025-12-16T01:04:49.9625010Z   set-safe-directory: true
+2025-12-16T01:04:49.9626173Z ##[endgroup]
+2025-12-16T01:04:50.0839535Z Syncing repository: NocturnLabs/opencode-autocode
+2025-12-16T01:04:50.0843957Z ##[group]Getting Git version info
+2025-12-16T01:04:50.0845615Z Working directory is '/home/runner/work/opencode-autocode/opencode-autocode'
+2025-12-16T01:04:50.0849018Z [command]/usr/bin/git version
+2025-12-16T01:04:50.0924296Z git version 2.52.0
+2025-12-16T01:04:50.0956981Z ##[endgroup]
+2025-12-16T01:04:50.0977773Z Temporarily overriding HOME='/home/runner/work/_temp/39d69f21-1ab0-436f-91fe-646d431d58a3' before making global git config changes
+2025-12-16T01:04:50.0995041Z Adding repository directory to the temporary git global config as a safe directory
+2025-12-16T01:04:50.0999001Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/opencode-autocode/opencode-autocode
+2025-12-16T01:04:50.1044879Z Deleting the contents of '/home/runner/work/opencode-autocode/opencode-autocode'
+2025-12-16T01:04:50.1049494Z ##[group]Initializing the repository
+2025-12-16T01:04:50.1055480Z [command]/usr/bin/git init /home/runner/work/opencode-autocode/opencode-autocode
+2025-12-16T01:04:50.1168793Z hint: Using 'master' as the name for the initial branch. This default branch name
+2025-12-16T01:04:50.1172475Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2025-12-16T01:04:50.1175881Z hint: to use in all of your new repositories, which will suppress this warning,
+2025-12-16T01:04:50.1178690Z hint: call:
+2025-12-16T01:04:50.1180214Z hint:
+2025-12-16T01:04:50.1182434Z hint: 	git config --global init.defaultBranch <name>
+2025-12-16T01:04:50.1184675Z hint:
+2025-12-16T01:04:50.1187909Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2025-12-16T01:04:50.1197766Z hint: 'development'. The just-created branch can be renamed via this command:
+2025-12-16T01:04:50.1199991Z hint:
+2025-12-16T01:04:50.1201140Z hint: 	git branch -m <name>
+2025-12-16T01:04:50.1202758Z hint:
+2025-12-16T01:04:50.1204447Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2025-12-16T01:04:50.1207920Z Initialized empty Git repository in /home/runner/work/opencode-autocode/opencode-autocode/.git/
+2025-12-16T01:04:50.1214258Z [command]/usr/bin/git remote add origin https://github.com/NocturnLabs/opencode-autocode
+2025-12-16T01:04:50.1245762Z ##[endgroup]
+2025-12-16T01:04:50.1249694Z ##[group]Disabling automatic garbage collection
+2025-12-16T01:04:50.1251822Z [command]/usr/bin/git config --local gc.auto 0
+2025-12-16T01:04:50.1290145Z ##[endgroup]
+2025-12-16T01:04:50.1292663Z ##[group]Setting up auth
+2025-12-16T01:04:50.1299466Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-12-16T01:04:50.1338793Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-12-16T01:04:50.1689381Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-12-16T01:04:50.1729824Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-12-16T01:04:50.1974341Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2025-12-16T01:04:50.2009408Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2025-12-16T01:04:50.2267097Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2025-12-16T01:04:50.2307039Z ##[endgroup]
+2025-12-16T01:04:50.2309877Z ##[group]Fetching the repository
+2025-12-16T01:04:50.2320340Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +c5c3d6cd6e6953fef5dd8999e4b35085a5bd0398:refs/remotes/origin/main
+2025-12-16T01:04:50.7068824Z From https://github.com/NocturnLabs/opencode-autocode
+2025-12-16T01:04:50.7071307Z  * [new ref]         c5c3d6cd6e6953fef5dd8999e4b35085a5bd0398 -> origin/main
+2025-12-16T01:04:50.7105301Z ##[endgroup]
+2025-12-16T01:04:50.7107448Z ##[group]Determining the checkout info
+2025-12-16T01:04:50.7110173Z ##[endgroup]
+2025-12-16T01:04:50.7113197Z [command]/usr/bin/git sparse-checkout disable
+2025-12-16T01:04:50.7157939Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2025-12-16T01:04:50.7192983Z ##[group]Checking out the ref
+2025-12-16T01:04:50.7195796Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2025-12-16T01:04:50.7317651Z Switched to a new branch 'main'
+2025-12-16T01:04:50.7323270Z branch 'main' set up to track 'origin/main'.
+2025-12-16T01:04:50.7331589Z ##[endgroup]
+2025-12-16T01:04:50.7378392Z [command]/usr/bin/git log -1 --format=%H
+2025-12-16T01:04:50.7406807Z c5c3d6cd6e6953fef5dd8999e4b35085a5bd0398
+2025-12-16T01:04:50.8039211Z ##[group]Run actions-rust-lang/setup-rust-toolchain@v1
+2025-12-16T01:04:50.8040331Z with:
+2025-12-16T01:04:50.8041032Z   components: clippy, rustfmt
+2025-12-16T01:04:50.8041889Z   cache: true
+2025-12-16T01:04:50.8042779Z   cache-on-failure: true
+2025-12-16T01:04:50.8043575Z   cache-bin: true
+2025-12-16T01:04:50.8044317Z   cache-provider: github
+2025-12-16T01:04:50.8045157Z   cache-all-crates: false
+2025-12-16T01:04:50.8046018Z   cache-workspace-crates: false
+2025-12-16T01:04:50.8046863Z   matcher: true
+2025-12-16T01:04:50.8047589Z   rustflags: -D warnings
+2025-12-16T01:04:50.8048371Z   override: true
+2025-12-16T01:04:50.8049082Z ##[endgroup]
+2025-12-16T01:04:50.8223420Z ##[group]Run : construct rustup command line
+2025-12-16T01:04:50.8224559Z [36;1m: construct rustup command line[0m
+2025-12-16T01:04:50.8226003Z [36;1mecho "targets=$(for t in ${targets//,/ }; do echo -n ' --target' $t; done)" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:04:50.8228439Z [36;1mecho "components=$(for c in ${components//,/ }; do echo -n ' --component' $c; done)" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:04:50.8231127Z [36;1mecho "downgrade=" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:04:50.8283318Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:04:50.8285191Z env:
+2025-12-16T01:04:50.8286272Z   targets: 
+2025-12-16T01:04:50.8287519Z   components: clippy, rustfmt
+2025-12-16T01:04:50.8288993Z ##[endgroup]
+2025-12-16T01:04:50.8479606Z ##[group]Run if [[ ! -v CARGO_INCREMENTAL ]]; then
+2025-12-16T01:04:50.8481497Z [36;1mif [[ ! -v CARGO_INCREMENTAL ]]; then[0m
+2025-12-16T01:04:50.8482806Z [36;1m  echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8483800Z [36;1mfi[0m
+2025-12-16T01:04:50.8484577Z [36;1mif [[ ! -v CARGO_PROFILE_DEV_DEBUG ]]; then[0m
+2025-12-16T01:04:50.8485739Z [36;1m  echo "CARGO_PROFILE_DEV_DEBUG=0" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8486756Z [36;1mfi[0m
+2025-12-16T01:04:50.8487483Z [36;1mif [[ ! -v CARGO_TERM_COLOR ]]; then[0m
+2025-12-16T01:04:50.8488573Z [36;1m  echo "CARGO_TERM_COLOR=always" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8489585Z [36;1mfi[0m
+2025-12-16T01:04:50.8490301Z [36;1mif [[ ! -v RUST_BACKTRACE ]]; then[0m
+2025-12-16T01:04:50.8491332Z [36;1m  echo "RUST_BACKTRACE=short" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8492594Z [36;1mfi[0m
+2025-12-16T01:04:50.8493464Z [36;1mif [[ ( ! -v RUSTFLAGS ) && $NEW_RUSTFLAGS != "" ]]; then[0m
+2025-12-16T01:04:50.8494672Z [36;1m  echo "RUSTFLAGS=$NEW_RUSTFLAGS" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8495675Z [36;1mfi[0m
+2025-12-16T01:04:50.8496437Z [36;1m# Enable faster sparse index on nightly[0m
+2025-12-16T01:04:50.8497625Z [36;1m# The value is ignored on stable and causes no problems[0m
+2025-12-16T01:04:50.8499275Z [36;1m# https://internals.rust-lang.org/t/call-for-testing-cargo-sparse-registry/16862[0m
+2025-12-16T01:04:50.8500887Z [36;1mif [[ ! -v CARGO_UNSTABLE_SPARSE_REGISTRY ]]; then[0m
+2025-12-16T01:04:50.8502369Z [36;1m  echo "CARGO_UNSTABLE_SPARSE_REGISTRY=true" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8503544Z [36;1mfi[0m
+2025-12-16T01:04:50.8504412Z [36;1mif [[ ! -v CARGO_REGISTRIES_CRATES_IO_PROTOCOL ]]; then[0m
+2025-12-16T01:04:50.8505796Z [36;1m  echo "CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8506993Z [36;1mfi[0m
+2025-12-16T01:04:50.8541002Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:04:50.8542068Z env:
+2025-12-16T01:04:50.8542843Z   NEW_RUSTFLAGS: -D warnings
+2025-12-16T01:04:50.8543643Z ##[endgroup]
+2025-12-16T01:04:50.8659211Z ##[group]Run echo "::add-matcher::/home/runner/work/_actions/actions-rust-lang/setup-rust-toolchain/v1/rust.json"
+2025-12-16T01:04:50.8661590Z [36;1mecho "::add-matcher::/home/runner/work/_actions/actions-rust-lang/setup-rust-toolchain/v1/rust.json"[0m
+2025-12-16T01:04:50.8697029Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:04:50.8698109Z env:
+2025-12-16T01:04:50.8698750Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:04:50.8699719Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:04:50.8700556Z   CARGO_TERM_COLOR: always
+2025-12-16T01:04:50.8701356Z   RUST_BACKTRACE: short
+2025-12-16T01:04:50.8702119Z   RUSTFLAGS: -D warnings
+2025-12-16T01:04:50.8703195Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:04:50.8704217Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:04:50.8705148Z ##[endgroup]
+2025-12-16T01:04:50.8842645Z ##[group]Run if ! command -v rustup &> /dev/null ; then
+2025-12-16T01:04:50.8843839Z [36;1mif ! command -v rustup &> /dev/null ; then[0m
+2025-12-16T01:04:50.8845790Z [36;1m  curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -fsSL "https://sh.rustup.rs" | sh -s -- --default-toolchain none -y[0m
+2025-12-16T01:04:50.8847605Z [36;1m[0m
+2025-12-16T01:04:50.8848474Z [36;1m  # Resolve the correct CARGO_HOME path depending on OS[0m
+2025-12-16T01:04:50.8849666Z [36;1m  if [[ "$RUNNER_OS" == "Windows" ]]; then[0m
+2025-12-16T01:04:50.8851041Z [36;1m    echo "${CARGO_HOME:-$USERPROFILE/.cargo}/bin" | sed 's|/|\\|g' >> $GITHUB_PATH[0m
+2025-12-16T01:04:50.8852456Z [36;1m  else[0m
+2025-12-16T01:04:50.8853356Z [36;1m    echo "${CARGO_HOME:-$HOME/.cargo}/bin" >> $GITHUB_PATH[0m
+2025-12-16T01:04:50.8854410Z [36;1m  fi[0m
+2025-12-16T01:04:50.8855075Z [36;1mfi[0m
+2025-12-16T01:04:50.8889481Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:04:50.8890708Z env:
+2025-12-16T01:04:50.8891354Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:04:50.8892129Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:04:50.8893083Z   CARGO_TERM_COLOR: always
+2025-12-16T01:04:50.8893880Z   RUST_BACKTRACE: short
+2025-12-16T01:04:50.8894649Z   RUSTFLAGS: -D warnings
+2025-12-16T01:04:50.8895469Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:04:50.8896471Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:04:50.8897418Z   RUNNER_OS: Linux
+2025-12-16T01:04:50.8898125Z ##[endgroup]
+2025-12-16T01:04:50.9131337Z ##[group]Run # Check if value is set
+2025-12-16T01:04:50.9133320Z [36;1m# Check if value is set[0m
+2025-12-16T01:04:50.9135040Z [36;1mif [[ -n "$rust_src_dir" ]][0m
+2025-12-16T01:04:50.9136642Z [36;1mthen[0m
+2025-12-16T01:04:50.9138048Z [36;1m  # If value is set the directory must exist[0m
+2025-12-16T01:04:50.9140085Z [36;1m  if [[ -d "$rust_src_dir" ]][0m
+2025-12-16T01:04:50.9141327Z [36;1m  then[0m
+2025-12-16T01:04:50.9142045Z [36;1m    cd "$rust_src_dir"[0m
+2025-12-16T01:04:50.9143222Z [36;1m  else[0m
+2025-12-16T01:04:50.9144236Z [36;1m    echo "'rust-src-dir' does not point to an existing directory" >&2[0m
+2025-12-16T01:04:50.9145674Z [36;1m    echo "The value of 'rust-src-dir' is: ${rust_src_dir}" >&2[0m
+2025-12-16T01:04:50.9148036Z [36;1m    exit 1[0m
+2025-12-16T01:04:50.9148755Z [36;1m  fi[0m
+2025-12-16T01:04:50.9149409Z [36;1mfi[0m
+2025-12-16T01:04:50.9150459Z [36;1mif [[ -z "$toolchain" && ( -f "rust-toolchain" || -f "rust-toolchain.toml") ]][0m
+2025-12-16T01:04:50.9151724Z [36;1mthen[0m
+2025-12-16T01:04:50.9152879Z [36;1m  # Install the toolchain as specified in the file[0m
+2025-12-16T01:04:50.9154252Z [36;1m  # rustup show is the old way that implicitly installed a toolchain[0m
+2025-12-16T01:04:50.9155648Z [36;1m  # rustup toolchain install is the new explicit way[0m
+2025-12-16T01:04:50.9157144Z [36;1m  # https://github.com/rust-lang/rustup/issues/3635#issuecomment-2343511297[0m
+2025-12-16T01:04:50.9158718Z [36;1m  rustup show active-toolchain || rustup toolchain install[0m
+2025-12-16T01:04:50.9159909Z [36;1m  if [[ -n $components ]]; then[0m
+2025-12-16T01:04:50.9160925Z [36;1m    rustup component add ${components//,/ }[0m
+2025-12-16T01:04:50.9161886Z [36;1m  fi[0m
+2025-12-16T01:04:50.9162884Z [36;1m  if [[ -n $targets ]]; then[0m
+2025-12-16T01:04:50.9163837Z [36;1m    rustup target add ${targets//,/ }[0m
+2025-12-16T01:04:50.9164762Z [36;1m  fi[0m
+2025-12-16T01:04:50.9165688Z [36;1melse[0m
+2025-12-16T01:04:50.9166425Z [36;1m  if [[ -z "$toolchain" ]][0m
+2025-12-16T01:04:50.9167276Z [36;1m  then[0m
+2025-12-16T01:04:50.9167972Z [36;1m    toolchain=stable[0m
+2025-12-16T01:04:50.9168906Z [36;1m  fi[0m
+2025-12-16T01:04:50.9170465Z [36;1m  rustup toolchain install ${toolchain//,/ }  --component clippy --component rustfmt --profile minimal --no-self-update[0m
+2025-12-16T01:04:50.9172504Z [36;1m  # Take the last element from the list[0m
+2025-12-16T01:04:50.9173517Z [36;1m  if [[ "$override" == "true" ]][0m
+2025-12-16T01:04:50.9174398Z [36;1m  then[0m
+2025-12-16T01:04:50.9175196Z [36;1m    rustup override set ${toolchain//*,/ }[0m
+2025-12-16T01:04:50.9176142Z [36;1m  fi[0m
+2025-12-16T01:04:50.9176776Z [36;1mfi[0m
+2025-12-16T01:04:50.9210826Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:04:50.9211905Z env:
+2025-12-16T01:04:50.9212663Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:04:50.9213423Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:04:50.9214242Z   CARGO_TERM_COLOR: always
+2025-12-16T01:04:50.9215025Z   RUST_BACKTRACE: short
+2025-12-16T01:04:50.9215809Z   RUSTFLAGS: -D warnings
+2025-12-16T01:04:50.9216631Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:04:50.9217599Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:04:50.9218522Z   toolchain: 
+2025-12-16T01:04:50.9219172Z   targets: 
+2025-12-16T01:04:50.9219842Z   components: clippy, rustfmt
+2025-12-16T01:04:50.9220661Z   override: true
+2025-12-16T01:04:50.9221329Z   rust_src_dir: 
+2025-12-16T01:04:50.9222001Z ##[endgroup]
+2025-12-16T01:04:52.4301876Z info: syncing channel updates for 'stable-x86_64-unknown-linux-gnu'
+2025-12-16T01:04:52.7279880Z info: latest update on 2025-12-11, rust version 1.92.0 (ded5c06cf 2025-12-08)
+2025-12-16T01:04:52.7658799Z info: downloading component 'clippy'
+2025-12-16T01:04:52.9493089Z info: downloading component 'rustfmt'
+2025-12-16T01:04:53.1040194Z info: downloading component 'cargo'
+2025-12-16T01:04:53.3638437Z info: downloading component 'rust-std'
+2025-12-16T01:04:53.8586540Z info: downloading component 'rustc'
+2025-12-16T01:04:55.0590344Z info: removing previous version of component 'clippy'
+2025-12-16T01:04:55.0608013Z info: removing previous version of component 'rustfmt'
+2025-12-16T01:04:55.0657656Z info: removing previous version of component 'cargo'
+2025-12-16T01:04:55.0744354Z info: removing previous version of component 'rust-std'
+2025-12-16T01:04:55.0806437Z info: removing previous version of component 'rustc'
+2025-12-16T01:04:55.0860433Z info: installing component 'clippy'
+2025-12-16T01:04:55.4729536Z info: installing component 'rustfmt'
+2025-12-16T01:04:55.7081108Z info: installing component 'cargo'
+2025-12-16T01:04:56.4338190Z info: installing component 'rust-std'
+2025-12-16T01:04:58.3641810Z info: installing component 'rustc'
+2025-12-16T01:05:03.5550288Z 
+2025-12-16T01:05:03.5664599Z   stable-x86_64-unknown-linux-gnu updated - rustc 1.92.0 (ded5c06cf 2025-12-08) (from rustc 1.91.1 (ed61e7d7e 2025-11-07))
+2025-12-16T01:05:03.5671618Z 
+2025-12-16T01:05:03.5752038Z info: override toolchain for '/home/runner/work/opencode-autocode/opencode-autocode' set to 'stable-x86_64-unknown-linux-gnu'
+2025-12-16T01:05:03.5798344Z ##[group]Run echo "rustc-version=$(rustc --version)" >> $GITHUB_OUTPUT
+2025-12-16T01:05:03.5798807Z [36;1mecho "rustc-version=$(rustc --version)" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:05:03.5799131Z [36;1mrustc --version --verbose[0m
+2025-12-16T01:05:03.5799443Z [36;1mecho "cargo-version=$(cargo --version)" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:05:03.5799768Z [36;1mcargo --version --verbose[0m
+2025-12-16T01:05:03.5800084Z [36;1mecho "rustup-version=$(rustup --version)" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:05:03.5800401Z [36;1mrustup --version[0m
+2025-12-16T01:05:03.5800605Z [36;1m[0m
+2025-12-16T01:05:03.5800991Z [36;1mDATE=$(rustc --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')[0m
+2025-12-16T01:05:03.5801540Z [36;1mHASH=$(rustc --version --verbose | sed -ne 's/^commit-hash: //p')[0m
+2025-12-16T01:05:03.5802154Z [36;1mecho "cachekey=$(echo $DATE$HASH | head -c12)" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:05:03.5835157Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:05:03.5835493Z env:
+2025-12-16T01:05:03.5835663Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:05:03.5835873Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:05:03.5836090Z   CARGO_TERM_COLOR: always
+2025-12-16T01:05:03.5836298Z   RUST_BACKTRACE: short
+2025-12-16T01:05:03.5836500Z   RUSTFLAGS: -D warnings
+2025-12-16T01:05:03.5836713Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:05:03.5836984Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:05:03.5837224Z ##[endgroup]
+2025-12-16T01:05:03.6942120Z rustc 1.92.0 (ded5c06cf 2025-12-08)
+2025-12-16T01:05:03.6942956Z binary: rustc
+2025-12-16T01:05:03.6943364Z commit-hash: ded5c06cf21d2b93bffd5d884aa6e96934ee4234
+2025-12-16T01:05:03.6943862Z commit-date: 2025-12-08
+2025-12-16T01:05:03.6944253Z host: x86_64-unknown-linux-gnu
+2025-12-16T01:05:03.6944644Z release: 1.92.0
+2025-12-16T01:05:03.6944959Z LLVM version: 21.1.3
+2025-12-16T01:05:03.8163836Z cargo 1.92.0 (344c4567c 2025-10-21)
+2025-12-16T01:05:03.8176792Z release: 1.92.0
+2025-12-16T01:05:03.8177826Z commit-hash: 344c4567c634a25837e3c3476aac08af84cf9203
+2025-12-16T01:05:03.8178773Z commit-date: 2025-10-21
+2025-12-16T01:05:03.8179617Z host: x86_64-unknown-linux-gnu
+2025-12-16T01:05:03.8180327Z libgit2: 1.9.1 (sys:0.20.2 vendored)
+2025-12-16T01:05:03.8182110Z libcurl: 8.15.0-DEV (sys:0.4.83+curl-8.15.0 vendored ssl:OpenSSL/3.5.4)
+2025-12-16T01:05:03.8184401Z ssl: OpenSSL 3.5.4 30 Sep 2025
+2025-12-16T01:05:03.8184777Z os: Ubuntu 24.4.0 (noble) [64-bit]
+2025-12-16T01:05:03.8263431Z info: This is the version for the rustup toolchain manager, not the rustc compiler.
+2025-12-16T01:05:03.9012956Z info: The currently active `rustc` version is `rustc 1.92.0 (ded5c06cf 2025-12-08)`
+2025-12-16T01:05:03.9100424Z info: This is the version for the rustup toolchain manager, not the rustc compiler.
+2025-12-16T01:05:03.9101200Z rustup 1.28.2 (e4f3ad6f8 2025-04-28)
+2025-12-16T01:05:03.9811593Z info: The currently active `rustc` version is `rustc 1.92.0 (ded5c06cf 2025-12-08)`
+2025-12-16T01:05:04.0963086Z ##[group]Run # Not all versions support setting CARGO_REGISTRIES_CRATES_IO_PROTOCOL
+2025-12-16T01:05:04.0963602Z [36;1m# Not all versions support setting CARGO_REGISTRIES_CRATES_IO_PROTOCOL[0m
+2025-12-16T01:05:04.0964077Z [36;1m# On versions 1.66, 1.67, and 1.68.0-nightly the value "sparse" is still unstable.[0m
+2025-12-16T01:05:04.0964604Z [36;1m# https://github.com/dtolnay/rust-toolchain/pull/69#discussion_r1107268108[0m
+2025-12-16T01:05:04.0965151Z [36;1m# If we detect an incompatible value, set it to "git" which is always supported.[0m
+2025-12-16T01:05:04.0965789Z [36;1mif [[ "rustc 1.92.0 (ded5c06cf 2025-12-08)" =~ ^rustc\ (1\.6[67]\.|1\.68\.0-nightly) && "${CARGO_REGISTRIES_CRATES_IO_PROTOCOL}" == "sparse" ]]; then[0m
+2025-12-16T01:05:04.0966332Z [36;1m  echo "Downgrade cargo registry protocol to git"[0m
+2025-12-16T01:05:04.0966723Z [36;1m  echo "CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git" >> $GITHUB_ENV[0m
+2025-12-16T01:05:04.0967029Z [36;1mfi[0m
+2025-12-16T01:05:04.0999479Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:05:04.0999818Z env:
+2025-12-16T01:05:04.0999994Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:05:04.1000208Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:05:04.1000425Z   CARGO_TERM_COLOR: always
+2025-12-16T01:05:04.1000632Z   RUST_BACKTRACE: short
+2025-12-16T01:05:04.1000837Z   RUSTFLAGS: -D warnings
+2025-12-16T01:05:04.1001050Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:05:04.1001315Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:05:04.1001554Z ##[endgroup]
+2025-12-16T01:05:04.1123254Z ##[group]Run Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1
+2025-12-16T01:05:04.1123599Z with:
+2025-12-16T01:05:04.1123796Z   cache-on-failure: true
+2025-12-16T01:05:04.1124005Z   cache-bin: true
+2025-12-16T01:05:04.1124202Z   cache-provider: github
+2025-12-16T01:05:04.1124619Z   cache-all-crates: false
+2025-12-16T01:05:04.1124840Z   cache-workspace-crates: false
+2025-12-16T01:05:04.1125066Z   prefix-key: v0-rust
+2025-12-16T01:05:04.1125391Z   cache-targets: true
+2025-12-16T01:05:04.1125580Z   save-if: true
+2025-12-16T01:05:04.1125752Z   lookup-only: false
+2025-12-16T01:05:04.1125928Z env:
+2025-12-16T01:05:04.1126084Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:05:04.1126282Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:05:04.1126489Z   CARGO_TERM_COLOR: always
+2025-12-16T01:05:04.1126693Z   RUST_BACKTRACE: short
+2025-12-16T01:05:04.1126893Z   RUSTFLAGS: -D warnings
+2025-12-16T01:05:04.1127109Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:05:04.1127387Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:05:04.1127629Z ##[endgroup]
+2025-12-16T01:05:04.6790377Z ##[group]Cache Configuration
+2025-12-16T01:05:04.6791272Z Cache Provider:
+2025-12-16T01:05:04.6791828Z     github
+2025-12-16T01:05:04.6792719Z Workspaces:
+2025-12-16T01:05:04.6793503Z     /home/runner/work/opencode-autocode/opencode-autocode
+2025-12-16T01:05:04.6796109Z Cache Paths:
+2025-12-16T01:05:04.6796435Z     /home/runner/.cargo/bin
+2025-12-16T01:05:04.6796848Z     /home/runner/.cargo/.crates.toml
+2025-12-16T01:05:04.6797293Z     /home/runner/.cargo/.crates2.json
+2025-12-16T01:05:04.6797719Z     /home/runner/.cargo/registry
+2025-12-16T01:05:04.6798131Z     /home/runner/.cargo/git
+2025-12-16T01:05:04.6824396Z     /home/runner/work/opencode-autocode/opencode-autocode/target
+2025-12-16T01:05:04.6825003Z Restore Key:
+2025-12-16T01:05:04.6825419Z     v0-rust-regression-tests-Linux-x64-2750ab4c
+2025-12-16T01:05:04.6825895Z Cache Key:
+2025-12-16T01:05:04.6826324Z     v0-rust-regression-tests-Linux-x64-2750ab4c-5a2225ca
+2025-12-16T01:05:04.6826889Z .. Prefix:
+2025-12-16T01:05:04.6827240Z   - v0-rust-regression-tests-Linux-x64
+2025-12-16T01:05:04.6827727Z .. Environment considered:
+2025-12-16T01:05:04.6828350Z   - Rust Version: 1.92.0 x86_64-unknown-linux-gnu (ded5c06cf21d2b93bffd5d884aa6e96934ee4234)
+2025-12-16T01:05:04.6829009Z   - CARGO_INCREMENTAL
+2025-12-16T01:05:04.6829330Z   - CARGO_PROFILE_DEV_DEBUG
+2025-12-16T01:05:04.6829725Z   - CARGO_REGISTRIES_CRATES_IO_PROTOCOL
+2025-12-16T01:05:04.6830157Z   - CARGO_TERM_COLOR
+2025-12-16T01:05:04.6830515Z   - CARGO_UNSTABLE_SPARSE_REGISTRY
+2025-12-16T01:05:04.6830903Z   - RUST_BACKTRACE
+2025-12-16T01:05:04.6831212Z   - RUSTFLAGS
+2025-12-16T01:05:04.6831510Z .. Lockfiles considered:
+2025-12-16T01:05:04.6832060Z   - /home/runner/work/opencode-autocode/opencode-autocode/Cargo.lock
+2025-12-16T01:05:04.6833000Z   - /home/runner/work/opencode-autocode/opencode-autocode/Cargo.toml
+2025-12-16T01:05:04.6833785Z   - /home/runner/work/opencode-autocode/opencode-autocode/tests/regression/Cargo.toml
+2025-12-16T01:05:04.6834717Z ##[endgroup]
+2025-12-16T01:05:04.6834871Z 
+2025-12-16T01:05:04.6834994Z ... Restoring cache ...
+2025-12-16T01:05:04.9832585Z Cache hit for restore-key: v0-rust-regression-tests-Linux-x64-2750ab4c-c5d057b0
+2025-12-16T01:05:06.2110255Z Received 12582912 of 221652072 (5.7%), 12.0 MBs/sec
+2025-12-16T01:05:07.2105996Z Received 134217728 of 221652072 (60.6%), 64.0 MBs/sec
+2025-12-16T01:05:07.9646951Z Received 221652072 of 221652072 (100.0%), 76.8 MBs/sec
+2025-12-16T01:05:07.9650005Z Cache Size: ~211 MB (221652072 B)
+2025-12-16T01:05:07.9875601Z [command]/usr/bin/tar -xf /home/runner/work/_temp/aac33f28-c341-4595-a5aa-085a2491453b/cache.tzst -P -C /home/runner/work/opencode-autocode/opencode-autocode --use-compress-program unzstd
+2025-12-16T01:05:09.7163769Z Cache restored successfully
+2025-12-16T01:05:10.6044348Z Restored from cache key "v0-rust-regression-tests-Linux-x64-2750ab4c-c5d057b0" full match: false.
+2025-12-16T01:05:11.0468746Z ##[group]Run actions/cache@v3
+2025-12-16T01:05:11.0469000Z with:
+2025-12-16T01:05:11.0469213Z   path: ~/.cargo/registry
+~/.cargo/git
+target
+
+2025-12-16T01:05:11.0469658Z   key: Linux-cargo-b63945056d94ad8bd49d91d20b8b6a00fb9ca426b65d0d2d5464d23879d90c9a
+2025-12-16T01:05:11.0470066Z   restore-keys: Linux-cargo-
+
+2025-12-16T01:05:11.0470523Z   enableCrossOsArchive: false
+2025-12-16T01:05:11.0470752Z   fail-on-cache-miss: false
+2025-12-16T01:05:11.0470962Z   lookup-only: false
+2025-12-16T01:05:11.0471148Z env:
+2025-12-16T01:05:11.0471315Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:05:11.0471514Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:05:11.0471734Z   CARGO_TERM_COLOR: always
+2025-12-16T01:05:11.0471941Z   RUST_BACKTRACE: short
+2025-12-16T01:05:11.0472138Z   RUSTFLAGS: -D warnings
+2025-12-16T01:05:11.0472541Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:05:11.0472820Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:05:11.0473081Z   CACHE_ON_FAILURE: true
+2025-12-16T01:05:11.0473320Z ##[endgroup]
+2025-12-16T01:05:11.4073474Z Cache hit for restore-key: Linux-cargo-c9a4285abacc47749d88b136a9e26e71f70160c7ab51d0a32f159ddbebe25efb
+2025-12-16T01:05:12.6378969Z Received 37748736 of 197117489 (19.2%), 36.0 MBs/sec
+2025-12-16T01:05:13.6381853Z Received 163577856 of 197117489 (83.0%), 78.0 MBs/sec
+2025-12-16T01:05:13.8708472Z Received 197117489 of 197117489 (100.0%), 84.2 MBs/sec
+2025-12-16T01:05:13.8710236Z Cache Size: ~188 MB (197117489 B)
+2025-12-16T01:05:13.8741001Z [command]/usr/bin/tar -xf /home/runner/work/_temp/fdfe32e9-acbf-4260-91ca-c4576a42ba57/cache.tzst -P -C /home/runner/work/opencode-autocode/opencode-autocode --use-compress-program unzstd
+2025-12-16T01:05:17.0058261Z Cache restored successfully
+2025-12-16T01:05:17.0519782Z Cache restored from key: Linux-cargo-c9a4285abacc47749d88b136a9e26e71f70160c7ab51d0a32f159ddbebe25efb
+2025-12-16T01:05:17.0636748Z ##[group]Run cargo test --verbose
+2025-12-16T01:05:17.0637046Z [36;1mcargo test --verbose[0m
+2025-12-16T01:05:17.0669918Z shell: /usr/bin/bash -e {0}
+2025-12-16T01:05:17.0670159Z env:
+2025-12-16T01:05:17.0670333Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:05:17.0670561Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:05:17.0670791Z   CARGO_TERM_COLOR: always
+2025-12-16T01:05:17.0671012Z   RUST_BACKTRACE: short
+2025-12-16T01:05:17.0671230Z   RUSTFLAGS: -D warnings
+2025-12-16T01:05:17.0671472Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:05:17.0671764Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:05:17.0672040Z   CACHE_ON_FAILURE: true
+2025-12-16T01:05:17.0672358Z ##[endgroup]
+2025-12-16T01:05:17.3407260Z [1m[92m       Fresh[0m unicode-ident v1.0.22
+2025-12-16T01:05:17.3411553Z [1m[92m       Fresh[0m proc-macro2 v1.0.103
+2025-12-16T01:05:17.3412123Z [1m[92m       Fresh[0m quote v1.0.42
+2025-12-16T01:05:17.3414192Z [1m[92m       Fresh[0m syn v2.0.111
+2025-12-16T01:05:17.3414891Z [1m[92m       Fresh[0m libc v0.2.178
+2025-12-16T01:05:17.3415446Z [1m[92m       Fresh[0m strsim v0.11.1
+2025-12-16T01:05:17.3416310Z [1m[92m       Fresh[0m ident_case v1.0.1
+2025-12-16T01:05:17.3460970Z [1m[92m       Fresh[0m cfg-if v1.0.4
+2025-12-16T01:05:17.3461593Z [1m[92m       Fresh[0m fnv v1.0.7
+2025-12-16T01:05:17.3462126Z [1m[92m       Fresh[0m darling_core v0.20.11
+2025-12-16T01:05:17.3462946Z [1m[92m       Fresh[0m darling_macro v0.20.11
+2025-12-16T01:05:17.3463561Z [1m[92m       Fresh[0m serde_core v1.0.228
+2025-12-16T01:05:17.3464122Z [1m[92m       Fresh[0m bitflags v2.10.0
+2025-12-16T01:05:17.3483345Z [1m[92m       Fresh[0m memchr v2.7.6
+2025-12-16T01:05:17.3483935Z [1m[92m       Fresh[0m darling v0.20.11
+2025-12-16T01:05:17.3484698Z [1m[92m       Fresh[0m serde_derive v1.0.228
+2025-12-16T01:05:17.3485300Z [1m[92m       Fresh[0m equivalent v1.0.2
+2025-12-16T01:05:17.3485939Z [1m[92m       Fresh[0m unicode-segmentation v1.12.0
+2025-12-16T01:05:17.3486545Z [1m[92m       Fresh[0m log v0.4.29
+2025-12-16T01:05:17.3487075Z [1m[92m       Fresh[0m serde v1.0.228
+2025-12-16T01:05:17.3487641Z [1m[92m       Fresh[0m rustversion v1.0.22
+2025-12-16T01:05:17.3488267Z [1m[92m       Fresh[0m signal-hook-registry v1.4.7
+2025-12-16T01:05:17.3488863Z [1m[92m       Fresh[0m scopeguard v1.2.0
+2025-12-16T01:05:17.3489418Z [1m[92m       Fresh[0m ucd-trie v0.1.7
+2025-12-16T01:05:17.3489932Z [1m[92m       Fresh[0m heck v0.5.0
+2025-12-16T01:05:17.3490769Z [1m[92m       Fresh[0m smallvec v1.15.1
+2025-12-16T01:05:17.3491357Z [1m[92m       Fresh[0m parking_lot_core v0.9.12
+2025-12-16T01:05:17.3491923Z [1m[92m       Fresh[0m pest v2.8.4
+2025-12-16T01:05:17.3492703Z [1m[92m       Fresh[0m signal-hook v0.3.18
+2025-12-16T01:05:17.3493264Z [1m[92m       Fresh[0m lock_api v0.4.14
+2025-12-16T01:05:17.3493792Z [1m[92m       Fresh[0m mio v1.1.1
+2025-12-16T01:05:17.3494291Z [1m[92m       Fresh[0m ryu v1.0.20
+2025-12-16T01:05:17.3494802Z [1m[92m       Fresh[0m itoa v1.0.15
+2025-12-16T01:05:17.3495349Z [1m[92m       Fresh[0m linux-raw-sys v0.11.0
+2025-12-16T01:05:17.3495900Z [1m[92m       Fresh[0m autocfg v1.5.0
+2025-12-16T01:05:17.3496428Z [1m[92m       Fresh[0m utf8parse v0.2.2
+2025-12-16T01:05:17.3496993Z [1m[92m       Fresh[0m anstyle-parse v0.2.7
+2025-12-16T01:05:17.3497548Z [1m[92m       Fresh[0m rustix v1.1.2
+2025-12-16T01:05:17.3498100Z [1m[92m       Fresh[0m parking_lot v0.12.5
+2025-12-16T01:05:17.3498682Z [1m[92m       Fresh[0m signal-hook-mio v0.2.5
+2025-12-16T01:05:17.3499253Z [1m[92m       Fresh[0m pest_meta v2.8.4
+2025-12-16T01:05:17.3499813Z [1m[92m       Fresh[0m convert_case v0.10.0
+2025-12-16T01:05:17.3500412Z [1m[92m       Fresh[0m derive_builder_core v0.20.2
+2025-12-16T01:05:17.3500977Z [1m[92m       Fresh[0m foldhash v0.1.5
+2025-12-16T01:05:17.3501527Z [1m[92m       Fresh[0m colorchoice v1.0.4
+2025-12-16T01:05:17.3502072Z [1m[92m       Fresh[0m anstyle v1.0.13
+2025-12-16T01:05:17.3503049Z [1m[92m       Fresh[0m linux-raw-sys v0.4.15
+2025-12-16T01:05:17.3503634Z [1m[92m       Fresh[0m once_cell v1.21.3
+2025-12-16T01:05:17.3504174Z [1m[92m       Fresh[0m either v1.15.0
+2025-12-16T01:05:17.3504709Z [1m[92m       Fresh[0m hashbrown v0.16.1
+2025-12-16T01:05:17.3505266Z [1m[92m       Fresh[0m anstyle-query v1.1.5
+2025-12-16T01:05:17.3505876Z [1m[92m       Fresh[0m is_terminal_polyfill v1.70.2
+2025-12-16T01:05:17.3506491Z [1m[92m       Fresh[0m unicode-width v0.2.0
+2025-12-16T01:05:17.3507078Z [1m[92m       Fresh[0m allocator-api2 v0.2.21
+2025-12-16T01:05:17.3507600Z [1m[92m       Fresh[0m hashbrown v0.15.5
+2025-12-16T01:05:17.3508142Z [1m[92m       Fresh[0m anstream v0.6.21
+2025-12-16T01:05:17.3508679Z [1m[92m       Fresh[0m indexmap v2.12.1
+2025-12-16T01:05:17.3509218Z [1m[92m       Fresh[0m itertools v0.13.0
+2025-12-16T01:05:17.3509748Z [1m[92m       Fresh[0m rustix v0.38.44
+2025-12-16T01:05:17.3510332Z [1m[92m       Fresh[0m derive_builder_macro v0.20.2
+2025-12-16T01:05:17.3510929Z [1m[92m       Fresh[0m derive_more-impl v2.1.0
+2025-12-16T01:05:17.3511520Z [1m[92m       Fresh[0m pest_generator v2.8.4
+2025-12-16T01:05:17.3512085Z [1m[92m       Fresh[0m getrandom v0.3.4
+2025-12-16T01:05:17.3512801Z [1m[92m       Fresh[0m strum_macros v0.26.4
+2025-12-16T01:05:17.3513352Z [1m[92m       Fresh[0m castaway v0.2.4
+2025-12-16T01:05:17.3513908Z [1m[92m       Fresh[0m toml_datetime v0.6.11
+2025-12-16T01:05:17.3514480Z [1m[92m       Fresh[0m serde_spanned v0.6.9
+2025-12-16T01:05:17.3515040Z [1m[92m       Fresh[0m thiserror-impl v2.0.17
+2025-12-16T01:05:17.3515591Z [1m[92m       Fresh[0m winnow v0.7.14
+2025-12-16T01:05:17.3516138Z [1m[92m       Fresh[0m unicode-width v0.1.14
+2025-12-16T01:05:17.3516689Z [1m[92m       Fresh[0m fastrand v2.3.0
+2025-12-16T01:05:17.3517211Z [1m[92m       Fresh[0m litrs v1.0.0
+2025-12-16T01:05:17.3517721Z [1m[92m       Fresh[0m indoc v2.0.7
+2025-12-16T01:05:17.3518246Z [1m[92m       Fresh[0m toml_write v0.1.2
+2025-12-16T01:05:17.3518812Z [1m[92m       Fresh[0m static_assertions v1.1.0
+2025-12-16T01:05:17.3519377Z [1m[92m       Fresh[0m clap_lex v0.7.6
+2025-12-16T01:05:17.3519970Z [1m[92m       Fresh[0m num-modular v0.6.1
+2025-12-16T01:05:17.3520531Z [1m[92m       Fresh[0m clap_builder v4.5.53
+2025-12-16T01:05:17.3521089Z [1m[92m       Fresh[0m num-order v1.2.0
+2025-12-16T01:05:17.3521630Z [1m[92m       Fresh[0m compact_str v0.8.1
+2025-12-16T01:05:17.3522601Z [1m[92m       Fresh[0m toml_edit v0.22.27
+2025-12-16T01:05:17.3523188Z [1m[92m       Fresh[0m document-features v0.2.12
+2025-12-16T01:05:17.3523772Z [1m[92m       Fresh[0m instability v0.3.10
+2025-12-16T01:05:17.3524317Z [1m[92m       Fresh[0m tempfile v3.23.0
+2025-12-16T01:05:17.3524880Z [1m[92m       Fresh[0m unicode-truncate v1.1.0
+2025-12-16T01:05:17.3525448Z [1m[92m       Fresh[0m thiserror v2.0.17
+2025-12-16T01:05:17.3525963Z [1m[92m       Fresh[0m strum v0.26.3
+2025-12-16T01:05:17.3526500Z [1m[92m       Fresh[0m num-traits v0.2.19
+2025-12-16T01:05:17.3527046Z [1m[92m       Fresh[0m derive_more v2.1.0
+2025-12-16T01:05:17.3527590Z [1m[92m       Fresh[0m pest_derive v2.8.4
+2025-12-16T01:05:17.3528146Z [1m[92m       Fresh[0m derive_builder v0.20.2
+2025-12-16T01:05:17.3528704Z [1m[92m       Fresh[0m crossterm v0.28.1
+2025-12-16T01:05:17.3529218Z [1m[92m       Fresh[0m paste v1.0.15
+2025-12-16T01:05:17.3529750Z [1m[92m       Fresh[0m serde_json v1.0.145
+2025-12-16T01:05:17.3530295Z [1m[92m       Fresh[0m lru v0.12.5
+2025-12-16T01:05:17.3530785Z [1m[92m       Fresh[0m console v0.16.1
+2025-12-16T01:05:17.3531306Z [1m[92m       Fresh[0m clap_derive v4.5.49
+2025-12-16T01:05:17.3531801Z [1m[92m       Fresh[0m zeroize v1.8.2
+2025-12-16T01:05:17.3532715Z [1m[92m       Fresh[0m shell-words v1.1.0
+2025-12-16T01:05:17.3533207Z [1m[92m       Fresh[0m same-file v1.0.6
+2025-12-16T01:05:17.3533694Z [1m[92m       Fresh[0m cassowary v0.3.0
+2025-12-16T01:05:17.3534402Z [1m[92m       Fresh[0m iana-time-zone v0.1.64
+2025-12-16T01:05:17.3534916Z [1m[92m       Fresh[0m ratatui v0.29.0
+2025-12-16T01:05:17.3535369Z [1m[92m       Fresh[0m chrono v0.4.42
+2025-12-16T01:05:17.3535823Z [1m[92m       Fresh[0m walkdir v2.5.0
+2025-12-16T01:05:17.3536292Z [1m[92m       Fresh[0m dialoguer v0.12.0
+2025-12-16T01:05:17.3536763Z [1m[92m       Fresh[0m clap v4.5.53
+2025-12-16T01:05:17.3537244Z [1m[92m       Fresh[0m handlebars v6.3.2
+2025-12-16T01:05:17.3537743Z [1m[92m       Fresh[0m crossterm v0.29.0
+2025-12-16T01:05:17.3538272Z [1m[92m       Fresh[0m toml v0.8.23
+2025-12-16T01:05:17.3538737Z [1m[92m       Fresh[0m anyhow v1.0.100
+2025-12-16T01:05:17.3539218Z [1m[92m       Fresh[0m quick-xml v0.37.5
+2025-12-16T01:05:17.3539684Z [1m[92m       Fresh[0m similar v2.7.0
+2025-12-16T01:05:17.3540582Z [1m[92m   Compiling[0m opencode-autocode v0.1.0 (/home/runner/work/opencode-autocode/opencode-autocode)
+2025-12-16T01:05:17.3560679Z [1m[92m     Running[0m `/home/runner/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name opencode_autocode --edition=2021 src/main.rs --error-format=json --json=diagnostic-rendered-ansi,artifacts,future-incompat --emit=dep-info,link -C embed-bitcode=no --test --check-cfg 'cfg(docsrs,test)' --check-cfg 'cfg(feature, values())' -C metadata=09d8e077fb63cad9 -C extra-filename=-fb145f3219de20b0 --out-dir /home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps -C strip=debuginfo -L dependency=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps --extern anyhow=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libanyhow-7acc8d5cc5cd80f5.rlib --extern chrono=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libchrono-fd085c9322bdcdd5.rlib --extern clap=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libclap-6d4bc56bcbe0eb9b.rlib --extern console=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libconsole-c8b2b5ff476b0860.rlib --extern crossterm=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libcrossterm-f6a28f2ed8f888ad.rlib --extern dialoguer=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libdialoguer-50fba885040cb271.rlib --extern handlebars=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libhandlebars-7d32be3e9c387925.rlib --extern quick_xml=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libquick_xml-c73d06aba78459fd.rlib --extern ratatui=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libratatui-3fc966f59f276bd9.rlib --extern serde=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libserde-ef2f3fb7a1d61b1c.rlib --extern serde_json=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libserde_json-842626144db734d8.rlib --extern similar=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libsimilar-b8aa459897483a3e.rlib --extern tempfile=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libtempfile-a4f68ac77506bad7.rlib --extern thiserror=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libthiserror-997e9afc7760995d.rlib --extern toml=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libtoml-09425dbfc418f95f.rlib --extern walkdir=/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/libwalkdir-2508cff2e605d983.rlib -D warnings`
+2025-12-16T01:05:18.6534360Z [1m[92m    Finished[0m `test` profile [unoptimized] target(s) in 1.44s
+2025-12-16T01:05:18.6613791Z [1m[92m     Running[0m `/home/runner/work/opencode-autocode/opencode-autocode/target/debug/deps/opencode_autocode-fb145f3219de20b0`
+2025-12-16T01:05:18.6625890Z 
+2025-12-16T01:05:18.6626409Z running 25 tests
+2025-12-16T01:05:18.6635252Z test cli::tests::test_default_mode ... ok
+2025-12-16T01:05:18.6636590Z test cli::tests::test_interactive_mode ... ok
+2025-12-16T01:05:18.6637736Z test config::tests::test_default_config ... ok
+2025-12-16T01:05:18.6638527Z test config::tests::test_expand_env_var ... ok
+2025-12-16T01:05:18.6639819Z test config::tests::test_load_missing_file_returns_default ... ok
+2025-12-16T01:05:18.6640986Z test config::tests::test_security_defaults ... ok
+2025-12-16T01:05:18.6642374Z test config::tests::test_verbalized_sampling_defaults ... ok
+2025-12-16T01:05:18.6644647Z test generator::tests::test_build_generation_prompt ... ok
+2025-12-16T01:05:18.6645951Z test generator::tests::test_extract_spec_from_output ... ok
+2025-12-16T01:05:18.6648157Z test generator::tests::test_extract_spec_no_match ... ok
+2025-12-16T01:05:18.6650870Z test regression::tests::test_parse_feature_list ... ok
+2025-12-16T01:05:18.6656823Z test config::tests::test_load_custom_config ... ok
+2025-12-16T01:05:18.6661161Z test spec::tests::test_spec_to_text ... ok
+2025-12-16T01:05:18.6664334Z test templates::tests::test_get_template_by_name ... ok
+2025-12-16T01:05:18.6665657Z test templates::tests::test_template_has_placeholders ... ok
+2025-12-16T01:05:18.6666992Z test regression::tests::test_run_regression_check ... ok
+2025-12-16T01:05:18.6669775Z test templates::tests::test_templates_exist ... ok
+2025-12-16T01:05:18.6670394Z test validation::tests::test_generate_diff ... ok
+2025-12-16T01:05:18.6671531Z test validation::tests::test_validate_broken_spec ... ok
+2025-12-16T01:05:18.6673799Z test validation::tests::test_validate_good_spec ... ok
+2025-12-16T01:05:18.6674664Z test validation::tests::test_validate_minimal_spec ... ok
+2025-12-16T01:05:18.6675823Z test verbalized_sampling::tests::test_feature_hash ... ok
+2025-12-16T01:05:18.6677821Z test verbalized_sampling::tests::test_hybrid_score ... ok
+2025-12-16T01:05:18.6678557Z test verbalized_sampling::tests::test_parse_selection_result ... ok
+2025-12-16T01:05:18.6679327Z test verbalized_sampling::tests::test_parse_verbalization_result ... ok
+2025-12-16T01:05:18.6679808Z 
+2025-12-16T01:05:18.6680224Z test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+2025-12-16T01:05:18.6680771Z 
+2025-12-16T01:05:18.6756093Z ##[group]Run cargo clippy -- -D warnings
+2025-12-16T01:05:18.6756457Z [36;1mcargo clippy -- -D warnings[0m
+2025-12-16T01:05:18.6756721Z [36;1mcargo fmt --check[0m
+2025-12-16T01:05:18.6788903Z shell: /usr/bin/bash -e {0}
+2025-12-16T01:05:18.6789144Z env:
+2025-12-16T01:05:18.6789319Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:05:18.6789546Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:05:18.6789973Z   CARGO_TERM_COLOR: always
+2025-12-16T01:05:18.6790194Z   RUST_BACKTRACE: short
+2025-12-16T01:05:18.6790410Z   RUSTFLAGS: -D warnings
+2025-12-16T01:05:18.6790647Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:05:18.6790943Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:05:18.6791213Z   CACHE_ON_FAILURE: true
+2025-12-16T01:05:18.6791425Z ##[endgroup]
+2025-12-16T01:05:18.9311110Z [1m[92m    Checking[0m num-traits v0.2.19
+2025-12-16T01:05:18.9373809Z [1m[92m    Checking[0m iana-time-zone v0.1.64
+2025-12-16T01:05:19.3049202Z [1m[92m    Checking[0m chrono v0.4.42
+2025-12-16T01:05:19.8431343Z [1m[92m    Checking[0m opencode-autocode v0.1.0 (/home/runner/work/opencode-autocode/opencode-autocode)
+2025-12-16T01:05:20.7442955Z [1m[92m    Finished[0m `dev` profile [unoptimized] target(s) in 1.95s
+2025-12-16T01:05:20.9338781Z ##[warning]Diff in /home/runner/work/opencode-autocode/opencode-autocode/src/autonomous.rs:115:
+2025-12-16T01:05:20.9350367Z          match result {
+2025-12-16T01:05:20.9350832Z              SessionResult::Continue => {
+2025-12-16T01:05:20.9351644Z                  println!("→ Session complete, continuing...");
+2025-12-16T01:05:20.9352162Z -                println!(
+2025-12-16T01:05:20.9353024Z -                    "→ Next session in {}s (Ctrl+C to stop)",
+2025-12-16T01:05:20.9353514Z -                    delay
+2025-12-16T01:05:20.9353864Z -                );
+2025-12-16T01:05:20.9354454Z +                println!("→ Next session in {}s (Ctrl+C to stop)", delay);
+2025-12-16T01:05:20.9355165Z                  thread::sleep(Duration::from_secs(delay as u64));
+2025-12-16T01:05:20.9355666Z              }
+2025-12-16T01:05:20.9356004Z              SessionResult::Complete => {
+2025-12-16T01:05:20.9357578Z ##[warning]Diff in /home/runner/work/opencode-autocode/opencode-autocode/src/autonomous.rs:129:
+2025-12-16T01:05:20.9359204Z              SessionResult::Error(msg) => {
+2025-12-16T01:05:20.9359691Z                  println!();
+2025-12-16T01:05:20.9360350Z                  println!("⚠ OpenCode exited with error: {}", msg);
+2025-12-16T01:05:20.9361336Z -                println!("Check logs and run manually: opencode run --command /{}", command);
+2025-12-16T01:05:20.9361998Z +                println!(
+2025-12-16T01:05:20.9362759Z +                    "Check logs and run manually: opencode run --command /{}",
+2025-12-16T01:05:20.9363337Z +                    command
+2025-12-16T01:05:20.9363719Z +                );
+2025-12-16T01:05:20.9364050Z                  break;
+2025-12-16T01:05:20.9364395Z              }
+2025-12-16T01:05:20.9364776Z              SessionResult::Stopped => {
+2025-12-16T01:05:20.9366180Z ##[warning]Diff in /home/runner/work/opencode-autocode/opencode-autocode/src/autonomous.rs:151:
+2025-12-16T01:05:20.9367819Z      let feature_path = Path::new(feature_list_file);
+2025-12-16T01:05:20.9368349Z      if feature_path.exists() {
+2025-12-16T01:05:20.9368916Z          let (passing, remaining) = count_feature_status(feature_path)?;
+2025-12-16T01:05:20.9369685Z -        println!("Status: {} / {} tests passing", passing, passing + remaining);
+2025-12-16T01:05:20.9370306Z +        println!(
+2025-12-16T01:05:20.9370676Z +            "Status: {} / {} tests passing",
+2025-12-16T01:05:20.9371139Z +            passing,
+2025-12-16T01:05:20.9371509Z +            passing + remaining
+2025-12-16T01:05:20.9371914Z +        );
+2025-12-16T01:05:20.9372973Z      }
+2025-12-16T01:05:20.9373277Z  
+2025-12-16T01:05:20.9373573Z      println!();
+2025-12-16T01:05:20.9374891Z ##[warning]Diff in /home/runner/work/opencode-autocode/opencode-autocode/src/autonomous.rs:195:
+2025-12-16T01:05:20.9377058Z          println!("→ Continuing session: {}", sid);
+2025-12-16T01:05:20.9377579Z      }
+2025-12-16T01:05:20.9377862Z  
+2025-12-16T01:05:20.9378150Z -    let status = cmd
+2025-12-16T01:05:20.9378500Z -        .status()
+2025-12-16T01:05:20.9378912Z -        .context("Failed to execute opencode command")?;
+2025-12-16T01:05:20.9379623Z +    let status = cmd.status().context("Failed to execute opencode command")?;
+2025-12-16T01:05:20.9380539Z  
+2025-12-16T01:05:20.9380814Z      println!();
+2025-12-16T01:05:20.9381515Z -    println!("→ OpenCode exited with code: {}", status.code().unwrap_or(-1));
+2025-12-16T01:05:20.9382155Z +    println!(
+2025-12-16T01:05:20.9382856Z +        "→ OpenCode exited with code: {}",
+2025-12-16T01:05:20.9383331Z +        status.code().unwrap_or(-1)
+2025-12-16T01:05:20.9383723Z +    );
+2025-12-16T01:05:20.9384046Z  
+2025-12-16T01:05:20.9384328Z      if !status.success() {
+2025-12-16T01:05:20.9384754Z          return Ok(SessionResult::Error(format!(
+2025-12-16T01:05:20.9423172Z ##[warning]Diff in /home/runner/work/opencode-autocode/opencode-autocode/src/main.rs:66:
+2025-12-16T01:05:20.9425616Z                  }
+2025-12-16T01:05:20.9425976Z                  Ok(())
+2025-12-16T01:05:20.9426328Z              }
+2025-12-16T01:05:20.9426731Z -            Commands::Autonomous { limit, config } => {
+2025-12-16T01:05:20.9427303Z -                autonomous::run(*limit, config.as_deref())
+2025-12-16T01:05:20.9427821Z -            }
+2025-12-16T01:05:20.9428415Z +            Commands::Autonomous { limit, config } => autonomous::run(*limit, config.as_deref()),
+2025-12-16T01:05:20.9429113Z          };
+2025-12-16T01:05:20.9429402Z      }
+2025-12-16T01:05:20.9429677Z  
+2025-12-16T01:05:20.9458412Z ##[warning]Diff in /home/runner/work/opencode-autocode/opencode-autocode/src/scaffold.rs:128:
+2025-12-16T01:05:20.9460881Z  
+2025-12-16T01:05:20.9461236Z      // Write user configuration file
+2025-12-16T01:05:20.9461799Z      let config_path = output_dir.join("autocode.toml");
+2025-12-16T01:05:20.9462715Z -    fs::write(&config_path, USER_CONFIG_TEMPLATE).with_context(|| {
+2025-12-16T01:05:20.9463290Z -        format!(
+2025-12-16T01:05:20.9463679Z -            "Failed to write autocode.toml: {}",
+2025-12-16T01:05:20.9464189Z -            config_path.display()
+2025-12-16T01:05:20.9464606Z -        )
+2025-12-16T01:05:20.9464903Z -    })?;
+2025-12-16T01:05:20.9465271Z +    fs::write(&config_path, USER_CONFIG_TEMPLATE)
+2025-12-16T01:05:20.9466033Z +        .with_context(|| format!("Failed to write autocode.toml: {}", config_path.display()))?;
+2025-12-16T01:05:20.9467011Z      println!("   ⚙️  Created autocode.toml");
+2025-12-16T01:05:20.9467482Z  
+2025-12-16T01:05:20.9467763Z      Ok(())
+2025-12-16T01:05:20.9681534Z ##[error]Process completed with exit code 1.
+2025-12-16T01:05:20.9735788Z ##[group]Run actions/upload-artifact@v4
+2025-12-16T01:05:20.9736075Z with:
+2025-12-16T01:05:20.9736272Z   name: regression-test-results
+2025-12-16T01:05:20.9736532Z   path: tests/regression/results/
+2025-12-16T01:05:20.9736783Z   if-no-files-found: warn
+2025-12-16T01:05:20.9736999Z   compression-level: 6
+2025-12-16T01:05:20.9737205Z   overwrite: false
+2025-12-16T01:05:20.9737412Z   include-hidden-files: false
+2025-12-16T01:05:20.9737631Z env:
+2025-12-16T01:05:20.9737802Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:05:20.9738003Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:05:20.9738232Z   CARGO_TERM_COLOR: always
+2025-12-16T01:05:20.9738448Z   RUST_BACKTRACE: short
+2025-12-16T01:05:20.9738674Z   RUSTFLAGS: -D warnings
+2025-12-16T01:05:20.9738910Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:05:20.9739190Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:05:20.9739450Z   CACHE_ON_FAILURE: true
+2025-12-16T01:05:20.9739657Z ##[endgroup]
+2025-12-16T01:05:21.2142614Z With the provided path, there will be 5 files uploaded
+2025-12-16T01:05:21.2151072Z Artifact name is valid!
+2025-12-16T01:05:21.2153078Z Root directory input is valid!
+2025-12-16T01:05:21.4483415Z Beginning upload of artifact content to blob storage
+2025-12-16T01:05:21.7120630Z Uploaded bytes 1555
+2025-12-16T01:05:21.7804737Z Finished uploading artifact content to blob storage!
+2025-12-16T01:05:21.7808138Z SHA256 digest of uploaded artifact zip is 4eec6a4c1214e17c6351e3cd2fa41c1f5f0d49e100e29510e4ab0bb684207ced
+2025-12-16T01:05:21.7810929Z Finalizing artifact upload
+2025-12-16T01:05:21.9355609Z Artifact regression-test-results.zip successfully finalized. Artifact ID 4879595968
+2025-12-16T01:05:21.9357373Z Artifact regression-test-results has been successfully uploaded! Final size is 1555 bytes. Artifact ID is 4879595968
+2025-12-16T01:05:21.9362852Z Artifact download URL: https://github.com/NocturnLabs/opencode-autocode/actions/runs/20252902325/artifacts/4879595968
+2025-12-16T01:05:21.9478535Z ##[group]Run echo "Regression tests failed! Check the test results above."
+2025-12-16T01:05:21.9479048Z [36;1mecho "Regression tests failed! Check the test results above."[0m
+2025-12-16T01:05:21.9479388Z [36;1mexit 1[0m
+2025-12-16T01:05:21.9511388Z shell: /usr/bin/bash -e {0}
+2025-12-16T01:05:21.9511641Z env:
+2025-12-16T01:05:21.9511830Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:05:21.9512062Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:05:21.9512597Z   CARGO_TERM_COLOR: always
+2025-12-16T01:05:21.9512825Z   RUST_BACKTRACE: short
+2025-12-16T01:05:21.9513046Z   RUSTFLAGS: -D warnings
+2025-12-16T01:05:21.9513289Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:05:21.9513580Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:05:21.9513867Z   CACHE_ON_FAILURE: true
+2025-12-16T01:05:21.9514080Z ##[endgroup]
+2025-12-16T01:05:21.9566355Z Regression tests failed! Check the test results above.
+2025-12-16T01:05:21.9571917Z ##[error]Process completed with exit code 1.
+2025-12-16T01:05:21.9694780Z Post job cleanup.
+2025-12-16T01:05:21.9743345Z Post job cleanup.
+2025-12-16T01:05:22.2890538Z ##[group]Cache Configuration
+2025-12-16T01:05:22.2893275Z Cache Provider:
+2025-12-16T01:05:22.2893786Z     github
+2025-12-16T01:05:22.2895379Z Workspaces:
+2025-12-16T01:05:22.2897149Z     /home/runner/work/opencode-autocode/opencode-autocode
+2025-12-16T01:05:22.2897982Z Cache Paths:
+2025-12-16T01:05:22.2912744Z     /home/runner/.cargo/bin
+2025-12-16T01:05:22.2923622Z     /home/runner/.cargo/.crates.toml
+2025-12-16T01:05:22.2924142Z     /home/runner/.cargo/.crates2.json
+2025-12-16T01:05:22.2924668Z     /home/runner/.cargo/registry
+2025-12-16T01:05:22.2925086Z     /home/runner/.cargo/git
+2025-12-16T01:05:22.2925660Z     /home/runner/work/opencode-autocode/opencode-autocode/target
+2025-12-16T01:05:22.2926237Z Restore Key:
+2025-12-16T01:05:22.2926638Z     v0-rust-regression-tests-Linux-x64-2750ab4c
+2025-12-16T01:05:22.2927113Z Cache Key:
+2025-12-16T01:05:22.2927584Z     v0-rust-regression-tests-Linux-x64-2750ab4c-5a2225ca
+2025-12-16T01:05:22.2928110Z .. Prefix:
+2025-12-16T01:05:22.2928485Z   - v0-rust-regression-tests-Linux-x64
+2025-12-16T01:05:22.2929079Z .. Environment considered:
+2025-12-16T01:05:22.2929677Z   - Rust Version: 1.92.0 x86_64-unknown-linux-gnu (ded5c06cf21d2b93bffd5d884aa6e96934ee4234)
+2025-12-16T01:05:22.2930322Z   - CARGO_INCREMENTAL
+2025-12-16T01:05:22.2930696Z   - CARGO_PROFILE_DEV_DEBUG
+2025-12-16T01:05:22.2931124Z   - CARGO_REGISTRIES_CRATES_IO_PROTOCOL
+2025-12-16T01:05:22.2931568Z   - CARGO_TERM_COLOR
+2025-12-16T01:05:22.2932059Z   - CARGO_UNSTABLE_SPARSE_REGISTRY
+2025-12-16T01:05:22.2932952Z   - RUST_BACKTRACE
+2025-12-16T01:05:22.2933284Z   - RUSTFLAGS
+2025-12-16T01:05:22.2933613Z .. Lockfiles considered:
+2025-12-16T01:05:22.2934186Z   - /home/runner/work/opencode-autocode/opencode-autocode/Cargo.lock
+2025-12-16T01:05:22.2934976Z   - /home/runner/work/opencode-autocode/opencode-autocode/Cargo.toml
+2025-12-16T01:05:22.2935870Z   - /home/runner/work/opencode-autocode/opencode-autocode/tests/regression/Cargo.toml
+2025-12-16T01:05:22.2936855Z ##[endgroup]
+2025-12-16T01:05:22.2937038Z 
+2025-12-16T01:05:23.2479958Z ... Cleaning /home/runner/work/opencode-autocode/opencode-autocode/target ...
+2025-12-16T01:05:23.2833054Z ... Cleaning cargo registry (cache-all-crates: false) ...
+2025-12-16T01:05:23.8593307Z ... Cleaning cargo/bin ...
+2025-12-16T01:05:23.8613852Z ... Cleaning cargo git cache ...
+2025-12-16T01:05:23.8618392Z ... Saving cache ...
+2025-12-16T01:05:23.8797658Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/opencode-autocode/opencode-autocode --files-from manifest.txt --use-compress-program zstdmt
+2025-12-16T01:05:27.9140658Z Sent 21319018 of 222645610 (9.6%), 20.3 MBs/sec
+2025-12-16T01:05:28.5795954Z Sent 222645610 of 222645610 (100.0%), 127.4 MBs/sec
+2025-12-16T01:05:28.9021531Z Post job cleanup.
+2025-12-16T01:05:28.9990745Z [command]/usr/bin/git version
+2025-12-16T01:05:29.0058875Z git version 2.52.0
+2025-12-16T01:05:29.0128884Z Temporarily overriding HOME='/home/runner/work/_temp/c40ddba1-83a7-4b1b-b727-85ea61e184a6' before making global git config changes
+2025-12-16T01:05:29.0130425Z Adding repository directory to the temporary git global config as a safe directory
+2025-12-16T01:05:29.0137852Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/opencode-autocode/opencode-autocode
+2025-12-16T01:05:29.0206929Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2025-12-16T01:05:29.0258267Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2025-12-16T01:05:29.0617432Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2025-12-16T01:05:29.0645022Z http.https://github.com/.extraheader
+2025-12-16T01:05:29.0661938Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2025-12-16T01:05:29.0701260Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2025-12-16T01:05:29.0967770Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2025-12-16T01:05:29.1003996Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2025-12-16T01:05:29.1351167Z Cleaning up orphan processes

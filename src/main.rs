@@ -66,9 +66,7 @@ fn main() -> Result<()> {
                 }
                 Ok(())
             }
-            Commands::Autonomous { limit, config } => {
-                autonomous::run(*limit, config.as_deref())
-            }
+            Commands::Autonomous { limit, config } => autonomous::run(*limit, config.as_deref()),
         };
     }
 

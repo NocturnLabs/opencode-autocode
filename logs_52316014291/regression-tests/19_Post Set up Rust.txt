@@ -1,0 +1,43 @@
+﻿2025-12-16T01:05:21.9694764Z Post job cleanup.
+2025-12-16T01:05:21.9743337Z Post job cleanup.
+2025-12-16T01:05:22.2890499Z ##[group]Cache Configuration
+2025-12-16T01:05:22.2893263Z Cache Provider:
+2025-12-16T01:05:22.2893777Z     github
+2025-12-16T01:05:22.2895371Z Workspaces:
+2025-12-16T01:05:22.2897139Z     /home/runner/work/opencode-autocode/opencode-autocode
+2025-12-16T01:05:22.2897973Z Cache Paths:
+2025-12-16T01:05:22.2912729Z     /home/runner/.cargo/bin
+2025-12-16T01:05:22.2923610Z     /home/runner/.cargo/.crates.toml
+2025-12-16T01:05:22.2924137Z     /home/runner/.cargo/.crates2.json
+2025-12-16T01:05:22.2924664Z     /home/runner/.cargo/registry
+2025-12-16T01:05:22.2925082Z     /home/runner/.cargo/git
+2025-12-16T01:05:22.2925655Z     /home/runner/work/opencode-autocode/opencode-autocode/target
+2025-12-16T01:05:22.2926233Z Restore Key:
+2025-12-16T01:05:22.2926634Z     v0-rust-regression-tests-Linux-x64-2750ab4c
+2025-12-16T01:05:22.2927109Z Cache Key:
+2025-12-16T01:05:22.2927538Z     v0-rust-regression-tests-Linux-x64-2750ab4c-5a2225ca
+2025-12-16T01:05:22.2928107Z .. Prefix:
+2025-12-16T01:05:22.2928481Z   - v0-rust-regression-tests-Linux-x64
+2025-12-16T01:05:22.2929075Z .. Environment considered:
+2025-12-16T01:05:22.2929673Z   - Rust Version: 1.92.0 x86_64-unknown-linux-gnu (ded5c06cf21d2b93bffd5d884aa6e96934ee4234)
+2025-12-16T01:05:22.2930318Z   - CARGO_INCREMENTAL
+2025-12-16T01:05:22.2930693Z   - CARGO_PROFILE_DEV_DEBUG
+2025-12-16T01:05:22.2931120Z   - CARGO_REGISTRIES_CRATES_IO_PROTOCOL
+2025-12-16T01:05:22.2931565Z   - CARGO_TERM_COLOR
+2025-12-16T01:05:22.2932049Z   - CARGO_UNSTABLE_SPARSE_REGISTRY
+2025-12-16T01:05:22.2932946Z   - RUST_BACKTRACE
+2025-12-16T01:05:22.2933281Z   - RUSTFLAGS
+2025-12-16T01:05:22.2933610Z .. Lockfiles considered:
+2025-12-16T01:05:22.2934183Z   - /home/runner/work/opencode-autocode/opencode-autocode/Cargo.lock
+2025-12-16T01:05:22.2934972Z   - /home/runner/work/opencode-autocode/opencode-autocode/Cargo.toml
+2025-12-16T01:05:22.2935861Z   - /home/runner/work/opencode-autocode/opencode-autocode/tests/regression/Cargo.toml
+2025-12-16T01:05:22.2936851Z ##[endgroup]
+2025-12-16T01:05:22.2937034Z 
+2025-12-16T01:05:23.2479919Z ... Cleaning /home/runner/work/opencode-autocode/opencode-autocode/target ...
+2025-12-16T01:05:23.2833020Z ... Cleaning cargo registry (cache-all-crates: false) ...
+2025-12-16T01:05:23.8593266Z ... Cleaning cargo/bin ...
+2025-12-16T01:05:23.8613834Z ... Cleaning cargo git cache ...
+2025-12-16T01:05:23.8618378Z ... Saving cache ...
+2025-12-16T01:05:23.8797619Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/opencode-autocode/opencode-autocode --files-from manifest.txt --use-compress-program zstdmt
+2025-12-16T01:05:27.9140616Z Sent 21319018 of 222645610 (9.6%), 20.3 MBs/sec
+2025-12-16T01:05:28.5795912Z Sent 222645610 of 222645610 (100.0%), 127.4 MBs/sec

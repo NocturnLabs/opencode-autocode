@@ -1,0 +1,284 @@
+﻿2025-12-16T01:04:50.8039163Z ##[group]Run actions-rust-lang/setup-rust-toolchain@v1
+2025-12-16T01:04:50.8040326Z with:
+2025-12-16T01:04:50.8041028Z   components: clippy, rustfmt
+2025-12-16T01:04:50.8041886Z   cache: true
+2025-12-16T01:04:50.8042774Z   cache-on-failure: true
+2025-12-16T01:04:50.8043572Z   cache-bin: true
+2025-12-16T01:04:50.8044314Z   cache-provider: github
+2025-12-16T01:04:50.8045154Z   cache-all-crates: false
+2025-12-16T01:04:50.8046007Z   cache-workspace-crates: false
+2025-12-16T01:04:50.8046859Z   matcher: true
+2025-12-16T01:04:50.8047586Z   rustflags: -D warnings
+2025-12-16T01:04:50.8048368Z   override: true
+2025-12-16T01:04:50.8049079Z ##[endgroup]
+2025-12-16T01:04:50.8223376Z ##[group]Run : construct rustup command line
+2025-12-16T01:04:50.8224554Z [36;1m: construct rustup command line[0m
+2025-12-16T01:04:50.8225999Z [36;1mecho "targets=$(for t in ${targets//,/ }; do echo -n ' --target' $t; done)" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:04:50.8228372Z [36;1mecho "components=$(for c in ${components//,/ }; do echo -n ' --component' $c; done)" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:04:50.8231119Z [36;1mecho "downgrade=" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:04:50.8283287Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:04:50.8285168Z env:
+2025-12-16T01:04:50.8286256Z   targets: 
+2025-12-16T01:04:50.8287502Z   components: clippy, rustfmt
+2025-12-16T01:04:50.8288975Z ##[endgroup]
+2025-12-16T01:04:50.8479570Z ##[group]Run if [[ ! -v CARGO_INCREMENTAL ]]; then
+2025-12-16T01:04:50.8481489Z [36;1mif [[ ! -v CARGO_INCREMENTAL ]]; then[0m
+2025-12-16T01:04:50.8482800Z [36;1m  echo "CARGO_INCREMENTAL=0" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8483796Z [36;1mfi[0m
+2025-12-16T01:04:50.8484573Z [36;1mif [[ ! -v CARGO_PROFILE_DEV_DEBUG ]]; then[0m
+2025-12-16T01:04:50.8485736Z [36;1m  echo "CARGO_PROFILE_DEV_DEBUG=0" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8486752Z [36;1mfi[0m
+2025-12-16T01:04:50.8487479Z [36;1mif [[ ! -v CARGO_TERM_COLOR ]]; then[0m
+2025-12-16T01:04:50.8488557Z [36;1m  echo "CARGO_TERM_COLOR=always" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8489582Z [36;1mfi[0m
+2025-12-16T01:04:50.8490297Z [36;1mif [[ ! -v RUST_BACKTRACE ]]; then[0m
+2025-12-16T01:04:50.8491328Z [36;1m  echo "RUST_BACKTRACE=short" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8492588Z [36;1mfi[0m
+2025-12-16T01:04:50.8493460Z [36;1mif [[ ( ! -v RUSTFLAGS ) && $NEW_RUSTFLAGS != "" ]]; then[0m
+2025-12-16T01:04:50.8494669Z [36;1m  echo "RUSTFLAGS=$NEW_RUSTFLAGS" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8495672Z [36;1mfi[0m
+2025-12-16T01:04:50.8496434Z [36;1m# Enable faster sparse index on nightly[0m
+2025-12-16T01:04:50.8497622Z [36;1m# The value is ignored on stable and causes no problems[0m
+2025-12-16T01:04:50.8499271Z [36;1m# https://internals.rust-lang.org/t/call-for-testing-cargo-sparse-registry/16862[0m
+2025-12-16T01:04:50.8500884Z [36;1mif [[ ! -v CARGO_UNSTABLE_SPARSE_REGISTRY ]]; then[0m
+2025-12-16T01:04:50.8502339Z [36;1m  echo "CARGO_UNSTABLE_SPARSE_REGISTRY=true" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8503540Z [36;1mfi[0m
+2025-12-16T01:04:50.8504408Z [36;1mif [[ ! -v CARGO_REGISTRIES_CRATES_IO_PROTOCOL ]]; then[0m
+2025-12-16T01:04:50.8505793Z [36;1m  echo "CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse" >> $GITHUB_ENV[0m
+2025-12-16T01:04:50.8506990Z [36;1mfi[0m
+2025-12-16T01:04:50.8540989Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:04:50.8542065Z env:
+2025-12-16T01:04:50.8542839Z   NEW_RUSTFLAGS: -D warnings
+2025-12-16T01:04:50.8543640Z ##[endgroup]
+2025-12-16T01:04:50.8659180Z ##[group]Run echo "::add-matcher::/home/runner/work/_actions/actions-rust-lang/setup-rust-toolchain/v1/rust.json"
+2025-12-16T01:04:50.8661586Z [36;1mecho "::add-matcher::/home/runner/work/_actions/actions-rust-lang/setup-rust-toolchain/v1/rust.json"[0m
+2025-12-16T01:04:50.8697010Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:04:50.8698105Z env:
+2025-12-16T01:04:50.8698746Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:04:50.8699516Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:04:50.8700552Z   CARGO_TERM_COLOR: always
+2025-12-16T01:04:50.8701352Z   RUST_BACKTRACE: short
+2025-12-16T01:04:50.8702116Z   RUSTFLAGS: -D warnings
+2025-12-16T01:04:50.8703189Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:04:50.8704213Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:04:50.8705145Z ##[endgroup]
+2025-12-16T01:04:50.8842610Z ##[group]Run if ! command -v rustup &> /dev/null ; then
+2025-12-16T01:04:50.8843835Z [36;1mif ! command -v rustup &> /dev/null ; then[0m
+2025-12-16T01:04:50.8845786Z [36;1m  curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -fsSL "https://sh.rustup.rs" | sh -s -- --default-toolchain none -y[0m
+2025-12-16T01:04:50.8847601Z [36;1m[0m
+2025-12-16T01:04:50.8848470Z [36;1m  # Resolve the correct CARGO_HOME path depending on OS[0m
+2025-12-16T01:04:50.8849662Z [36;1m  if [[ "$RUNNER_OS" == "Windows" ]]; then[0m
+2025-12-16T01:04:50.8851022Z [36;1m    echo "${CARGO_HOME:-$USERPROFILE/.cargo}/bin" | sed 's|/|\\|g' >> $GITHUB_PATH[0m
+2025-12-16T01:04:50.8852451Z [36;1m  else[0m
+2025-12-16T01:04:50.8853353Z [36;1m    echo "${CARGO_HOME:-$HOME/.cargo}/bin" >> $GITHUB_PATH[0m
+2025-12-16T01:04:50.8854407Z [36;1m  fi[0m
+2025-12-16T01:04:50.8855072Z [36;1mfi[0m
+2025-12-16T01:04:50.8889457Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:04:50.8890702Z env:
+2025-12-16T01:04:50.8891351Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:04:50.8892126Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:04:50.8893079Z   CARGO_TERM_COLOR: always
+2025-12-16T01:04:50.8893876Z   RUST_BACKTRACE: short
+2025-12-16T01:04:50.8894645Z   RUSTFLAGS: -D warnings
+2025-12-16T01:04:50.8895466Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:04:50.8896467Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:04:50.8897415Z   RUNNER_OS: Linux
+2025-12-16T01:04:50.8898121Z ##[endgroup]
+2025-12-16T01:04:50.9131296Z ##[group]Run # Check if value is set
+2025-12-16T01:04:50.9133292Z [36;1m# Check if value is set[0m
+2025-12-16T01:04:50.9134992Z [36;1mif [[ -n "$rust_src_dir" ]][0m
+2025-12-16T01:04:50.9136620Z [36;1mthen[0m
+2025-12-16T01:04:50.9138029Z [36;1m  # If value is set the directory must exist[0m
+2025-12-16T01:04:50.9140064Z [36;1m  if [[ -d "$rust_src_dir" ]][0m
+2025-12-16T01:04:50.9141321Z [36;1m  then[0m
+2025-12-16T01:04:50.9142041Z [36;1m    cd "$rust_src_dir"[0m
+2025-12-16T01:04:50.9143215Z [36;1m  else[0m
+2025-12-16T01:04:50.9144232Z [36;1m    echo "'rust-src-dir' does not point to an existing directory" >&2[0m
+2025-12-16T01:04:50.9145670Z [36;1m    echo "The value of 'rust-src-dir' is: ${rust_src_dir}" >&2[0m
+2025-12-16T01:04:50.9148027Z [36;1m    exit 1[0m
+2025-12-16T01:04:50.9148752Z [36;1m  fi[0m
+2025-12-16T01:04:50.9149405Z [36;1mfi[0m
+2025-12-16T01:04:50.9150452Z [36;1mif [[ -z "$toolchain" && ( -f "rust-toolchain" || -f "rust-toolchain.toml") ]][0m
+2025-12-16T01:04:50.9151720Z [36;1mthen[0m
+2025-12-16T01:04:50.9152872Z [36;1m  # Install the toolchain as specified in the file[0m
+2025-12-16T01:04:50.9154235Z [36;1m  # rustup show is the old way that implicitly installed a toolchain[0m
+2025-12-16T01:04:50.9155645Z [36;1m  # rustup toolchain install is the new explicit way[0m
+2025-12-16T01:04:50.9157140Z [36;1m  # https://github.com/rust-lang/rustup/issues/3635#issuecomment-2343511297[0m
+2025-12-16T01:04:50.9158715Z [36;1m  rustup show active-toolchain || rustup toolchain install[0m
+2025-12-16T01:04:50.9159906Z [36;1m  if [[ -n $components ]]; then[0m
+2025-12-16T01:04:50.9160921Z [36;1m    rustup component add ${components//,/ }[0m
+2025-12-16T01:04:50.9161883Z [36;1m  fi[0m
+2025-12-16T01:04:50.9162879Z [36;1m  if [[ -n $targets ]]; then[0m
+2025-12-16T01:04:50.9163833Z [36;1m    rustup target add ${targets//,/ }[0m
+2025-12-16T01:04:50.9164759Z [36;1m  fi[0m
+2025-12-16T01:04:50.9165685Z [36;1melse[0m
+2025-12-16T01:04:50.9166422Z [36;1m  if [[ -z "$toolchain" ]][0m
+2025-12-16T01:04:50.9167273Z [36;1m  then[0m
+2025-12-16T01:04:50.9167969Z [36;1m    toolchain=stable[0m
+2025-12-16T01:04:50.9168747Z [36;1m  fi[0m
+2025-12-16T01:04:50.9170461Z [36;1m  rustup toolchain install ${toolchain//,/ }  --component clippy --component rustfmt --profile minimal --no-self-update[0m
+2025-12-16T01:04:50.9172492Z [36;1m  # Take the last element from the list[0m
+2025-12-16T01:04:50.9173514Z [36;1m  if [[ "$override" == "true" ]][0m
+2025-12-16T01:04:50.9174394Z [36;1m  then[0m
+2025-12-16T01:04:50.9175192Z [36;1m    rustup override set ${toolchain//*,/ }[0m
+2025-12-16T01:04:50.9176139Z [36;1m  fi[0m
+2025-12-16T01:04:50.9176773Z [36;1mfi[0m
+2025-12-16T01:04:50.9210810Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:04:50.9211901Z env:
+2025-12-16T01:04:50.9212659Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:04:50.9213420Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:04:50.9214238Z   CARGO_TERM_COLOR: always
+2025-12-16T01:04:50.9215022Z   RUST_BACKTRACE: short
+2025-12-16T01:04:50.9215806Z   RUSTFLAGS: -D warnings
+2025-12-16T01:04:50.9216616Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:04:50.9217595Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:04:50.9218518Z   toolchain: 
+2025-12-16T01:04:50.9219163Z   targets: 
+2025-12-16T01:04:50.9219839Z   components: clippy, rustfmt
+2025-12-16T01:04:50.9220658Z   override: true
+2025-12-16T01:04:50.9221326Z   rust_src_dir: 
+2025-12-16T01:04:50.9221998Z ##[endgroup]
+2025-12-16T01:04:52.4301816Z info: syncing channel updates for 'stable-x86_64-unknown-linux-gnu'
+2025-12-16T01:04:52.7279840Z info: latest update on 2025-12-11, rust version 1.92.0 (ded5c06cf 2025-12-08)
+2025-12-16T01:04:52.7658747Z info: downloading component 'clippy'
+2025-12-16T01:04:52.9493023Z info: downloading component 'rustfmt'
+2025-12-16T01:04:53.1040137Z info: downloading component 'cargo'
+2025-12-16T01:04:53.3638398Z info: downloading component 'rust-std'
+2025-12-16T01:04:53.8586495Z info: downloading component 'rustc'
+2025-12-16T01:04:55.0590284Z info: removing previous version of component 'clippy'
+2025-12-16T01:04:55.0607933Z info: removing previous version of component 'rustfmt'
+2025-12-16T01:04:55.0657606Z info: removing previous version of component 'cargo'
+2025-12-16T01:04:55.0744289Z info: removing previous version of component 'rust-std'
+2025-12-16T01:04:55.0806398Z info: removing previous version of component 'rustc'
+2025-12-16T01:04:55.0860407Z info: installing component 'clippy'
+2025-12-16T01:04:55.4729479Z info: installing component 'rustfmt'
+2025-12-16T01:04:55.7081028Z info: installing component 'cargo'
+2025-12-16T01:04:56.4338153Z info: installing component 'rust-std'
+2025-12-16T01:04:58.3641771Z info: installing component 'rustc'
+2025-12-16T01:05:03.5550244Z 
+2025-12-16T01:05:03.5664563Z   stable-x86_64-unknown-linux-gnu updated - rustc 1.92.0 (ded5c06cf 2025-12-08) (from rustc 1.91.1 (ed61e7d7e 2025-11-07))
+2025-12-16T01:05:03.5671601Z 
+2025-12-16T01:05:03.5752005Z info: override toolchain for '/home/runner/work/opencode-autocode/opencode-autocode' set to 'stable-x86_64-unknown-linux-gnu'
+2025-12-16T01:05:03.5798320Z ##[group]Run echo "rustc-version=$(rustc --version)" >> $GITHUB_OUTPUT
+2025-12-16T01:05:03.5798805Z [36;1mecho "rustc-version=$(rustc --version)" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:05:03.5799128Z [36;1mrustc --version --verbose[0m
+2025-12-16T01:05:03.5799441Z [36;1mecho "cargo-version=$(cargo --version)" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:05:03.5799766Z [36;1mcargo --version --verbose[0m
+2025-12-16T01:05:03.5800082Z [36;1mecho "rustup-version=$(rustup --version)" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:05:03.5800398Z [36;1mrustup --version[0m
+2025-12-16T01:05:03.5800603Z [36;1m[0m
+2025-12-16T01:05:03.5800987Z [36;1mDATE=$(rustc --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')[0m
+2025-12-16T01:05:03.5801537Z [36;1mHASH=$(rustc --version --verbose | sed -ne 's/^commit-hash: //p')[0m
+2025-12-16T01:05:03.5802151Z [36;1mecho "cachekey=$(echo $DATE$HASH | head -c12)" >> $GITHUB_OUTPUT[0m
+2025-12-16T01:05:03.5834982Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:05:03.5835490Z env:
+2025-12-16T01:05:03.5835660Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:05:03.5835870Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:05:03.5836088Z   CARGO_TERM_COLOR: always
+2025-12-16T01:05:03.5836295Z   RUST_BACKTRACE: short
+2025-12-16T01:05:03.5836498Z   RUSTFLAGS: -D warnings
+2025-12-16T01:05:03.5836710Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:05:03.5836981Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:05:03.5837221Z ##[endgroup]
+2025-12-16T01:05:03.6942081Z rustc 1.92.0 (ded5c06cf 2025-12-08)
+2025-12-16T01:05:03.6942948Z binary: rustc
+2025-12-16T01:05:03.6943358Z commit-hash: ded5c06cf21d2b93bffd5d884aa6e96934ee4234
+2025-12-16T01:05:03.6943857Z commit-date: 2025-12-08
+2025-12-16T01:05:03.6944249Z host: x86_64-unknown-linux-gnu
+2025-12-16T01:05:03.6944640Z release: 1.92.0
+2025-12-16T01:05:03.6944955Z LLVM version: 21.1.3
+2025-12-16T01:05:03.8163801Z cargo 1.92.0 (344c4567c 2025-10-21)
+2025-12-16T01:05:03.8176774Z release: 1.92.0
+2025-12-16T01:05:03.8177781Z commit-hash: 344c4567c634a25837e3c3476aac08af84cf9203
+2025-12-16T01:05:03.8178759Z commit-date: 2025-10-21
+2025-12-16T01:05:03.8179609Z host: x86_64-unknown-linux-gnu
+2025-12-16T01:05:03.8180321Z libgit2: 1.9.1 (sys:0.20.2 vendored)
+2025-12-16T01:05:03.8182101Z libcurl: 8.15.0-DEV (sys:0.4.83+curl-8.15.0 vendored ssl:OpenSSL/3.5.4)
+2025-12-16T01:05:03.8184392Z ssl: OpenSSL 3.5.4 30 Sep 2025
+2025-12-16T01:05:03.8184774Z os: Ubuntu 24.4.0 (noble) [64-bit]
+2025-12-16T01:05:03.8263413Z info: This is the version for the rustup toolchain manager, not the rustc compiler.
+2025-12-16T01:05:03.9012918Z info: The currently active `rustc` version is `rustc 1.92.0 (ded5c06cf 2025-12-08)`
+2025-12-16T01:05:03.9100389Z info: This is the version for the rustup toolchain manager, not the rustc compiler.
+2025-12-16T01:05:03.9101194Z rustup 1.28.2 (e4f3ad6f8 2025-04-28)
+2025-12-16T01:05:03.9811550Z info: The currently active `rustc` version is `rustc 1.92.0 (ded5c06cf 2025-12-08)`
+2025-12-16T01:05:04.0963050Z ##[group]Run # Not all versions support setting CARGO_REGISTRIES_CRATES_IO_PROTOCOL
+2025-12-16T01:05:04.0963599Z [36;1m# Not all versions support setting CARGO_REGISTRIES_CRATES_IO_PROTOCOL[0m
+2025-12-16T01:05:04.0964074Z [36;1m# On versions 1.66, 1.67, and 1.68.0-nightly the value "sparse" is still unstable.[0m
+2025-12-16T01:05:04.0964602Z [36;1m# https://github.com/dtolnay/rust-toolchain/pull/69#discussion_r1107268108[0m
+2025-12-16T01:05:04.0965149Z [36;1m# If we detect an incompatible value, set it to "git" which is always supported.[0m
+2025-12-16T01:05:04.0965786Z [36;1mif [[ "rustc 1.92.0 (ded5c06cf 2025-12-08)" =~ ^rustc\ (1\.6[67]\.|1\.68\.0-nightly) && "${CARGO_REGISTRIES_CRATES_IO_PROTOCOL}" == "sparse" ]]; then[0m
+2025-12-16T01:05:04.0966329Z [36;1m  echo "Downgrade cargo registry protocol to git"[0m
+2025-12-16T01:05:04.0966720Z [36;1m  echo "CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git" >> $GITHUB_ENV[0m
+2025-12-16T01:05:04.0967027Z [36;1mfi[0m
+2025-12-16T01:05:04.0999441Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2025-12-16T01:05:04.0999815Z env:
+2025-12-16T01:05:04.0999991Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:05:04.1000206Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:05:04.1000422Z   CARGO_TERM_COLOR: always
+2025-12-16T01:05:04.1000630Z   RUST_BACKTRACE: short
+2025-12-16T01:05:04.1000827Z   RUSTFLAGS: -D warnings
+2025-12-16T01:05:04.1001048Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:05:04.1001313Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:05:04.1001551Z ##[endgroup]
+2025-12-16T01:05:04.1123238Z ##[group]Run Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1
+2025-12-16T01:05:04.1123596Z with:
+2025-12-16T01:05:04.1123793Z   cache-on-failure: true
+2025-12-16T01:05:04.1124002Z   cache-bin: true
+2025-12-16T01:05:04.1124199Z   cache-provider: github
+2025-12-16T01:05:04.1124616Z   cache-all-crates: false
+2025-12-16T01:05:04.1124837Z   cache-workspace-crates: false
+2025-12-16T01:05:04.1125064Z   prefix-key: v0-rust
+2025-12-16T01:05:04.1125250Z   cache-targets: true
+2025-12-16T01:05:04.1125577Z   save-if: true
+2025-12-16T01:05:04.1125750Z   lookup-only: false
+2025-12-16T01:05:04.1125926Z env:
+2025-12-16T01:05:04.1126082Z   CARGO_INCREMENTAL: 0
+2025-12-16T01:05:04.1126279Z   CARGO_PROFILE_DEV_DEBUG: 0
+2025-12-16T01:05:04.1126487Z   CARGO_TERM_COLOR: always
+2025-12-16T01:05:04.1126691Z   RUST_BACKTRACE: short
+2025-12-16T01:05:04.1126885Z   RUSTFLAGS: -D warnings
+2025-12-16T01:05:04.1127106Z   CARGO_UNSTABLE_SPARSE_REGISTRY: true
+2025-12-16T01:05:04.1127384Z   CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+2025-12-16T01:05:04.1127627Z ##[endgroup]
+2025-12-16T01:05:04.6790332Z ##[group]Cache Configuration
+2025-12-16T01:05:04.6791264Z Cache Provider:
+2025-12-16T01:05:04.6791820Z     github
+2025-12-16T01:05:04.6792709Z Workspaces:
+2025-12-16T01:05:04.6793494Z     /home/runner/work/opencode-autocode/opencode-autocode
+2025-12-16T01:05:04.6796097Z Cache Paths:
+2025-12-16T01:05:04.6796431Z     /home/runner/.cargo/bin
+2025-12-16T01:05:04.6796824Z     /home/runner/.cargo/.crates.toml
+2025-12-16T01:05:04.6797290Z     /home/runner/.cargo/.crates2.json
+2025-12-16T01:05:04.6797714Z     /home/runner/.cargo/registry
+2025-12-16T01:05:04.6798125Z     /home/runner/.cargo/git
+2025-12-16T01:05:04.6824380Z     /home/runner/work/opencode-autocode/opencode-autocode/target
+2025-12-16T01:05:04.6824995Z Restore Key:
+2025-12-16T01:05:04.6825410Z     v0-rust-regression-tests-Linux-x64-2750ab4c
+2025-12-16T01:05:04.6825888Z Cache Key:
+2025-12-16T01:05:04.6826318Z     v0-rust-regression-tests-Linux-x64-2750ab4c-5a2225ca
+2025-12-16T01:05:04.6826884Z .. Prefix:
+2025-12-16T01:05:04.6827235Z   - v0-rust-regression-tests-Linux-x64
+2025-12-16T01:05:04.6827724Z .. Environment considered:
+2025-12-16T01:05:04.6828346Z   - Rust Version: 1.92.0 x86_64-unknown-linux-gnu (ded5c06cf21d2b93bffd5d884aa6e96934ee4234)
+2025-12-16T01:05:04.6829004Z   - CARGO_INCREMENTAL
+2025-12-16T01:05:04.6829327Z   - CARGO_PROFILE_DEV_DEBUG
+2025-12-16T01:05:04.6829721Z   - CARGO_REGISTRIES_CRATES_IO_PROTOCOL
+2025-12-16T01:05:04.6830139Z   - CARGO_TERM_COLOR
+2025-12-16T01:05:04.6830511Z   - CARGO_UNSTABLE_SPARSE_REGISTRY
+2025-12-16T01:05:04.6830901Z   - RUST_BACKTRACE
+2025-12-16T01:05:04.6831208Z   - RUSTFLAGS
+2025-12-16T01:05:04.6831505Z .. Lockfiles considered:
+2025-12-16T01:05:04.6832056Z   - /home/runner/work/opencode-autocode/opencode-autocode/Cargo.lock
+2025-12-16T01:05:04.6832994Z   - /home/runner/work/opencode-autocode/opencode-autocode/Cargo.toml
+2025-12-16T01:05:04.6833779Z   - /home/runner/work/opencode-autocode/opencode-autocode/tests/regression/Cargo.toml
+2025-12-16T01:05:04.6834713Z ##[endgroup]
+2025-12-16T01:05:04.6834867Z 
+2025-12-16T01:05:04.6834991Z ... Restoring cache ...
+2025-12-16T01:05:04.9832560Z Cache hit for restore-key: v0-rust-regression-tests-Linux-x64-2750ab4c-c5d057b0
+2025-12-16T01:05:06.2110211Z Received 12582912 of 221652072 (5.7%), 12.0 MBs/sec
+2025-12-16T01:05:07.2105950Z Received 134217728 of 221652072 (60.6%), 64.0 MBs/sec
+2025-12-16T01:05:07.9646860Z Received 221652072 of 221652072 (100.0%), 76.8 MBs/sec
+2025-12-16T01:05:07.9649992Z Cache Size: ~211 MB (221652072 B)
+2025-12-16T01:05:07.9875557Z [command]/usr/bin/tar -xf /home/runner/work/_temp/aac33f28-c341-4595-a5aa-085a2491453b/cache.tzst -P -C /home/runner/work/opencode-autocode/opencode-autocode --use-compress-program unzstd
+2025-12-16T01:05:09.7163724Z Cache restored successfully
+2025-12-16T01:05:10.6044306Z Restored from cache key "v0-rust-regression-tests-Linux-x64-2750ab4c-c5d057b0" full match: false.
