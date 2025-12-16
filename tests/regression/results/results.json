@@ -2,7 +2,7 @@
   "total_tests": 6,
   "passed_tests": 6,
   "failed_tests": 0,
-  "total_duration_ms": 563,
+  "total_duration_ms": 115,
   "results": [
     {
       "name": "basic_generator_test",
@@ -48,7 +48,7 @@
       "name": "cli_mode_test",
       "category": "functional",
       "passed": true,
-      "duration_ms": 562,
+      "duration_ms": 114,
       "error_message": null,
       "metadata": {}
     }

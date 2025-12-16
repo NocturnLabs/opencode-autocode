@@ -15,6 +15,3 @@ toml = "0.8"
 walkdir = "2"
 anyhow = "1"
 tempfile = "3"
-
-[dependencies.opencode-autocode]
-path = "../.."
