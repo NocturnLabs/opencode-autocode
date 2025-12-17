@@ -209,8 +209,8 @@ impl Default for VerbalizedSamplingConfig {
 pub struct McpConfig {
     /// MCP tools in priority order
     pub priority_order: Vec<String>,
-    /// Prefer mgrep over grep
-    pub prefer_mgrep: bool,
+    /// Prefer osgrep over grep
+    pub prefer_osgrep: bool,
     /// Use sequential thinking for complex decisions
     pub use_sequential_thinking: bool,
 }
@@ -219,13 +219,13 @@ impl Default for McpConfig {
     fn default() -> Self {
         Self {
             priority_order: vec![
-                "mgrep".to_string(),
+                "osgrep".to_string(),
                 "chat-history".to_string(),
                 "deepwiki".to_string(),
                 "perplexica".to_string(),
                 "sequential-thinking".to_string(),
             ],
-            prefer_mgrep: true,
+            prefer_osgrep: true,
             use_sequential_thinking: true,
         }
     }

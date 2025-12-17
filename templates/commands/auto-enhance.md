@@ -169,7 +169,8 @@ But only if explicitly told to do so. By default, just propose.
 
 This command relies heavily on MCPs:
 
-1. **mgrep** - Search codebase efficiently when analyzing existing code
+1. **osgrep** - Search codebase efficiently when analyzing existing code
+
    - Prefer over grep for smaller context window footprint
    - Use for understanding current implementation patterns
 

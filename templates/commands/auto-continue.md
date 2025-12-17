@@ -16,6 +16,7 @@ This is a FRESH context window - you have no memory of previous sessions.
 3. Only use commands listed in `allowed_commands` categories
 
 **BLOCKED PATTERNS ARE ABSOLUTE:**
+
 - If a command matches ANY pattern in `blocked_patterns`, DO NOT RUN IT
 - No exceptions, even if it seems necessary for the task
 - If you need a blocked command, document the blocker and move on
@@ -46,12 +47,13 @@ for the application you're building.
 Check if all tests are passing. Use the **mgrep** MCP for efficient searching:
 
 ```
-# Use mgrep MCP (preferred - smaller context window footprint)
-mgrep: search for '"passes": false' in feature_list.json
-mgrep: search for '"passes": true' in feature_list.json
+# Use osgrep MCP (preferred - smaller context window footprint)
+osgrep: search for '"passes": false' in feature_list.json
+osgrep: search for '"passes": true' in feature_list.json
 ```
 
-**Fallback (only if mgrep unavailable):**
+**Fallback (only if osgrep unavailable):**
+
 ```bash
 grep -c '"passes": true' feature_list.json
 grep -c '"passes": false' feature_list.json
@@ -89,11 +91,13 @@ The previous session may have introduced bugs. Before implementing anything
 new, you MUST verify that ALL existing passing features still work.
 
 1. **Get the count of passing features:**
+
    ```bash
    grep -c '"passes": true' feature_list.json
    ```
 
 2. **Run verification for EVERY feature marked as passing:**
+
    - If the project has automated tests, run them: `npm test`, `cargo test`, `pytest`, etc.
    - For features with `verification_command`, execute that command
    - For manual-only features, walk through the documented steps
@@ -148,15 +152,17 @@ If cached approaches exist and are still relevant, skip to step 5.5.3.
 If no cache exists, use the Verbalized Sampling prompt to generate 10 distinct approaches:
 
 1. Extract feature context from `feature_list.json` and `app_spec.txt`
-2. Identify existing codebase patterns using **mgrep**
+2. Identify existing codebase patterns using **osgrep**
 3. Generate approaches with probability scores spanning the full distribution
 
 The approaches should include:
+
 - 2+ conventional (high probability ~0.8-0.9)
-- 3+ alternative (medium probability ~0.4-0.6)  
+- 3+ alternative (medium probability ~0.4-0.6)
 - 3+ creative (low probability <0.2)
 
 Cache the results:
+
 ```bash
 mkdir -p .vs-cache
 # Save approaches JSON to cache
@@ -167,6 +173,7 @@ mkdir -p .vs-cache
 A secondary analysis selects the best approach based on **project context, NOT probability**.
 
 Selection criteria (in order):
+
 1. **Project Alignment** - fits architecture and goals
 2. **Codebase Consistency** - matches existing patterns
 3. **Technical Fit** - appropriate for tech stack
@@ -190,6 +197,7 @@ Key Techniques: [main patterns/libraries to use]
 #### 5.5.5 Fallback Behavior
 
 If VS fails (API error, parsing failure):
+
 1. Log the failure to `opencode-progress.txt`
 2. Proceed directly to Step 6 with conventional implementation
 3. Document that VS was skipped
@@ -219,7 +227,7 @@ If an edit or fix fails 3 times in a row:
 
 3. **RESEARCH** - Begin a comprehensive search using ALL available tools:
 
-   - **mgrep**: Search codebase efficiently (preferred over grep - smaller context window)
+   - **osgrep**: Search codebase efficiently (preferred over grep - smaller context window)
    - **sequential-thinking**: Break down the problem systematically
    - **deepwiki**: Look up official documentation for the library/framework
    - **perplexica**: Search the web for similar issues and solutions
@@ -270,16 +278,19 @@ This checkpoint runs after EVERY feature implementation to ensure long-running
 projects stay stable throughout development.
 
 1. **Get the list of all currently passing features:**
+
    ```bash
    grep -c '"passes": true' feature_list.json
    ```
 
 2. **Run verification for EACH passing feature:**
+
    - Execute automated tests if available
    - Run any `verification_command` fields
    - For complex features, test the critical path
 
 3. **If ANY regression is detected:**
+
    - Immediately mark that feature as `"passes": false`
    - Document in `opencode-progress.txt`:
      ```
@@ -383,10 +394,11 @@ This signals the runner script to start a new session automatically.
 
 When you need information, use MCPs in this order:
 
-1. **mgrep** - For searching code and files (ALWAYS prefer over grep)
+1. **osgrep** - For searching code and files (ALWAYS prefer over grep)
+
    - Efficient pattern matching with minimal context window usage
    - Use for finding code patterns, function definitions, usages
-   - Fallback to grep only for simple line counting or when mgrep unavailable
+   - Fallback to grep only for simple line counting or when osgrep unavailable
 
 2. **chat-history** - Quick check for relevant past solutions
    (Note: Supplemental knowledge only, not authoritative)

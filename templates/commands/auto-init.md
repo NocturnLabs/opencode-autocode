@@ -16,6 +16,7 @@ Your job is to set up the foundation for all future coding agents.
 3. Only use commands listed in `allowed_commands` categories
 
 **BLOCKED PATTERNS ARE ABSOLUTE:**
+
 - If a command matches ANY pattern in `blocked_patterns`, DO NOT RUN IT
 - No exceptions, even if it seems necessary for the task
 - If you need a blocked command, document the blocker and move on
@@ -72,6 +73,7 @@ end-to-end test cases appropriate for the technology stack specified.
 ```
 
 **Field Descriptions:**
+
 - `category`: "functional", "style", "integration", "performance"
 - `description`: Clear description of what the feature does and what this test verifies
 - `steps`: Human-readable verification steps (always required)
@@ -137,10 +139,11 @@ mentioned in the spec.
 
 When you need information, use MCPs in this order:
 
-1. **mgrep** - For searching code and files (ALWAYS prefer over grep)
+1. **osgrep** - For searching code and files (ALWAYS prefer over grep)
+
    - Efficient pattern matching with minimal context window usage
    - Use for finding code patterns, function definitions, usages
-   - Fallback to grep only for simple line counting or when mgrep unavailable
+   - Fallback to grep only for simple line counting or when osgrep unavailable
 
 2. **chat-history** - Check for similar problems/solutions you've seen before
    (Note: This is supplemental knowledge only, not authoritative)

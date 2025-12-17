@@ -110,15 +110,15 @@ cache_results = true
 [mcp]
 # Preferred MCP tools in priority order (first = highest priority)
 priority_order = [
-    "mgrep",              # Code search (prefer over grep)
+    "osgrep",             # Code search (prefer over grep)
     "chat-history",       # Past solutions reference
     "deepwiki",           # Official documentation
     "perplexica",         # Web search
     "sequential-thinking" # Complex reasoning
 ]
 
-# Prefer mgrep over grep for code search
-prefer_mgrep = true
+# Prefer osgrep over grep for code search
+prefer_osgrep = true
 
 # Use sequential-thinking for complex decisions
 use_sequential_thinking = true
