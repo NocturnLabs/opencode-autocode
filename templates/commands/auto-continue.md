@@ -44,15 +44,12 @@ for the application you're building.
 
 ### STEP 2: CHECK COMPLETION STATUS
 
-Check if all tests are passing. Use the **mgrep** MCP for efficient searching:
+Check if all tests are passing. Use code search for efficient searching:
 
 ```
-# Use osgrep MCP (preferred - smaller context window footprint)
-osgrep: search for '"passes": false' in feature_list.json
-osgrep: search for '"passes": true' in feature_list.json
+# Use code search (e.g., osgrep MCP - smaller context window footprint)
+# Or fallback to grep
 ```
-
-**Fallback (only if osgrep unavailable):**
 
 ```bash
 grep -c '"passes": true' feature_list.json
@@ -227,11 +224,11 @@ If an edit or fix fails 3 times in a row:
 
 3. **RESEARCH** - Begin a comprehensive search using ALL available tools:
 
-   - **osgrep**: Search codebase efficiently (preferred over grep - smaller context window)
-   - **sequential-thinking**: Break down the problem systematically
-   - **deepwiki**: Look up official documentation for the library/framework
-   - **perplexica**: Search the web for similar issues and solutions
-   - **chat-history**: Check if you've solved similar problems before
+   - **Code Search**: Search codebase efficiently (e.g., osgrep, ripgrep, grep)
+   - **Structured Reasoning**: Break down the problem systematically
+   - **Documentation**: Look up official docs for the library/framework
+   - **Web Search**: Search for similar issues and solutions
+   - **Local Knowledge**: Check if you've solved similar problems before
    - **Read the actual error messages** carefully
    - **Read related source files** to understand context
    - **Check imports and dependencies** that might be missing
@@ -392,22 +389,21 @@ This signals the runner script to start a new session automatically.
 
 ## MCP USAGE (PRIORITY ORDER)
 
-When you need information, use MCPs in this order:
+When you need information, use the MCPs available to you:
 
-1. **osgrep** - For searching code and files (ALWAYS prefer over grep)
+1. **Code Search** - Use semantic search (e.g., osgrep) or grep for code patterns
 
    - Efficient pattern matching with minimal context window usage
    - Use for finding code patterns, function definitions, usages
-   - Fallback to grep only for simple line counting or when osgrep unavailable
 
-2. **chat-history** - Quick check for relevant past solutions
+2. **Local Knowledge** - Quick check for relevant past solutions
    (Note: Supplemental knowledge only, not authoritative)
 
-3. **deepwiki** - Official documentation lookup
+3. **Documentation** - Official documentation lookup (e.g., deepwiki)
 
-4. **perplexica** - Broader web search for solutions and patterns
+4. **Web Search** - Broader web search for solutions and patterns
 
-5. **sequential-thinking** - For complex reasoning tasks:
+5. **Structured Reasoning** - For complex reasoning tasks:
    - Breaking down difficult problems
    - Planning refactors
    - Debugging complex issues

@@ -31,7 +31,10 @@ opencode_paths = [
 ]
 
 # Log directory for autonomous sessions
-log_dir = "$HOME/Work/local-work/opencode-logs"
+# Uses OpenCode's native log directory:
+#   Linux/macOS: $HOME/.local/share/opencode/log
+#   Windows: %APPDATA%\opencode\log
+log_dir = "$HOME/.local/share/opencode/log"
 
 # Cache directory for verbalized sampling results
 vs_cache_dir = ".vs-cache"
@@ -108,17 +111,20 @@ cache_results = true
 # MCP - Model Context Protocol tool preferences
 # ─────────────────────────────────────────────────────────────────────────────
 [mcp]
-# Preferred MCP tools in priority order (first = highest priority)
-priority_order = [
-    "osgrep",             # Code search (prefer over grep)
-    "chat-history",       # Past solutions reference
-    "deepwiki",           # Official documentation
-    "perplexica",         # Web search
-    "sequential-thinking" # Complex reasoning
-]
+# Configure your available MCPs here (in priority order).
+# Leave empty if you don't have custom MCPs - the agent will use standard tools.
+#
+# Recommended tools for the full NocturnLabs workflow:
+#   osgrep              - Semantic code search    (https://github.com/Ryandonofrio3/osgrep)
+#   perplexica          - Self-hosted AI search   (https://github.com/ItzCrazyKns/Perplexica)
+#   deepwiki            - GitHub docs lookup      (https://deepwiki.com)
+#   sequential-thinking - Structured reasoning    (https://github.com/modelcontextprotocol/servers)
+#
+# Example: priority_order = ["osgrep", "sequential-thinking"]
+priority_order = []
 
-# Prefer osgrep over grep for code search
-prefer_osgrep = true
+# Prefer osgrep over grep for code search (set true if osgrep is installed)
+prefer_osgrep = false
 
 # Use sequential-thinking for complex decisions
 use_sequential_thinking = true

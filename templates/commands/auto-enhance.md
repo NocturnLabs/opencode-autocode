@@ -28,9 +28,9 @@ Read app_spec.txt and feature_list.json to understand:
 
 ### STEP 2: RESEARCH ENHANCEMENTS
 
-Use MCPs in this order to discover enhancement opportunities:
+Use your available MCPs to discover enhancement opportunities:
 
-#### 2.1 Web Search (perplexica)
+#### 2.1 Web Search
 
 Search for:
 
@@ -40,7 +40,7 @@ Search for:
 - "performance optimizations [framework/language]"
 - "trending [project type] features"
 
-#### 2.2 Documentation (deepwiki)
+#### 2.2 Documentation
 
 Look up:
 
@@ -48,7 +48,7 @@ Look up:
 - New features in dependencies that could be leveraged
 - Best practices guides from framework maintainers
 
-#### 2.3 Local Knowledge (chat-history)
+#### 2.3 Local Knowledge
 
 Check for:
 
@@ -169,17 +169,17 @@ But only if explicitly told to do so. By default, just propose.
 
 This command relies heavily on MCPs:
 
-1. **osgrep** - Search codebase efficiently when analyzing existing code
+1. **Code Search** - Search codebase efficiently (e.g., osgrep, ripgrep)
 
-   - Prefer over grep for smaller context window footprint
+   - Prefer semantic search for smaller context window footprint
    - Use for understanding current implementation patterns
 
-2. **perplexica** (PRIMARY) - Search for trends and popular features
-3. **deepwiki** - Look up official best practices
-4. **chat-history** - Check what worked before
-5. **sequential-thinking** - Evaluate and prioritize findings
+2. **Web Search** (PRIMARY) - Search for trends and popular features
+3. **Documentation** - Look up official best practices (e.g., deepwiki)
+4. **Local Knowledge** - Check what worked before
+5. **Structured Reasoning** - Evaluate and prioritize findings
 
-Use Sequential Thinking to organize your findings and determine priority.
+Use structured reasoning to organize your findings and determine priority.
 
 ---
 

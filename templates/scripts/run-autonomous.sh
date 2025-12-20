@@ -29,9 +29,16 @@ read_config() {
 PROJECT_DIR="${1:-.}"
 MAX_ITERATIONS="${2:-unlimited}"
 
+# Determine platform-appropriate default log directory
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+    DEFAULT_LOG_DIR="$APPDATA/opencode/log"
+else
+    DEFAULT_LOG_DIR="$HOME/.local/share/opencode/log"
+fi
+
 # Read config values (with defaults)
 DELAY_BETWEEN_SESSIONS=$(read_config "delay_between_sessions" "5")
-LOG_DIR=$(read_config "log_dir" "$HOME/Work/local-work/opencode-logs")
+LOG_DIR=$(read_config "log_dir" "$DEFAULT_LOG_DIR")
 AUTONOMOUS_MODEL=$(read_config "autonomous" "opencode/grok-code")
 LOG_LEVEL=$(read_config "log_level" "DEBUG")
 

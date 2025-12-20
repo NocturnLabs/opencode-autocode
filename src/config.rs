@@ -87,14 +87,27 @@ impl Default for PathsConfig {
         Self {
             opencode_paths: vec![
                 "opencode".to_string(),
+                #[cfg(not(target_os = "windows"))]
                 "/usr/local/bin/opencode".to_string(),
             ],
-            log_dir: "$HOME/Work/local-work/opencode-logs".to_string(),
+            log_dir: get_default_log_dir(),
             vs_cache_dir: ".vs-cache".to_string(),
             progress_file: "opencode-progress.txt".to_string(),
             feature_list_file: "feature_list.json".to_string(),
             app_spec_file: "app_spec.md".to_string(),
         }
+    }
+}
+
+/// Get the platform-appropriate OpenCode log directory
+fn get_default_log_dir() -> String {
+    #[cfg(target_os = "windows")]
+    {
+        "%APPDATA%\\opencode\\log".to_string()
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        "$HOME/.local/share/opencode/log".to_string()
     }
 }
 
@@ -218,14 +231,10 @@ pub struct McpConfig {
 impl Default for McpConfig {
     fn default() -> Self {
         Self {
-            priority_order: vec![
-                "osgrep".to_string(),
-                "chat-history".to_string(),
-                "deepwiki".to_string(),
-                "perplexica".to_string(),
-                "sequential-thinking".to_string(),
-            ],
-            prefer_osgrep: true,
+            // Empty by default - users configure their available MCPs
+            // See autocode.toml for example tools with repo links
+            priority_order: vec![],
+            prefer_osgrep: false,
             use_sequential_thinking: true,
         }
     }
@@ -428,11 +437,21 @@ impl Config {
 // Environment Variable Expansion
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Expand environment variables in a string (e.g., $HOME, ${HOME})
+/// Expand environment variables in a string (e.g., $HOME, ${HOME}, %APPDATA%)
 fn expand_env_var(s: &str) -> String {
     let mut result = s.to_string();
 
-    // Handle $HOME specifically (most common case)
+    // Handle Windows %APPDATA%
+    if let Ok(appdata) = env::var("APPDATA") {
+        result = result.replace("%APPDATA%", &appdata);
+    }
+
+    // Handle Windows %USERPROFILE%
+    if let Ok(userprofile) = env::var("USERPROFILE") {
+        result = result.replace("%USERPROFILE%", &userprofile);
+    }
+
+    // Handle $HOME specifically (most common case on Unix)
     if let Ok(home) = env::var("HOME") {
         result = result.replace("$HOME", &home);
         result = result.replace("${HOME}", &home);

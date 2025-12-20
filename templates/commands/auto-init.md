@@ -137,22 +137,21 @@ mentioned in the spec.
 
 ### MCP USAGE GUIDELINES
 
-When you need information, use MCPs in this order:
+When you need information, use the MCPs available to you:
 
-1. **osgrep** - For searching code and files (ALWAYS prefer over grep)
+1. **Code Search** - Use semantic search (e.g., osgrep) or grep for code patterns
 
    - Efficient pattern matching with minimal context window usage
    - Use for finding code patterns, function definitions, usages
-   - Fallback to grep only for simple line counting or when osgrep unavailable
 
-2. **chat-history** - Check for similar problems/solutions you've seen before
+2. **Local Knowledge** - If available, check knowledge bases for prior solutions
    (Note: This is supplemental knowledge only, not authoritative)
 
-3. **deepwiki** - Look up library/framework documentation
+3. **Documentation** - Look up library/framework documentation (e.g., deepwiki)
 
-4. **perplexica** - Web search when local knowledge is insufficient
+4. **Web Search** - Search the web when local knowledge is insufficient
 
-5. **sequential-thinking** - Use for complex problem decomposition
+5. **Structured Reasoning** - Use reasoning tools for complex problem decomposition
 
 ---
 
