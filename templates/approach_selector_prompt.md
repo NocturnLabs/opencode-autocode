@@ -1,19 +1,21 @@
-# Role
-You are a context-aware approach selector for an autonomous coding agent. Your job is to analyze implementation approaches and select the BEST one for this specific project based on context—**NOT** based on probability scores.
+# Task: Select Best Implementation Approach
 
-# Critical Instruction
+Analyze the provided implementation approaches and select the BEST one for this specific project based on context.
+
+## Critical Instruction
+
 **IGNORE the probability scores.** They indicate conventionality, not quality. A low-probability approach may be the perfect choice for this project's specific needs.
 
-# Selection Criteria (In Priority Order)
+## Selection Criteria (Priority Order)
 
 1. **Project Alignment**: Does this approach fit the project's architecture and goals?
-2. **Codebase Consistency**: Does it match existing patterns and conventions in the codebase?
-3. **Technical Fit**: Is it appropriate for the technology stack being used?
-4. **Feature Requirements**: Does it handle the specific requirements of this feature well?
+2. **Codebase Consistency**: Does it match existing patterns and conventions?
+3. **Technical Fit**: Is it appropriate for the technology stack?
+4. **Feature Requirements**: Does it handle the specific feature requirements well?
 5. **Maintainability**: Will this be easy to maintain and extend?
 6. **Risk Assessment**: Given the feature's priority, is the risk level appropriate?
 
-# Context
+## Context
 
 **Project Overview:**
 {{PROJECT_OVERVIEW}}
@@ -33,29 +35,27 @@ You are a context-aware approach selector for an autonomous coding agent. Your j
 **Risk Tolerance:** {{RISK_LEVEL}}
 (conservative = prefer proven patterns, experimental = open to innovation)
 
-# Implementation Approaches to Evaluate
+## Approaches to Evaluate
 
 {{APPROACHES_JSON}}
 
-# Instructions
+## Process
 
 1. Analyze each approach against the selection criteria
 2. Consider how well each approach fits THIS SPECIFIC PROJECT
 3. Don't default to high-probability options—evaluate based on context
 4. If a creative (low-probability) approach is a better fit, select it
-5. Provide clear justification for your selection
+5. Provide clear justification for the selection
 6. Note any adaptations needed to fit the project
 
-# Output Format
-
-Provide the output strictly as a JSON object:
+## Output Format
 
 ```json
 {
   "selected_index": <0-9 index of selected approach>,
   "approach": "<the text of the selected approach>",
-  "probability_override_reason": "<if you selected a low/medium probability option, explain why it's better for this context>",
-  "justification": "<2-3 sentences explaining why this approach is the best fit for this project>",
+  "probability_override_reason": "<if selecting a low/medium probability option, explain why it's better for this context>",
+  "justification": "<2-3 sentences explaining why this approach is the best fit>",
   "alignment_scores": {
     "project_alignment": <1-5>,
     "codebase_consistency": <1-5>,
@@ -64,14 +64,18 @@ Provide the output strictly as a JSON object:
     "maintainability": <1-5>
   },
   "adaptations": ["<any modifications needed to fit project patterns>"],
-  "implementation_notes": "<any specific notes for the implementing agent>"
+  "implementation_notes": "<specific notes for the implementing agent>"
 }
 ```
 
-# Example Selection Reasoning
+## Example Reasoning
 
-If a project uses event-driven architecture throughout, and approach #7 (probability 0.15) uses events while approach #1 (probability 0.85) uses synchronous REST:
-- Select approach #7 despite lower probability
-- Reason: "Codebase uses event-driven patterns; this approach maintains architectural consistency"
+If a project uses event-driven architecture throughout:
 
-Now analyze the approaches and select the best one for this project.
+- Approach #7 (probability 0.15) uses events
+- Approach #1 (probability 0.85) uses synchronous REST
+
+Select approach #7 despite lower probability.
+Reason: "Codebase uses event-driven patterns; this approach maintains architectural consistency."
+
+Analyze the approaches and select the best one for this project.

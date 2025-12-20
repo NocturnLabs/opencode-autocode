@@ -20,6 +20,34 @@ reasoning = "opencode/grok-code"
 enhancement = "opencode/big-pickle"
 
 # ─────────────────────────────────────────────────────────────────────────────
+# GENERATION - Spec generation behavior and requirements
+# ─────────────────────────────────────────────────────────────────────────────
+[generation]
+# Spec complexity level: "comprehensive" (default) or "minimal"
+# comprehensive = Full-featured, production-grade specs (15+ features, 10+ tables)
+# minimal = Simple MVP specs (5 features, basic schema)
+complexity = "comprehensive"
+
+# Minimum requirements for "comprehensive" mode
+min_features = 15
+min_database_tables = 10
+min_api_endpoints = 30
+min_implementation_steps = 8
+
+# Minimum requirements for "minimal" mode (when complexity = "minimal")
+minimal_min_features = 5
+minimal_min_database_tables = 3
+minimal_min_api_endpoints = 10
+minimal_min_implementation_steps = 4
+
+# Include these sections in generated specs (set false to omit)
+include_security_section = true
+include_testing_strategy = true
+include_devops_section = true
+include_accessibility = true
+include_future_enhancements = true
+
+# ─────────────────────────────────────────────────────────────────────────────
 # PATHS - File system paths and executables
 # ─────────────────────────────────────────────────────────────────────────────
 [paths]
@@ -84,28 +112,23 @@ verification_sample_size = 2
 single_feature_focus = true
 
 # ─────────────────────────────────────────────────────────────────────────────
-# VERBALIZED_SAMPLING - Approach exploration settings
+# ALTERNATIVE_APPROACHES - Stuck recovery settings
 # ─────────────────────────────────────────────────────────────────────────────
-[verbalized_sampling]
-# Enable verbalized sampling for approach exploration
+[alternative_approaches]
+# Enable alternative approach generation when stuck (after 3 failed attempts)
 enabled = true
 
-# Number of approaches to generate
-num_approaches = 10
+# Number of alternative approaches to generate when stuck
+num_approaches = 7
 
-# Probability distribution for approach types
-# Format: [min, max] probability range
-conventional_probability = [0.8, 0.9]    # High probability, standard approaches
-alternative_probability = [0.4, 0.6]     # Medium probability, alternative approaches  
-creative_probability = [0.0, 0.2]        # Low probability, creative/unconventional
+# Retry threshold: trigger alternative approach generation after this many failures
+retry_threshold = 3
 
-# Minimum count for each approach type
-min_conventional = 2
-min_alternative = 3
-min_creative = 3
-
-# Cache VS results to avoid regenerating
+# Cache alternative approach results to avoid regenerating for same feature
 cache_results = true
+
+# Cache directory for alternative approach results
+cache_dir = ".approach-cache"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MCP - Model Context Protocol tool preferences

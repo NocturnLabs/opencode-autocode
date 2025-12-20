@@ -4,79 +4,71 @@ use anyhow::{bail, Result};
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
-/// OpenCode Autonomous Coding Plugin Scaffolder
+/// OpenCode Autocode - Autonomous Coding for OpenCode 🎵
 #[derive(Parser, Debug)]
 #[command(name = "opencode-autocode")]
-#[command(author = "CodingInCarhartts")]
+#[command(author = "NocturnLabs")]
 #[command(version)]
-#[command(about = "Scaffold autonomous coding plugin for OpenCode", long_about = None)]
+#[command(about = "Scaffold and run autonomous coding projects for OpenCode", long_about = None)]
 pub struct Cli {
     /// Subcommand to run
     #[command(subcommand)]
     pub command: Option<Commands>,
 
-    /// Use the default app spec template
-    #[arg(short, long, conflicts_with_all = ["spec", "interactive"])]
-    pub default: bool,
-
-    /// Path to a custom app spec file
-    #[arg(short, long, value_name = "FILE", conflicts_with_all = ["default", "interactive"])]
-    pub spec: Option<PathBuf>,
-
-    /// Launch interactive TUI to build app spec
-    #[arg(short, long, conflicts_with_all = ["default", "spec"])]
+    /// Launch interactive TUI to build app spec (scaffolding mode)
+    #[arg(long)]
     pub interactive: bool,
 
-    /// Output directory for scaffolded files (default: current directory)
+    /// Use the default app spec template (scaffolding mode)
+    #[arg(long)]
+    pub default: bool,
+
+    /// Path to a custom app spec file (scaffolding mode)
+    #[arg(long, value_name = "FILE")]
+    pub spec: Option<PathBuf>,
+
+    /// Configure settings via TUI form
+    #[arg(long)]
+    pub config: bool,
+
+    /// Run regression checks on feature_list.json
+    #[arg(long)]
+    pub regression_check: bool,
+
+    /// Output directory for scaffolded files
     #[arg(short, long, value_name = "DIR")]
     pub output: Option<PathBuf>,
 
-    /// Preview mode: show what files would be created without creating them
+    /// Preview scaffolding without creating files
     #[arg(long, visible_alias = "preview")]
     pub dry_run: bool,
 
-    /// Initialize git repository after scaffolding
-    #[arg(long)]
-    pub git_init: bool,
-
-    /// Path to custom config file (default: autocode.toml in current directory)
+    /// Path to feature_list.json (for --regression-check)
     #[arg(long, value_name = "FILE")]
-    pub config: Option<PathBuf>,
+    pub feature_list: Option<PathBuf>,
+
+    /// Verbose output
+    #[arg(short, long)]
+    pub verbose: bool,
 }
 
-/// Subcommands for the CLI
+/// Subcommands
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    /// Manage project templates
-    Templates {
-        #[command(subcommand)]
-        action: TemplateAction,
-    },
-    /// Launch interactive spec editor (TUI)
-    Edit,
-    /// Run regression checks on feature_list.json
-    RegressionCheck {
-        /// Path to feature_list.json (defaults to ./feature_list.json)
-        #[arg(short, long, value_name = "FILE")]
-        feature_list: Option<PathBuf>,
-
-        /// Only check features matching this category
-        #[arg(short, long)]
-        category: Option<String>,
-
-        /// Verbose output showing each test
-        #[arg(short, long)]
-        verbose: bool,
-    },
-    /// Run the autonomous agent loop (replaces run-autonomous.sh)
-    Autonomous {
+    /// Start the autonomous coding loop - let it vibe 🎵
+    Vibe {
         /// Maximum number of iterations (default: unlimited)
         #[arg(short, long)]
         limit: Option<usize>,
 
         /// Path to custom config file (default: autocode.toml)
-        #[arg(short, long, value_name = "FILE")]
-        config: Option<PathBuf>,
+        #[arg(long, value_name = "FILE")]
+        config_file: Option<PathBuf>,
+    },
+    /// Manage project templates
+    Templates {
+        #[command(subcommand)]
+        action: TemplateAction,
     },
 }
 
@@ -92,7 +84,7 @@ pub enum TemplateAction {
     },
 }
 
-/// The mode of operation for the scaffolder
+/// The mode of operation
 pub enum Mode {
     /// Use the default embedded app spec
     Default,
@@ -100,24 +92,36 @@ pub enum Mode {
     Custom(PathBuf),
     /// Launch interactive TUI
     Interactive,
+    /// Configure settings
+    Config,
+    /// Run regression checks
+    RegressionCheck,
 }
 
 impl Cli {
     /// Determine the mode of operation based on CLI arguments
     pub fn mode(&self) -> Result<Mode> {
+        // Check exclusive flags
+        if self.config {
+            return Ok(Mode::Config);
+        }
+        if self.regression_check {
+            return Ok(Mode::RegressionCheck);
+        }
         if self.default {
-            Ok(Mode::Default)
-        } else if let Some(ref spec_path) = self.spec {
+            return Ok(Mode::Default);
+        }
+        if let Some(ref spec_path) = self.spec {
             if !spec_path.exists() {
                 bail!("Spec file not found: {}", spec_path.display());
             }
-            Ok(Mode::Custom(spec_path.clone()))
-        } else if self.interactive {
-            Ok(Mode::Interactive)
-        } else {
-            // Default to interactive if no mode specified
-            Ok(Mode::Interactive)
+            return Ok(Mode::Custom(spec_path.clone()));
         }
+        if self.interactive {
+            return Ok(Mode::Interactive);
+        }
+        // Default to interactive
+        Ok(Mode::Interactive)
     }
 }
 
@@ -125,33 +129,46 @@ impl Cli {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_default_mode() {
-        let cli = Cli {
+    fn default_cli() -> Cli {
+        Cli {
             command: None,
-            default: true,
-            spec: None,
             interactive: false,
+            default: false,
+            spec: None,
+            config: false,
+            regression_check: false,
             output: None,
             dry_run: false,
-            git_init: false,
-            config: None,
-        };
+            feature_list: None,
+            verbose: false,
+        }
+    }
+
+    #[test]
+    fn test_default_mode() {
+        let mut cli = default_cli();
+        cli.default = true;
         assert!(matches!(cli.mode().unwrap(), Mode::Default));
     }
 
     #[test]
     fn test_interactive_mode() {
-        let cli = Cli {
-            command: None,
-            default: false,
-            spec: None,
-            interactive: true,
-            output: None,
-            dry_run: false,
-            git_init: false,
-            config: None,
-        };
+        let mut cli = default_cli();
+        cli.interactive = true;
         assert!(matches!(cli.mode().unwrap(), Mode::Interactive));
+    }
+
+    #[test]
+    fn test_config_mode() {
+        let mut cli = default_cli();
+        cli.config = true;
+        assert!(matches!(cli.mode().unwrap(), Mode::Config));
+    }
+
+    #[test]
+    fn test_regression_check_mode() {
+        let mut cli = default_cli();
+        cli.regression_check = true;
+        assert!(matches!(cli.mode().unwrap(), Mode::RegressionCheck));
     }
 }

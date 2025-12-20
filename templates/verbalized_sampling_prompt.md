@@ -1,10 +1,14 @@
-# Role
-You are a diversity-optimized implementation engine using the "Verbalized Sampling" method. Your goal is to overcome "mode collapse" (the tendency to give generic answers) by generating a full probability distribution of potential implementation approaches.
+# Task: Generate Alternative Approaches (Stuck Recovery)
 
-# Task
-For the following feature, generate **10 distinct implementation approaches** that cover the full spectrum of possibilities, from the most "typical" (high probability) to the most "creative/rare" (low probability).
+This prompt is triggered when an implementation attempt has **failed 3+ times**. The goal is to break out of mode collapse and explore fundamentally different solutions.
 
-**Feature to Implement:**
+## Context: Why This Was Triggered
+
+The autonomous agent attempted to implement a feature but got stuck in a retry loop. Direct approaches have failed. Now we need to force exploration of alternatives that would normally be dismissed.
+
+## Feature That Is Stuck
+
+**Feature:**
 {{FEATURE_DESCRIPTION}}
 
 **Technology Stack:**
@@ -13,70 +17,58 @@ For the following feature, generate **10 distinct implementation approaches** th
 **Project Context:**
 {{PROJECT_CONTEXT}}
 
-**Existing Patterns (if any):**
-{{CODEBASE_PATTERNS}}
+**What Has Already Been Tried:**
+{{FAILED_APPROACHES}}
 
-# Instructions
+**Error Messages/Symptoms:**
+{{ERROR_CONTEXT}}
 
-1. **Verbalize the Distribution:** Do not just give the best answer. Imagine all possible valid implementation approaches form a distribution.
+## Requirements
 
-2. **Assign Probabilities:** For each approach, estimate a **probability score (0.0 to 1.0)**:
-   - **High Probability (~0.8 - 0.9):** The most expected, conventional approach that most developers would default to
-   - **Medium Probability (~0.4 - 0.6):** Interesting variations, alternative patterns, or different architectural choices
-   - **Low Probability (< 0.2):** Highly creative approaches, unconventional patterns, or innovative solutions rarely considered
+Generate **7 fundamentally different** implementation approaches. Do NOT generate variations of what has already been tried—each approach should be distinct.
 
-3. **Ensure Diversity:** Your list *must* include entries from across the probability spectrum:
-   - At least 2 high-probability (conventional) approaches
-   - At least 3 medium-probability (alternative) approaches  
-   - At least 3 low-probability (creative tail) approaches
+**Approach Categories to Explore:**
 
-4. **Consider Implementation Details:** For each approach, think about:
-   - Architecture and design patterns
-   - Library/framework choices
-   - Data structures and algorithms
-   - Error handling strategies
-   - Performance characteristics
-   - Maintainability trade-offs
+1. **Simplest Possible** - What's the absolute minimum viable solution?
+2. **Different Library/Framework** - What if you used a different tool entirely?
+3. **Restructured Data Model** - What if the data was organized differently?
+4. **Changed API Contract** - What if the interface was different?
+5. **Debuggability First** - What approach would make debugging easiest?
+6. **Unconventional** - What solution would you normally dismiss as "weird"?
+7. **Workaround** - What if you can't solve the core issue directly?
 
-# Output Format
+**For each approach, provide:**
 
-Provide the output strictly as a JSON object with a key "responses" containing a list of dictionaries. Each dictionary must have:
+- Clear description of the approach
+- Why it's fundamentally different from what was tried
+- The main trade-off
+- Likelihood it will avoid the previous error
 
-- `"text"`: A detailed description of the implementation approach (2-4 sentences)
-- `"probability"`: The numeric probability score (0.0-1.0)
-- `"reasoning"`: A brief 1-sentence explanation of why this received its specific probability score
-- `"key_techniques"`: An array of 2-4 key techniques, patterns, or libraries this approach uses
-- `"trade_offs"`: A brief note on the main trade-off of this approach
-
-# Example JSON Structure
+## Output Format
 
 ```json
 {
-  "responses": [
+  "alternative_approaches": [
     {
-      "text": "Standard REST API with CRUD endpoints using the framework's built-in ORM. Follow conventional MVC pattern with controllers, services, and repositories. Use database transactions for data integrity.",
-      "probability": 0.85,
-      "reasoning": "This is the conventional approach that most developers would default to for this type of feature.",
-      "key_techniques": ["REST API", "MVC Pattern", "ORM", "Database Transactions"],
-      "trade_offs": "Simple and maintainable but may lack flexibility for complex scenarios."
-    },
-    {
-      "text": "Event-sourced implementation with CQRS pattern. Store all state changes as immutable events, use projections for read models, and implement eventual consistency.",
-      "probability": 0.08,
-      "reasoning": "This is an advanced architectural pattern rarely used for typical features but provides excellent audit trails and scalability.",
-      "key_techniques": ["Event Sourcing", "CQRS", "Event Store", "Projections"],
-      "trade_offs": "High complexity but provides complete audit history and horizontal scalability."
+      "approach": "Description of the alternative approach",
+      "category": "simplest|different_tool|restructured_data|changed_api|debuggable|unconventional|workaround",
+      "why_different": "Why this avoids the previous failure mode",
+      "trade_off": "The main downside of this approach",
+      "avoids_error": "high|medium|low"
     }
-  ]
+  ],
+  "recommended": {
+    "index": 0,
+    "reasoning": "Why this specific approach is recommended given the error context"
+  }
 }
 ```
 
-# Important Notes
+## Important
 
-- Focus on IMPLEMENTATION approaches, not just ideas
-- Each approach should be distinct and actionable
-- Consider the specific technology stack when generating approaches
-- Low-probability options should still be technically valid, just unconventional
-- The probabilities should reflect how often a typical developer would choose each approach, NOT quality
+- Do NOT suggest variations of failed approaches
+- Do NOT optimize for elegance—optimize for "actually works"
+- Consider that the stuck condition may indicate a fundamental misunderstanding
+- Sometimes the right answer is to change the requirements, not the implementation
 
-Now generate 10 diverse implementation approaches for the feature described above.
+Generate 7 alternative approaches now.

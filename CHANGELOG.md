@@ -156,5 +156,61 @@
 - [ ] Test with real OpenCode instance
 - [ ] Test interactive TUI mode
 - [ ] Test custom spec mode
-- [ ] Create README.md
+- [x] Create README.md
 - [ ] Build release binary
+
+---
+
+## Session 4: 2025-12-19 21:30 PST
+
+### Comprehensive Spec Generation Feature
+
+Major enhancement to spec generation to produce production-grade specifications by default.
+
+### Problem Addressed
+
+- Generated specs were too basic/minimal
+- Not enough features, database tables, or API endpoints
+- Users wanted comprehensive, full-featured specs suitable for real applications
+
+### Changes Made
+
+| File                            | Change                                                |
+| ------------------------------- | ----------------------------------------------------- |
+| `templates/generator_prompt.md` | Complete rewrite with strict minimum requirements     |
+| `autocode.toml`                 | Added new `[generation]` configuration section        |
+| `src/config.rs`                 | Added `GenerationConfig` struct with complexity modes |
+| `README.md`                     | Updated documentation with new configuration options  |
+| `CHANGELOG.md`                  | Added this session entry                              |
+
+### New Configuration Options
+
+```toml
+[generation]
+complexity = "comprehensive"  # or "minimal"
+min_features = 15
+min_database_tables = 10
+min_api_endpoints = 30
+min_implementation_steps = 8
+include_security_section = true
+include_testing_strategy = true
+include_devops_section = true
+include_accessibility = true
+include_future_enhancements = true
+```
+
+### Generator Prompt Improvements
+
+- **Minimum 15-25 core features** (was 5-10)
+- **Minimum 10-20 database tables** with relationships
+- **Minimum 30+ API endpoints** organized by category
+- **Minimum 8-15 implementation phases**
+- New sections: security, testing strategy, devops, accessibility
+- Explicit quality bar: "Compare to YC startups / enterprise software"
+- Strong anti-MVP language to prevent minimal specs
+
+### Verification
+
+- ✅ `cargo build` passes
+- ✅ `cargo test` - 25 tests pass
+- ✅ New config loads correctly from `autocode.toml`

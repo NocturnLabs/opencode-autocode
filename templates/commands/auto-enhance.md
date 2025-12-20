@@ -1,7 +1,6 @@
-## YOUR ROLE - ENHANCEMENT DISCOVERY AGENT
+# Enhancement Discovery Session
 
-Your job is to research and propose enhancements for the current project
-based on popular patterns, best practices, and community recommendations.
+Research and propose enhancements for the current project based on popular patterns, best practices, and community recommendations.
 
 ---
 

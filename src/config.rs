@@ -22,10 +22,11 @@ const CONFIG_FILENAME: &str = "autocode.toml";
 #[serde(default)]
 pub struct Config {
     pub models: ModelsConfig,
+    pub generation: GenerationConfig,
     pub paths: PathsConfig,
     pub autonomous: AutonomousConfig,
     pub agent: AgentConfig,
-    pub verbalized_sampling: VerbalizedSamplingConfig,
+    pub alternative_approaches: AlternativeApproachesConfig,
     pub mcp: McpConfig,
     pub features: FeaturesConfig,
     pub scaffolding: ScaffoldingConfig,
@@ -57,6 +58,64 @@ impl Default for ModelsConfig {
             autonomous: "opencode/grok-code".to_string(),
             reasoning: "opencode/grok-code".to_string(),
             enhancement: "opencode/big-pickle".to_string(),
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Generation Configuration
+// ─────────────────────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default)]
+pub struct GenerationConfig {
+    /// Complexity level: "comprehensive" or "minimal"
+    pub complexity: String,
+    /// Minimum features for comprehensive mode
+    pub min_features: u32,
+    /// Minimum database tables
+    pub min_database_tables: u32,
+    /// Minimum API endpoints
+    pub min_api_endpoints: u32,
+    /// Minimum implementation steps
+    pub min_implementation_steps: u32,
+    /// Minimum features for minimal mode
+    pub minimal_min_features: u32,
+    /// Minimum database tables for minimal mode
+    pub minimal_min_database_tables: u32,
+    /// Minimum API endpoints for minimal mode
+    pub minimal_min_api_endpoints: u32,
+    /// Minimum implementation steps for minimal mode
+    pub minimal_min_implementation_steps: u32,
+    /// Include security section
+    pub include_security_section: bool,
+    /// Include testing strategy section
+    pub include_testing_strategy: bool,
+    /// Include devops section
+    pub include_devops_section: bool,
+    /// Include accessibility section
+    pub include_accessibility: bool,
+    /// Include future enhancements section
+    pub include_future_enhancements: bool,
+}
+
+impl Default for GenerationConfig {
+    fn default() -> Self {
+        Self {
+            complexity: "comprehensive".to_string(),
+            min_features: 15,
+            min_database_tables: 10,
+            min_api_endpoints: 30,
+            min_implementation_steps: 8,
+            minimal_min_features: 5,
+            minimal_min_database_tables: 3,
+            minimal_min_api_endpoints: 10,
+            minimal_min_implementation_steps: 4,
+            include_security_section: true,
+            include_testing_strategy: true,
+            include_devops_section: true,
+            include_accessibility: true,
+            include_future_enhancements: true,
         }
     }
 }
@@ -171,44 +230,32 @@ impl Default for AgentConfig {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Verbalized Sampling Configuration
+// Alternative Approaches Configuration (Stuck Recovery)
 // ─────────────────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
-pub struct VerbalizedSamplingConfig {
-    /// Enable verbalized sampling
+pub struct AlternativeApproachesConfig {
+    /// Enable alternative approach generation when stuck
     pub enabled: bool,
-    /// Number of approaches to generate
+    /// Number of alternative approaches to generate
     pub num_approaches: u32,
-    /// Probability range for conventional approaches [min, max]
-    pub conventional_probability: [f32; 2],
-    /// Probability range for alternative approaches [min, max]
-    pub alternative_probability: [f32; 2],
-    /// Probability range for creative approaches [min, max]
-    pub creative_probability: [f32; 2],
-    /// Minimum conventional approaches
-    pub min_conventional: u32,
-    /// Minimum alternative approaches
-    pub min_alternative: u32,
-    /// Minimum creative approaches
-    pub min_creative: u32,
-    /// Cache VS results
+    /// Retry threshold before triggering alternative generation
+    pub retry_threshold: u32,
+    /// Cache results to avoid regenerating
     pub cache_results: bool,
+    /// Cache directory
+    pub cache_dir: String,
 }
 
-impl Default for VerbalizedSamplingConfig {
+impl Default for AlternativeApproachesConfig {
     fn default() -> Self {
         Self {
             enabled: true,
-            num_approaches: 10,
-            conventional_probability: [0.8, 0.9],
-            alternative_probability: [0.4, 0.6],
-            creative_probability: [0.0, 0.2],
-            min_conventional: 2,
-            min_alternative: 3,
-            min_creative: 3,
+            num_approaches: 7,
+            retry_threshold: 3,
             cache_results: true,
+            cache_dir: ".approach-cache".to_string(),
         }
     }
 }
@@ -510,7 +557,7 @@ mod tests {
         assert_eq!(config.models.autonomous, "opencode/grok-code");
         assert_eq!(config.autonomous.delay_between_sessions, 5);
         assert_eq!(config.agent.max_retry_attempts, 3);
-        assert!(config.verbalized_sampling.enabled);
+        assert!(config.alternative_approaches.enabled);
         assert_eq!(config.ui.spec_preview_lines, 25);
     }
 
@@ -536,7 +583,7 @@ delay_between_sessions = 10
 [agent]
 max_retry_attempts = 5
 
-[verbalized_sampling]
+[alternative_approaches]
 enabled = false
 num_approaches = 5
 "#
@@ -548,8 +595,8 @@ num_approaches = 5
         assert_eq!(config.models.autonomous, "custom/auto");
         assert_eq!(config.autonomous.delay_between_sessions, 10);
         assert_eq!(config.agent.max_retry_attempts, 5);
-        assert!(!config.verbalized_sampling.enabled);
-        assert_eq!(config.verbalized_sampling.num_approaches, 5);
+        assert!(!config.alternative_approaches.enabled);
+        assert_eq!(config.alternative_approaches.num_approaches, 5);
         // Check defaults preserved
         assert_eq!(config.autonomous.max_iterations, 0);
         assert_eq!(config.ui.spec_preview_lines, 25);
@@ -563,11 +610,11 @@ num_approaches = 5
     }
 
     #[test]
-    fn test_verbalized_sampling_defaults() {
-        let vs = VerbalizedSamplingConfig::default();
-        assert_eq!(vs.num_approaches, 10);
-        assert_eq!(vs.conventional_probability, [0.8, 0.9]);
-        assert_eq!(vs.min_conventional, 2);
+    fn test_alternative_approaches_defaults() {
+        let aa = AlternativeApproachesConfig::default();
+        assert_eq!(aa.num_approaches, 7);
+        assert_eq!(aa.retry_threshold, 3);
+        assert!(aa.cache_results);
     }
 
     #[test]

@@ -1,30 +1,28 @@
-You are an expert software architect. You have been given an existing project specification and the user wants to refine or improve it.
+# Task: Refine Project Specification
 
-## YOUR TASK
+Review the existing specification and apply the user's refinement instructions. Maintain the XML format while improving content based on their feedback.
 
-Review the existing specification and apply the user's refinement instructions. Maintain the same XML format but improve the spec based on their feedback.
-
-## EXISTING SPECIFICATION
+## Existing Specification
 
 ```xml
 {{EXISTING_SPEC}}
 ```
 
-## USER'S REFINEMENT REQUEST
+## Refinement Request
 
 {{REFINEMENT}}
 
-## INSTRUCTIONS
+## Process
 
-1. **Understand** the current specification thoroughly
-2. **Apply** the user's refinement request
-3. **Maintain** all existing good elements unless explicitly asked to change them
-4. **Improve** the specification while keeping the same structure
-5. **Research** if needed using web search and documentation tools
+1. Parse the current specification thoroughly
+2. Apply the user's refinement request precisely
+3. Preserve all existing good elements unless explicitly asked to change them
+4. Improve the specification while keeping the same structure
+5. Use web search and documentation tools if research is needed
 
-## OUTPUT FORMAT
+## Output
 
 Output the COMPLETE refined specification in the same XML format. Include ALL sections from the original, modified as needed.
 
-Output ONLY the XML specification, nothing else.
+Output ONLY the XML specification—no preamble, no commentary.
 ULTRATHINK

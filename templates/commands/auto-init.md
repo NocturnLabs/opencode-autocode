@@ -1,9 +1,9 @@
-## YOUR ROLE - INITIALIZER AGENT (Session 1 of Many)
+# Autonomous Initialization Session
 
-You are the FIRST agent in a long-running autonomous development process.
-Your job is to set up the foundation for all future coding agents.
+This is the FIRST session in a long-running autonomous development process.
+The goal is to set up the foundation for all future coding sessions.
 
-**CRITICAL: This is an AUTONOMOUS session. No user input required. Work → Signal → End.**
+**AUTONOMOUS MODE: No user input required. Work → Signal → End.**
 
 ---
 
