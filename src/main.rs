@@ -8,6 +8,7 @@
 mod autonomous;
 mod cli;
 mod config;
+mod config_tui;
 mod generator;
 mod regression;
 mod scaffold;
@@ -15,7 +16,6 @@ mod spec;
 mod templates;
 mod tui;
 mod validation;
-mod verbalized_sampling;
 
 use anyhow::Result;
 use clap::Parser;
@@ -46,12 +46,7 @@ fn main() -> Result<()> {
 
     // Handle flag-based modes
     match cli.mode()? {
-        Mode::Config => {
-            // TODO: Implement config TUI
-            println!("⚙️  Config TUI coming soon!");
-            println!("   For now, edit autocode.toml directly.");
-            Ok(())
-        }
+        Mode::Config => config_tui::run_config_tui(),
         Mode::RegressionCheck => {
             let feature_path = cli
                 .feature_list

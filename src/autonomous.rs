@@ -65,6 +65,8 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
     println!();
 
     let mut iteration = 0;
+    let mut consecutive_errors = 0u32;
+    let max_retries = config.agent.max_retry_attempts;
     let session_id: Option<String> = None;
 
     loop {
@@ -114,6 +116,7 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
 
         match result {
             SessionResult::Continue => {
+                consecutive_errors = 0; // Reset on success
                 println!("→ Session complete, continuing...");
                 println!("→ Next session in {}s (Ctrl+C to stop)", delay);
                 thread::sleep(Duration::from_secs(delay as u64));
@@ -124,13 +127,19 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
                 break;
             }
             SessionResult::Error(msg) => {
+                consecutive_errors += 1;
                 println!();
-                println!("⚠ OpenCode exited with error: {}", msg);
-                println!(
-                    "Check logs and run manually: opencode run --command /{}",
-                    command
-                );
-                break;
+                println!("⚠ Session error (attempt {}/{}): {}", consecutive_errors, max_retries, msg);
+                
+                if consecutive_errors >= max_retries {
+                    println!("❌ Exceeded max retries ({}), stopping.", max_retries);
+                    break;
+                }
+                
+                // Exponential backoff: delay * 2^(attempts-1)
+                let backoff = delay * (1 << (consecutive_errors - 1).min(4));
+                println!("→ Retrying in {}s (exponential backoff)...", backoff);
+                thread::sleep(Duration::from_secs(backoff as u64));
             }
             SessionResult::Stopped => {
                 println!();

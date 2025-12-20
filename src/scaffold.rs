@@ -12,8 +12,6 @@ const AUTO_INIT_TEMPLATE: &str = include_str!("../templates/commands/auto-init.m
 const AUTO_CONTINUE_TEMPLATE: &str = include_str!("../templates/commands/auto-continue.md");
 const AUTO_ENHANCE_TEMPLATE: &str = include_str!("../templates/commands/auto-enhance.md");
 
-/// Embedded runner script
-const RUN_AUTONOMOUS_SCRIPT: &str = include_str!("../templates/scripts/run-autonomous.sh");
 
 /// Embedded security allowlist
 const SECURITY_ALLOWLIST: &str = include_str!("../templates/scripts/security-allowlist.json");
@@ -86,25 +84,6 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
         )
     })?;
     println!("   📄 Created .opencode/command/auto-enhance.md");
-
-    // Write runner script
-    let runner_path = scripts_dir.join("run-autonomous.sh");
-    fs::write(&runner_path, RUN_AUTONOMOUS_SCRIPT).with_context(|| {
-        format!(
-            "Failed to write run-autonomous.sh: {}",
-            runner_path.display()
-        )
-    })?;
-
-    // Make script executable on Unix
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let mut perms = fs::metadata(&runner_path)?.permissions();
-        perms.set_mode(0o755);
-        fs::set_permissions(&runner_path, perms)?;
-    }
-    println!("   📄 Created scripts/run-autonomous.sh");
 
     // Write security allowlist
     let allowlist_path = scripts_dir.join("security-allowlist.json");
@@ -187,10 +166,6 @@ pub fn preview_scaffold(output_dir: &Path) {
     );
     println!(
         "   📄 {}",
-        style(scripts_dir.join("run-autonomous.sh").display()).green()
-    );
-    println!(
-        "   📄 {}",
         style(scripts_dir.join("security-allowlist.json").display()).green()
     );
     println!(
@@ -203,7 +178,7 @@ pub fn preview_scaffold(output_dir: &Path) {
     );
 
     println!("\n{}", style("─".repeat(50)).dim());
-    println!("{}", style("Total: 3 directories, 8 files").cyan());
+    println!("{}", style("Total: 3 directories, 7 files").cyan());
     println!(
         "{}",
         style("Run without --dry-run to create these files.").dim()
