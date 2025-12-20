@@ -3,6 +3,8 @@
 //! A CLI tool that scaffolds autonomous coding projects and runs
 //! the vibe loop to implement features automatically.
 
+#![deny(warnings)]
+
 mod autonomous;
 mod cli;
 mod config;

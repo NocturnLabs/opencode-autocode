@@ -517,12 +517,11 @@ fn regex_lite_expand(s: &str) -> String {
             if chars.peek() == Some(&'{') {
                 chars.next();
                 let mut var_name = String::new();
-                while let Some(&ch) = chars.peek() {
+                for ch in chars.by_ref() {
                     if ch == '}' {
-                        chars.next();
                         break;
                     }
-                    var_name.push(chars.next().unwrap());
+                    var_name.push(ch);
                 }
                 if let Ok(val) = env::var(&var_name) {
                     result.push_str(&val);
