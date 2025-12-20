@@ -1,4 +1,4 @@
-# autocode.toml - Comprehensive Configuration for yumlabs-opencode-autocode
+# autocode.toml - Comprehensive Configuration for nocturnlabs-opencode-autocode
 #
 # This file allows you to customize ALL runtime behavior without editing source code.
 # Edit values here and re-run for iterative testing.

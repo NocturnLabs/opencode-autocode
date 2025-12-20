@@ -1,3 +1,40 @@
 {
-  "makefile.configureOnOpen": false
+  "makefile.configureOnOpen": false,
+
+  // ═══════════════════════════════════════════════════════════════════
+  // Rust Analyzer Settings
+  // ═══════════════════════════════════════════════════════════════════
+  "rust-analyzer.cargo.buildScripts.enable": true,
+  "rust-analyzer.procMacro.enable": true,
+  "rust-analyzer.check.command": "clippy",
+  "rust-analyzer.inlayHints.typeHints.enable": true,
+  "rust-analyzer.inlayHints.parameterHints.enable": true,
+  "rust-analyzer.inlayHints.chainingHints.enable": true,
+  "rust-analyzer.hover.actions.debug.enable": true,
+  "rust-analyzer.hover.actions.run.enable": true,
+
+  // ═══════════════════════════════════════════════════════════════════
+  // LLDB Debugger Settings (CodeLLDB)
+  // ═══════════════════════════════════════════════════════════════════
+  "lldb.showDisassembly": "never",
+  "lldb.dereferencePointers": true,
+  "lldb.consoleMode": "commands",
+
+  // Show Rust-specific data types nicely in debugger
+  "lldb.launch.expressions": "native",
+
+  // ═══════════════════════════════════════════════════════════════════
+  // Editor Settings for Debugging
+  // ═══════════════════════════════════════════════════════════════════
+  "editor.formatOnSave": true,
+  "editor.rulers": [100],
+
+  // ═══════════════════════════════════════════════════════════════════
+  // Debug Console Settings
+  // ═══════════════════════════════════════════════════════════════════
+  "debug.console.fontSize": 14,
+  "debug.console.wordWrap": true,
+  "debug.inlineValues": "on",
+  "debug.showBreakpointsInOverviewRuler": true,
+  "debug.toolBarLocation": "docked"
 }

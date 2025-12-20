@@ -1,0 +1,87 @@
+[
+    {
+        "category": "functional",
+        "description": "Config loading with TOML parsing",
+        "steps": [
+            "Load autocode.toml from project root",
+            "Verify all sections parse correctly",
+            "Check environment variable expansion works"
+        ],
+        "passes": true,
+        "verification_command": "cargo test config::tests --quiet"
+    },
+    {
+        "category": "functional",
+        "description": "CLI argument parsing with clap",
+        "steps": [
+            "Verify --help shows all options",
+            "Test conflicting arg detection",
+            "Verify subcommands work correctly"
+        ],
+        "passes": true,
+        "verification_command": "cargo test cli::tests --quiet"
+    },
+    {
+        "category": "functional",
+        "description": "Template listing and selection",
+        "steps": [
+            "List all available templates",
+            "Verify template metadata is correct",
+            "Check template file generation"
+        ],
+        "passes": true,
+        "verification_command": "cargo test templates::tests --quiet"
+    },
+    {
+        "category": "functional",
+        "description": "Spec validation with XML-like parsing",
+        "steps": [
+            "Validate well-formed app_spec.md",
+            "Detect broken/malformed specs",
+            "Generate helpful error messages"
+        ],
+        "passes": true,
+        "verification_command": "cargo test validation::tests --quiet"
+    },
+    {
+        "category": "functional",
+        "description": "Verbalized sampling approach generation",
+        "steps": [
+            "Generate multiple approaches per feature",
+            "Calculate hybrid scores correctly",
+            "Cache results appropriately"
+        ],
+        "passes": true,
+        "verification_command": "cargo test verbalized_sampling::tests --quiet"
+    },
+    {
+        "category": "integration",
+        "description": "Dry-run scaffold preview",
+        "steps": [
+            "Run with --dry-run flag",
+            "Verify no files are created",
+            "Check file list output is correct"
+        ],
+        "passes": true,
+        "verification_command": "cargo run -- --default --dry-run 2>&1 | grep -q 'Dry run mode'"
+    },
+    {
+        "category": "style",
+        "description": "TUI renders correctly",
+        "steps": [
+            "Launch interactive mode",
+            "Verify all panes render",
+            "Check keyboard navigation works"
+        ],
+        "passes": true
+    },
+    {
+        "category": "performance",
+        "description": "Fast startup time",
+        "steps": [
+            "Measure cold start time",
+            "Should be under 100ms for --help"
+        ],
+        "passes": true
+    }
+]
