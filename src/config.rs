@@ -32,6 +32,7 @@ pub struct Config {
     pub scaffolding: ScaffoldingConfig,
     pub security: SecurityConfig,
     pub ui: UiConfig,
+    pub notifications: NotificationsConfig,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -422,6 +423,28 @@ impl Default for UiConfig {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Notifications Configuration
+// ─────────────────────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default)]
+pub struct NotificationsConfig {
+    /// Webhook URL for notifications
+    pub webhook_url: Option<String>,
+    /// Enable webhook notifications
+    pub webhook_enabled: bool,
+}
+
+impl Default for NotificationsConfig {
+    fn default() -> Self {
+        Self {
+            webhook_url: None,
+            webhook_enabled: false,
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Default Implementation for Main Config
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -477,6 +500,9 @@ impl Config {
             .collect();
         self.scaffolding.output_dir = expand_env_var(&self.scaffolding.output_dir);
         self.security.allowlist_file = expand_env_var(&self.security.allowlist_file);
+        if let Some(ref url) = self.notifications.webhook_url {
+            self.notifications.webhook_url = Some(expand_env_var(url));
+        }
     }
 }
 

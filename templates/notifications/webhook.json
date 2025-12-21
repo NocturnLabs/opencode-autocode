@@ -1,0 +1,24 @@
+{
+  "embeds": [
+    {
+      "title": "✅ Feature Completed: {{feature_name}}",
+      "description": "{{feature_description}}",
+      "color": 3066993,
+      "fields": [
+        {
+          "name": "Project",
+          "value": "{{project_name}}",
+          "inline": true
+        },
+        {
+          "name": "Status",
+          "value": "Passed Verification",
+          "inline": true
+        }
+      ],
+      "footer": {
+        "text": "OpenCode Autocode • {{timestamp}}"
+      }
+    }
+  ]
+}

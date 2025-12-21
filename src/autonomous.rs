@@ -111,8 +111,27 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
         println!("→ Running: opencode run --command /{}", command);
         println!();
 
+        // Capture passing features before session
+        let before_passing = get_passing_features(feature_path)?;
+
         // Execute opencode
         let result = run_opencode_session(command, model, log_level, session_id.as_deref())?;
+
+        // Capture passing features after session
+        let after_passing = get_passing_features(feature_path)?;
+
+        // Find newly completed features
+        let new_features = after_passing.difference(&before_passing);
+        for feature_desc in new_features {
+            // Find the full feature object
+            if let Ok(features) = regression::parse_feature_list(feature_path) {
+                if let Some(feature) = features.into_iter().find(|f| f.description == *feature_desc) {
+                    if let Err(e) = send_webhook_notification(&config, &feature) {
+                        println!("⚠ Webhook error: {}", e);
+                    }
+                }
+            }
+        }
 
         match result {
             SessionResult::Continue => {
@@ -232,4 +251,80 @@ fn run_opencode_session(
     }
 
     Ok(SessionResult::Continue)
+}
+
+/// Send a webhook notification for a completed feature
+fn send_webhook_notification(config: &Config, feature: &regression::Feature) -> Result<()> {
+    if !config.notifications.webhook_enabled {
+        return Ok(());
+    }
+
+    let url = match &config.notifications.webhook_url {
+        Some(u) => u,
+        None => return Ok(()),
+    };
+
+    println!("→ Sending webhook notification for: {}", feature.description);
+
+    let project_name = std::env::current_dir()?
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("Unknown Project")
+        .to_string();
+
+    let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+
+    // Prepare template data
+    let mut data = std::collections::HashMap::new();
+    data.insert("feature_name", feature.description.clone());
+    data.insert("feature_description", feature.description.clone()); // Using description as name for now
+    data.insert("project_name", project_name);
+    data.insert("timestamp", timestamp);
+
+    // Render template
+    let handlebars = handlebars::Handlebars::new();
+    let template_path = Path::new("templates/notifications/webhook.json");
+    let template_content = if template_path.exists() {
+        std::fs::read_to_string(template_path)?
+    } else {
+        // Fallback minimal template if file is missing
+        r#"{ "content": "✅ Feature Completed: {{feature_name}} in {{project_name}}" }"#.to_string()
+    };
+
+    let rendered = handlebars
+        .render_template(&template_content, &data)
+        .context("Failed to render webhook template")?;
+
+    // Send via curl
+    let status = Command::new("curl")
+        .arg("-X")
+        .arg("POST")
+        .arg("-H")
+        .arg("Content-Type: application/json")
+        .arg("-d")
+        .arg(rendered)
+        .arg(url)
+        .arg("--silent")
+        .arg("--output")
+        .arg("/dev/null")
+        .status()?;
+
+    if !status.success() {
+        println!("⚠ Failed to send webhook notification (curl exit {})", status);
+    }
+
+    Ok(())
+}
+
+/// Get descriptions of currently passing features
+fn get_passing_features(path: &Path) -> Result<std::collections::HashSet<String>> {
+    if !path.exists() {
+        return Ok(std::collections::HashSet::new());
+    }
+    let features = regression::parse_feature_list(path)?;
+    Ok(features
+        .into_iter()
+        .filter(|f| f.passes)
+        .map(|f| f.description)
+        .collect())
 }

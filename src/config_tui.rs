@@ -70,6 +70,25 @@ pub fn run_config_tui() -> Result<()> {
         .default(config.alternative_approaches.num_approaches)
         .interact()?;
 
+    // Notifications settings
+    println!("\n{}", style("─── Notification Settings ───").yellow().bold());
+
+    config.notifications.webhook_enabled = Select::new()
+        .with_prompt("Enable webhook notifications (fired on feature completion)")
+        .items(&["No", "Yes"])
+        .default(if config.notifications.webhook_enabled { 1 } else { 0 })
+        .interact()?
+        == 1;
+
+    if config.notifications.webhook_enabled {
+        let current_url = config.notifications.webhook_url.clone().unwrap_or_default();
+        let url: String = Input::new()
+            .with_prompt("Webhook URL")
+            .default(current_url)
+            .interact_text()?;
+        config.notifications.webhook_url = if url.is_empty() { None } else { Some(url) };
+    }
+
     // Save config
     save_config(&config, config_path)?;
 
@@ -204,6 +223,10 @@ single_feature_focus = {}
 feature_list_file = "{}"
 progress_file = "{}"
 log_dir = "{}"
+
+[notifications]
+webhook_enabled = {}
+webhook_url = {}
 "#,
         config.models.default,
         config.models.autonomous,
@@ -224,6 +247,11 @@ log_dir = "{}"
         config.paths.feature_list_file,
         config.paths.progress_file,
         config.paths.log_dir,
+        config.notifications.webhook_enabled,
+        match &config.notifications.webhook_url {
+            Some(url) => format!("\"{}\"", url),
+            None => "null".to_string(),
+        },
     );
 
     fs::write(path, content).context("Failed to write autocode.toml")?;
