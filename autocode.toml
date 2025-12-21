@@ -224,3 +224,14 @@ show_progress = true
 
 # Preview lines to show for generated specs
 spec_preview_lines = 25
+
+# ─────────────────────────────────────────────────────────────────────────────
+# NOTIFICATIONS - Webhook and alert settings
+# ─────────────────────────────────────────────────────────────────────────────
+[notifications]
+# Enable webhook notifications (fired on feature completion)
+webhook_enabled = false
+
+# Webhook URL for Discord-compatible embeds
+# Environment variables like $DISCORD_WEBHOOK are expanded
+webhook_url = ""

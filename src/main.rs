@@ -1,4 +1,4 @@
-//! OpenCode Autocode - Autonomous Coding for OpenCode 🎵
+//! OpenCode Autocode - Autonomous Coding for OpenCode
 //!
 //! A CLI tool that scaffolds autonomous coding projects and runs
 //! the vibe loop to implement features automatically.

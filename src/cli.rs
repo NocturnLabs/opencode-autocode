@@ -4,7 +4,7 @@ use anyhow::{bail, Result};
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
-/// OpenCode Autocode - Autonomous Coding for OpenCode 🎵
+/// OpenCode Autocode - Autonomous Coding for OpenCode
 #[derive(Parser, Debug)]
 #[command(name = "opencode-autocode")]
 #[command(author = "NocturnLabs")]
@@ -55,7 +55,7 @@ pub struct Cli {
 /// Subcommands
 #[derive(Subcommand, Debug)]
 pub enum Commands {
-    /// Start the autonomous coding loop - let it vibe 🎵
+    /// Start the autonomous coding loop
     Vibe {
         /// Maximum number of iterations (default: unlimited)
         #[arg(short, long)]
