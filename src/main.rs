@@ -104,7 +104,7 @@ fn main() -> Result<()> {
     }
 }
 
-fn print_next_steps(output_dir: &PathBuf) {
+fn print_next_steps(output_dir: &std::path::Path) {
     println!("\n✅ Scaffolding complete!");
     println!("   Output directory: {}", output_dir.display());
     println!("\n📋 Next steps:");

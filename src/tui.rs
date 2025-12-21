@@ -70,7 +70,7 @@ fn print_header() {
 fn select_mode() -> Result<InteractiveMode> {
     let mode_idx = Select::new()
         .with_prompt("How would you like to create your project spec?")
-        .items(&[
+        .items([
             "🤖 Generated - AI researches and creates full spec",
             "📝 Manual - Fill out project details step by step",
             "📁 From file - Use an existing app_spec.md",
@@ -108,7 +108,9 @@ fn run_from_spec_file_mode(output_dir: &Path) -> Result<()> {
     scaffold_custom(output_dir, &spec_path)?;
     println!(
         "\n{}",
-        style("✅ Project scaffolded from spec file!").green().bold()
+        style("✅ Project scaffolded from spec file!")
+            .green()
+            .bold()
     );
     Ok(())
 }
@@ -119,7 +121,10 @@ fn run_from_spec_file_mode(output_dir: &Path) -> Result<()> {
 
 fn run_default_mode(output_dir: &Path) -> Result<()> {
     println!("\n{}", style("─── Default Mode ───").yellow().bold());
-    println!("{}", style("Using the built-in default specification.").dim());
+    println!(
+        "{}",
+        style("Using the built-in default specification.").dim()
+    );
 
     if Confirm::new()
         .with_prompt("Scaffold project with default spec?")
@@ -129,7 +134,9 @@ fn run_default_mode(output_dir: &Path) -> Result<()> {
         scaffold_default(output_dir)?;
         println!(
             "\n{}",
-            style("✅ Project scaffolded with default spec!").green().bold()
+            style("✅ Project scaffolded with default spec!")
+                .green()
+                .bold()
         );
     } else {
         println!("{}", style("Cancelled.").red());
@@ -267,10 +274,7 @@ fn validate_and_preview(spec_text: &str) -> Result<crate::validation::Validation
     validation.print();
 
     if !validation.is_valid {
-        println!(
-            "\n{}",
-            style("The spec has validation errors.").red()
-        );
+        println!("\n{}", style("The spec has validation errors.").red());
     }
 
     // Show preview
@@ -278,7 +282,10 @@ fn validate_and_preview(spec_text: &str) -> Result<crate::validation::Validation
         "\n{}",
         style("═══════════════════════════════════════════════════").green()
     );
-    println!("{}", style("  Generated Specification Preview").green().bold());
+    println!(
+        "{}",
+        style("  Generated Specification Preview").green().bold()
+    );
     println!(
         "{}\n",
         style("═══════════════════════════════════════════════════").green()
@@ -289,7 +296,10 @@ fn validate_and_preview(spec_text: &str) -> Result<crate::validation::Validation
     }
     let total_lines = spec_text.lines().count();
     if total_lines > 25 {
-        println!("  {}", style(format!("... ({} more lines)", total_lines - 25)).dim());
+        println!(
+            "  {}",
+            style(format!("... ({} more lines)", total_lines - 25)).dim()
+        );
     }
 
     Ok(validation)
@@ -377,7 +387,10 @@ fn save_spec_to_file(output_dir: &Path, spec_text: &str) -> Result<()> {
 }
 
 fn handle_refine(spec_text: &mut String, model: Option<&str>) -> Result<()> {
-    println!("\n{}", style("─── Refine Specification ───").yellow().bold());
+    println!(
+        "\n{}",
+        style("─── Refine Specification ───").yellow().bold()
+    );
 
     let refinement: String = Input::new()
         .with_prompt("Refinement instructions")
@@ -413,7 +426,10 @@ fn handle_refine(spec_text: &mut String, model: Option<&str>) -> Result<()> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 fn run_manual_mode(output_dir: &Path) -> Result<()> {
-    println!("\n{}", style("─── Manual Spec Creation ───").yellow().bold());
+    println!(
+        "\n{}",
+        style("─── Manual Spec Creation ───").yellow().bold()
+    );
 
     let spec = collect_manual_spec()?;
     print_manual_summary(&spec);
@@ -463,7 +479,10 @@ fn collect_manual_spec() -> Result<AppSpec> {
 
 fn collect_features() -> Result<Vec<Feature>> {
     println!("\n{}", style("Add Features").yellow().bold());
-    println!("{}", style("(Enter features one at a time, empty to finish)").dim());
+    println!(
+        "{}",
+        style("(Enter features one at a time, empty to finish)").dim()
+    );
 
     let mut features = Vec::new();
     loop {
@@ -476,9 +495,7 @@ fn collect_features() -> Result<Vec<Feature>> {
             break;
         }
 
-        let description: String = Input::new()
-            .with_prompt("Description")
-            .interact_text()?;
+        let description: String = Input::new().with_prompt("Description").interact_text()?;
 
         let priority = select_priority()?;
 
@@ -497,7 +514,7 @@ fn collect_features() -> Result<Vec<Feature>> {
 fn select_priority() -> Result<Priority> {
     let idx = Select::new()
         .with_prompt("Priority")
-        .items(&["Critical", "High", "Medium", "Low"])
+        .items(["Critical", "High", "Medium", "Low"])
         .default(2)
         .interact()?;
 
@@ -511,7 +528,10 @@ fn select_priority() -> Result<Priority> {
 
 fn collect_success_criteria() -> Result<Vec<String>> {
     println!("\n{}", style("Success Criteria").yellow().bold());
-    println!("{}", style("(Enter criteria one at a time, empty to finish)").dim());
+    println!(
+        "{}",
+        style("(Enter criteria one at a time, empty to finish)").dim()
+    );
 
     let mut criteria = Vec::new();
     loop {
@@ -540,7 +560,10 @@ fn print_manual_summary(spec: &AppSpec) {
     );
     println!("  Project: {}", style(&spec.project_name).green());
     println!("  Features: {}", style(spec.features.len()).yellow());
-    println!("  Criteria: {}", style(spec.success_criteria.len()).yellow());
+    println!(
+        "  Criteria: {}",
+        style(spec.success_criteria.len()).yellow()
+    );
     println!();
 }
 
@@ -558,8 +581,8 @@ fn collect_tech_stack() -> Result<TechStack> {
     let frameworks = collect_with_other(
         "Frameworks (space to select)",
         &[
-            "React", "Next.js", "Vue", "Svelte", "Express", "Actix", "Axum",
-            "FastAPI", "Django", "Gin", "Other",
+            "React", "Next.js", "Vue", "Svelte", "Express", "Actix", "Axum", "FastAPI", "Django",
+            "Gin", "Other",
         ],
         "Other frameworks (comma-separated)",
     )?;

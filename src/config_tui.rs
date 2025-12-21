@@ -75,7 +75,9 @@ pub fn run_config_tui() -> Result<()> {
 
     println!(
         "\n{}",
-        style("✅ Configuration saved to autocode.toml").green().bold()
+        style("✅ Configuration saved to autocode.toml")
+            .green()
+            .bold()
     );
 
     Ok(())
@@ -147,10 +149,7 @@ fn select_model(prompt: &str, models: &[String], current: &str) -> Result<String
     // Add custom option
     options.push("(Enter custom model)".to_string());
 
-    let default_idx = options
-        .iter()
-        .position(|m| m == current)
-        .unwrap_or(0);
+    let default_idx = options.iter().position(|m| m == current).unwrap_or(0);
 
     let idx = Select::new()
         .with_prompt("Select model")

@@ -12,7 +12,6 @@ const AUTO_INIT_TEMPLATE: &str = include_str!("../templates/commands/auto-init.m
 const AUTO_CONTINUE_TEMPLATE: &str = include_str!("../templates/commands/auto-continue.md");
 const AUTO_ENHANCE_TEMPLATE: &str = include_str!("../templates/commands/auto-enhance.md");
 
-
 /// Embedded security allowlist
 const SECURITY_ALLOWLIST: &str = include_str!("../templates/scripts/security-allowlist.json");
 
@@ -21,13 +20,15 @@ const USER_CONFIG_TEMPLATE: &str = include_str!("../templates/autocode-user.toml
 
 /// Scaffold with the default embedded app spec
 pub fn scaffold_default(output_dir: &Path) -> Result<()> {
-    debug_assert!(!DEFAULT_APP_SPEC.is_empty(), "Default spec template is empty");
     scaffold_with_spec_text(output_dir, DEFAULT_APP_SPEC)
 }
 
 /// Scaffold with a custom app spec file
 pub fn scaffold_custom(output_dir: &Path, spec_path: &Path) -> Result<()> {
-    debug_assert!(spec_path.exists(), "Spec path should exist before scaffolding");
+    debug_assert!(
+        spec_path.exists(),
+        "Spec path should exist before scaffolding"
+    );
     let spec_content = fs::read_to_string(spec_path)
         .with_context(|| format!("Failed to read spec file: {}", spec_path.display()))?;
     scaffold_with_spec_text(output_dir, &spec_content)
@@ -36,7 +37,10 @@ pub fn scaffold_custom(output_dir: &Path, spec_path: &Path) -> Result<()> {
 /// Scaffold with raw spec text (used by AI-generated spec flow)
 pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<()> {
     debug_assert!(!spec_content.is_empty(), "Spec content cannot be empty");
-    debug_assert!(!output_dir.as_os_str().is_empty(), "Output dir cannot be empty");
+    debug_assert!(
+        !output_dir.as_os_str().is_empty(),
+        "Output dir cannot be empty"
+    );
     // Create directory structure
     let opencode_dir = output_dir.join(".opencode");
     let command_dir = opencode_dir.join("command"); // OpenCode expects singular "command"

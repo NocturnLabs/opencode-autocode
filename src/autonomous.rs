@@ -129,13 +129,16 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
             SessionResult::Error(msg) => {
                 consecutive_errors += 1;
                 println!();
-                println!("⚠ Session error (attempt {}/{}): {}", consecutive_errors, max_retries, msg);
-                
+                println!(
+                    "⚠ Session error (attempt {}/{}): {}",
+                    consecutive_errors, max_retries, msg
+                );
+
                 if consecutive_errors >= max_retries {
                     println!("❌ Exceeded max retries ({}), stopping.", max_retries);
                     break;
                 }
-                
+
                 // Exponential backoff: delay * 2^(attempts-1)
                 let backoff = delay * (1 << (consecutive_errors - 1).min(4));
                 println!("→ Retrying in {}s (exponential backoff)...", backoff);

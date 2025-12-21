@@ -81,7 +81,10 @@ fn test_scaffold_generates_valid_config() {
     assert!(config_path.exists(), "autocode.toml should exist");
 
     let content = fs::read_to_string(&config_path).expect("Failed to read config");
-    assert!(content.contains("[models]"), "Config should have [models] section");
+    assert!(
+        content.contains("[models]"),
+        "Config should have [models] section"
+    );
     assert!(
         content.contains("[autonomous]"),
         "Config should have [autonomous] section"
