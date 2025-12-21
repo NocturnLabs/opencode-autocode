@@ -20,7 +20,7 @@ crossterm = "0.29"
 # Serialization - stable, no CVEs
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-toml = "0.8"
+toml = "0.9"
 
 # Templating - v6.3.2 (latest stable, no CVEs)
 handlebars = "6.3"
@@ -40,7 +40,7 @@ thiserror = "2"
 chrono = "0.4"
 
 # XML parsing and diff generation (for spec validation)
-quick-xml = "0.37"
+quick-xml = "0.38"
 similar = "2.6"
 
 [dev-dependencies]

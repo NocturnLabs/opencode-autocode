@@ -153,7 +153,7 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
             Ok(Event::Text(e)) => {
                 // Count API endpoint lines
                 if in_endpoints {
-                    let text = e.unescape().unwrap_or_default();
+                    let text = e.decode().unwrap_or_default();
                     for line in text.lines() {
                         if line.trim().starts_with("- ") && line.contains("/") {
                             stats.endpoint_count += 1;
