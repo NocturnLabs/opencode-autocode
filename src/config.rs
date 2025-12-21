@@ -426,22 +426,13 @@ impl Default for UiConfig {
 // Notifications Configuration
 // ─────────────────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
 pub struct NotificationsConfig {
     /// Webhook URL for notifications
     pub webhook_url: Option<String>,
     /// Enable webhook notifications
     pub webhook_enabled: bool,
-}
-
-impl Default for NotificationsConfig {
-    fn default() -> Self {
-        Self {
-            webhook_url: None,
-            webhook_enabled: false,
-        }
-    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
