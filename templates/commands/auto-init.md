@@ -101,7 +101,74 @@ This ensures no functionality is missed.
 
 ---
 
-### SECOND TASK: Create init.sh
+### SECOND TASK: Create Conductor Context
+
+Create the `.conductor/` directory with context files that inform all future sessions:
+
+**Create `.conductor/product.md`:**
+
+```markdown
+# Product Context
+
+## Target Users
+
+- [Primary user persona from app_spec.txt]
+
+## Product Goals
+
+1. [Goal 1 from spec]
+2. [Goal 2 from spec]
+
+## High-Level Features
+
+- [Feature categories from spec]
+
+## Success Criteria
+
+- [From spec's success criteria]
+```
+
+**Create `.conductor/tech_stack.md`:**
+
+```markdown
+# Tech Stack
+
+## Language/Runtime
+
+- **Primary**: [From app_spec.txt]
+
+## Frameworks
+
+- [Frontend/Backend frameworks from spec]
+
+## Database
+
+- [Database choice from spec]
+```
+
+**Create `.conductor/workflow.md`:**
+
+```markdown
+# Workflow Preferences
+
+## Testing Strategy
+
+- [Based on tech stack]
+
+## Code Style
+
+- [Based on tech stack defaults]
+```
+
+Also create the `tracks/` directory for per-feature planning:
+
+```bash
+mkdir -p .conductor tracks
+```
+
+---
+
+### THIRD TASK: Create init.sh
 
 Create a script called `init.sh` that future agents can use to quickly
 set up and run the development environment. The script should:
@@ -115,19 +182,20 @@ Make the script as portable and robust as possible.
 
 ---
 
-### THIRD TASK: Initialize Git
+### FOURTH TASK: Initialize Git
 
 Create a git repository and make your first commit with:
 
 - feature_list.json (complete with all features)
+- .conductor/ (context files)
 - init.sh (environment setup script)
 - README.md (project overview and setup instructions)
 
-Commit message: "Initial setup: feature_list.json, init.sh, and project structure"
+Commit message: "Initial setup: feature_list.json, conductor context, and project structure"
 
 ---
 
-### FOURTH TASK: Create Project Structure
+### FIFTH TASK: Create Project Structure
 
 Set up the basic project structure based on what's specified in `app_spec.txt`.
 This includes directories for source code, tests, and any other components

@@ -125,7 +125,10 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
         for feature_desc in new_features {
             // Find the full feature object
             if let Ok(features) = regression::parse_feature_list(feature_path) {
-                if let Some(feature) = features.into_iter().find(|f| f.description == *feature_desc) {
+                if let Some(feature) = features
+                    .into_iter()
+                    .find(|f| f.description == *feature_desc)
+                {
                     if let Err(e) = send_webhook_notification(&config, &feature) {
                         println!("⚠ Webhook error: {}", e);
                     }
@@ -264,7 +267,10 @@ fn send_webhook_notification(config: &Config, feature: &regression::Feature) -> 
         None => return Ok(()),
     };
 
-    println!("→ Sending webhook notification for: {}", feature.description);
+    println!(
+        "→ Sending webhook notification for: {}",
+        feature.description
+    );
 
     let project_name = std::env::current_dir()?
         .file_name()
@@ -310,7 +316,10 @@ fn send_webhook_notification(config: &Config, feature: &regression::Feature) -> 
         .status()?;
 
     if !status.success() {
-        println!("⚠ Failed to send webhook notification (curl exit {})", status);
+        println!(
+            "⚠ Failed to send webhook notification (curl exit {})",
+            status
+        );
     }
 
     Ok(())

@@ -71,12 +71,19 @@ pub fn run_config_tui() -> Result<()> {
         .interact()?;
 
     // Notifications settings
-    println!("\n{}", style("─── Notification Settings ───").yellow().bold());
+    println!(
+        "\n{}",
+        style("─── Notification Settings ───").yellow().bold()
+    );
 
     config.notifications.webhook_enabled = Select::new()
         .with_prompt("Enable webhook notifications (fired on feature completion)")
         .items(["No", "Yes"])
-        .default(if config.notifications.webhook_enabled { 1 } else { 0 })
+        .default(if config.notifications.webhook_enabled {
+            1
+        } else {
+            0
+        })
         .interact()?
         == 1;
 
