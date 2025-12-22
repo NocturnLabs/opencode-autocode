@@ -28,7 +28,7 @@ Example: If `"cargo build"` is in blocked_patterns, you may NOT run `cargo build
 
 ### FIRST: Read the Project Specification
 
-Start by reading `app_spec.txt` in your working directory. This file contains
+Start by reading `app_spec.md` in your working directory. This file contains
 the complete specification for what you need to build. Read it carefully
 before proceeding. Understand:
 
@@ -37,11 +37,16 @@ before proceeding. Understand:
 - What features need to be built
 - What success criteria must be met
 
+**IMPORTANT**: If you need to refine, clarify, or update the specification during
+your work, **modify `app_spec.md` directly**. Do NOT create separate files like
+`refined_specification.xml` or `updated_spec.md`. The single source of truth for
+the project specification is always `app_spec.md`.
+
 ---
 
 ### CRITICAL FIRST TASK: Create feature_list.json
 
-Based on `app_spec.txt`, create a file called `feature_list.json` with detailed
+Based on `app_spec.md`, create a file called `feature_list.json` with detailed
 end-to-end test cases appropriate for the technology stack specified.
 
 **Format:**
@@ -112,7 +117,7 @@ Create the `.conductor/` directory with context files that inform all future ses
 
 ## Target Users
 
-- [Primary user persona from app_spec.txt]
+- [Primary user persona from app_spec.md]
 
 ## Product Goals
 
@@ -135,7 +140,7 @@ Create the `.conductor/` directory with context files that inform all future ses
 
 ## Language/Runtime
 
-- **Primary**: [From app_spec.txt]
+- **Primary**: [From app_spec.md]
 
 ## Frameworks
 
@@ -177,7 +182,7 @@ set up and run the development environment. The script should:
 2. Start any necessary servers or services
 3. Print helpful information about how to access the running application
 
-Base the script on the technology stack specified in `app_spec.txt`.
+Base the script on the technology stack specified in `app_spec.md`.
 Make the script as portable and robust as possible.
 
 ---
@@ -197,7 +202,7 @@ Commit message: "Initial setup: feature_list.json, conductor context, and projec
 
 ### FIFTH TASK: Create Project Structure
 
-Set up the basic project structure based on what's specified in `app_spec.txt`.
+Set up the basic project structure based on what's specified in `app_spec.md`.
 This includes directories for source code, tests, and any other components
 mentioned in the spec.
 

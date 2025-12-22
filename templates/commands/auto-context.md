@@ -19,7 +19,7 @@ Output is saved to `.conductor/` directory for use in all future sessions.
 
 ### STEP 1: Read Project Specification
 
-Start by reading `app_spec.txt` to understand what you're building.
+Start by reading `app_spec.md` to understand what you're building.
 Extract the following information:
 
 - **Target users**: Who will use this application?

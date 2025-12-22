@@ -2,7 +2,7 @@
 
 use anyhow::{Context, Result};
 use console::style;
-use dialoguer::{Input, Select};
+use dialoguer::{FuzzySelect, Input, Select};
 use std::fs;
 use std::path::Path;
 use std::process::Command;
@@ -106,6 +106,25 @@ pub fn run_config_tui() -> Result<()> {
             .bold()
     );
 
+    // Print next steps
+    println!("\n{}", style("─── Next Steps ───").cyan().bold());
+    println!(
+        "  {} Run {} to start the autonomous coding loop",
+        style("→").cyan(),
+        style("opencode-autocode vibe").green().bold()
+    );
+    println!(
+        "  {} Run {} to modify settings",
+        style("→").cyan(),
+        style("opencode-autocode --config").dim()
+    );
+    println!(
+        "  {} Edit {} directly for advanced options",
+        style("→").cyan(),
+        style("autocode.toml").dim()
+    );
+    println!();
+
     Ok(())
 }
 
@@ -125,7 +144,7 @@ fn print_header() {
 }
 
 /// Fetch available models from opencode
-fn fetch_available_models() -> Result<Vec<String>> {
+pub fn fetch_available_models() -> Result<Vec<String>> {
     println!("{}", style("Fetching available models...").dim());
 
     let output = Command::new("opencode")
@@ -177,8 +196,8 @@ fn select_model(prompt: &str, models: &[String], current: &str) -> Result<String
 
     let default_idx = options.iter().position(|m| m == current).unwrap_or(0);
 
-    let idx = Select::new()
-        .with_prompt("Select model")
+    let idx = FuzzySelect::new()
+        .with_prompt("Select model (type to filter)")
         .items(&options)
         .default(default_idx)
         .interact()?;
@@ -233,7 +252,7 @@ log_dir = "{}"
 
 [notifications]
 webhook_enabled = {}
-webhook_url = {}
+{}
 "#,
         config.models.default,
         config.models.autonomous,
@@ -256,8 +275,8 @@ webhook_url = {}
         config.paths.log_dir,
         config.notifications.webhook_enabled,
         match &config.notifications.webhook_url {
-            Some(url) => format!("\"{}\"", url),
-            None => "null".to_string(),
+            Some(url) => format!("webhook_url = \"{}\"", url),
+            None => String::new(),
         },
     );
 

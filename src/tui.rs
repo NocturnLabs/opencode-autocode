@@ -1,12 +1,11 @@
-//! Interactive TUI for building app spec
-
 use anyhow::Result;
 use console::style;
-use dialoguer::{Confirm, Editor, Input, MultiSelect, Select};
+use dialoguer::{Confirm, Editor, FuzzySelect, Input, MultiSelect, Select};
 use std::fs;
 use std::io::Write;
 use std::path::Path;
 
+use crate::config_tui::{fetch_available_models, run_config_tui};
 use crate::generator::{generate_spec_from_idea, refine_spec_from_idea};
 use crate::scaffold::{
     scaffold_custom, scaffold_default, scaffold_from_spec, scaffold_with_spec_text,
@@ -172,17 +171,60 @@ fn run_generated_mode(output_dir: &Path, initial_model: Option<&str>) -> Result<
 }
 
 fn prompt_for_model(initial: Option<&str>) -> Result<Option<String>> {
-    let input: String = Input::new()
-        .with_prompt("Model (leave empty for default)")
-        .default(initial.unwrap_or("").to_string())
-        .allow_empty(true)
-        .interact_text()?;
+    // Fetch available models
+    let models = match fetch_available_models() {
+        Ok(m) => m,
+        Err(_) => {
+            // Fall back to manual input if fetch fails
+            println!(
+                "{}",
+                style("Could not fetch models, enter manually").yellow()
+            );
+            let input: String = Input::new()
+                .with_prompt("Model (leave empty for default)")
+                .default(initial.unwrap_or("").to_string())
+                .allow_empty(true)
+                .interact_text()?;
+            return Ok(if input.trim().is_empty() {
+                None
+            } else {
+                Some(input.trim().to_string())
+            });
+        }
+    };
 
-    Ok(if input.trim().is_empty() {
-        None
+    println!(
+        "{}",
+        style(format!("Found {} available models", models.len())).dim()
+    );
+
+    let mut options = vec!["(Use default model)".to_string()];
+    options.extend(models);
+    options.push("(Enter custom model)".to_string());
+
+    let default_idx = if let Some(init) = initial {
+        options.iter().position(|m| m == init).unwrap_or(0)
     } else {
-        Some(input.trim().to_string())
-    })
+        0
+    };
+
+    let idx = FuzzySelect::new()
+        .with_prompt("Select model (type to filter)")
+        .items(&options)
+        .default(default_idx)
+        .interact()?;
+
+    if idx == 0 {
+        Ok(None) // Use default
+    } else if idx == options.len() - 1 {
+        let custom: String = Input::new()
+            .with_prompt("Enter model (provider/model)")
+            .default(initial.unwrap_or("").to_string())
+            .interact_text()?;
+        Ok(Some(custom))
+    } else {
+        Ok(Some(options[idx].clone()))
+    }
 }
 
 fn prompt_for_idea() -> Result<String> {
@@ -198,6 +240,10 @@ fn prompt_for_idea() -> Result<String> {
 }
 
 fn generate_initial_spec(idea: &str, model: Option<&str>) -> Result<String> {
+    // Clear any lingering line content from input echo
+    print!("\x1B[2K\r");
+    let _ = std::io::stdout().flush();
+
     println!(
         "\n{}",
         style("─────────────────────────────────────────────").dim()
@@ -358,6 +404,23 @@ fn handle_accept(output_dir: &Path, spec_text: &str, is_valid: bool) -> Result<b
         "\n{}",
         style("✅ Project scaffolded successfully!").green().bold()
     );
+
+    // Prompt to configure settings
+    println!();
+    if Confirm::new()
+        .with_prompt("Would you like to configure project settings now?")
+        .default(true)
+        .interact()?
+    {
+        println!();
+        run_config_tui()?;
+    } else {
+        println!(
+            "\n{}",
+            style("Run 'opencode-autocode --config' later to configure settings").dim()
+        );
+    }
+
     Ok(true)
 }
 
@@ -392,6 +455,33 @@ fn handle_refine(spec_text: &mut String, model: Option<&str>) -> Result<()> {
         style("─── Refine Specification ───").yellow().bold()
     );
 
+    // Show current spec with line numbers for targeted instructions
+    println!(
+        "\n{}",
+        style("Current specification (with line numbers):").cyan()
+    );
+    println!("{}", style("─".repeat(60)).dim());
+
+    for (i, line) in spec_text.lines().enumerate() {
+        let line_num = i + 1;
+        if line_num <= 50 {
+            println!("{:4} │ {}", style(line_num).dim(), line);
+        }
+    }
+    let total_lines = spec_text.lines().count();
+    if total_lines > 50 {
+        println!(
+            "     │ {}",
+            style(format!("... ({} more lines)", total_lines - 50)).dim()
+        );
+    }
+    println!("{}", style("─".repeat(60)).dim());
+
+    println!(
+        "\n{}",
+        style("TIP: Reference line numbers or section names in your instructions").dim()
+    );
+
     let refinement: String = Input::new()
         .with_prompt("Refinement instructions")
         .interact_text()?;
@@ -406,12 +496,17 @@ fn handle_refine(spec_text: &mut String, model: Option<&str>) -> Result<()> {
         style("─────────────────────────────────────────────").dim()
     );
 
+    let old_spec = spec_text.clone();
+
     match refine_spec_from_idea(spec_text, &refinement, model, |msg| {
         print!("{}", msg);
         let _ = std::io::stdout().flush();
     }) {
         Ok(refined) => {
             *spec_text = refined;
+            // Show diff of changes
+            println!("\n{}", style("Changes made:").cyan().bold());
+            print_diff(&old_spec, spec_text);
             println!("\n{}", style("Specification refined.").cyan());
         }
         Err(e) => {

@@ -149,16 +149,16 @@ pub fn parse_plan(plan_path: &Path) -> Result<Vec<PlanTask>> {
         let indent_chars = line.len() - trimmed.len();
         let level = indent_chars / 2;
 
-        if trimmed.starts_with("- [ ]") {
-            let description = trimmed[5..].trim().to_string();
+        if let Some(rest) = trimmed.strip_prefix("- [ ]") {
+            let description = rest.trim().to_string();
             tasks.push(PlanTask {
                 line_number: line_idx + 1,
                 description,
                 complete: false,
                 level,
             });
-        } else if trimmed.starts_with("- [x]") || trimmed.starts_with("- [X]") {
-            let description = trimmed[5..].trim().to_string();
+        } else if let Some(rest) = trimmed.strip_prefix("- [x]").or_else(|| trimmed.strip_prefix("- [X]")) {
+            let description = rest.trim().to_string();
             tasks.push(PlanTask {
                 line_number: line_idx + 1,
                 description,

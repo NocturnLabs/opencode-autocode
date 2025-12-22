@@ -31,14 +31,15 @@ Example: If `"cargo build"` is in blocked_patterns, you may NOT run `cargo build
 Start by orienting yourself. Examine the project structure:
 
 1. **List files** to understand project structure
-2. **Read app_spec.txt** to understand what you're building
+2. **Read app_spec.md** to understand what you're building
 3. **Read feature_list.json** to see all work and current progress
 4. **Check opencode-progress.txt** for notes from previous sessions
 5. **Review git history** to see what's been done recently
 6. **Count remaining work** - how many tests are still failing?
 
-Understanding the `app_spec.txt` is critical - it contains the full requirements
-for the application you're building.
+Understanding `app_spec.md` is critical - it contains the full requirements
+for the application you're building. **If you need to refine or update the spec,
+modify `app_spec.md` directly. Do NOT create separate files like `refined_specification.xml`.**
 
 ---
 
