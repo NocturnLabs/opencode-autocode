@@ -64,6 +64,10 @@ pub enum Commands {
         /// Path to custom config file (default: autocode.toml)
         #[arg(long, value_name = "FILE")]
         config_file: Option<PathBuf>,
+
+        /// Enable developer mode with comprehensive debug logging
+        #[arg(long)]
+        developer: bool,
     },
     /// Manage project templates
     Templates {

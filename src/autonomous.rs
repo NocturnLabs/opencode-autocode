@@ -27,12 +27,68 @@ enum SessionResult {
 }
 
 /// Run the autonomous agent loop
-pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
-    // Load configuration
-    let config = match config_path {
-        Some(path) => Config::load_from_file(path)?,
-        None => Config::load(None)?,
+pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: bool) -> Result<()> {
+    // Set up developer mode logging
+    let log_file = if developer_mode {
+        let log_path = Path::new("opencode-debug.log");
+        let file = std::fs::OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(log_path)
+            .context("Failed to create debug log file")?;
+        println!("🔧 Developer mode enabled - logging to: {}", log_path.display());
+        Some(std::sync::Mutex::new(file))
+    } else {
+        None
     };
+
+    // Helper macro for logging
+    macro_rules! dev_log {
+        ($($arg:tt)*) => {
+            if let Some(ref file_mutex) = log_file {
+                use std::io::Write;
+                if let Ok(mut file) = file_mutex.lock() {
+                    let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S%.3f");
+                    let _ = writeln!(file, "[{}] {}", timestamp, format!($($arg)*));
+                    let _ = file.flush();
+                }
+            }
+        };
+    }
+
+    dev_log!("=== OpenCode Autocode Developer Log ===");
+    dev_log!("Started at: {}", chrono::Local::now());
+    dev_log!("Working directory: {:?}", std::env::current_dir());
+    dev_log!("Rust version: {}", env!("CARGO_PKG_VERSION"));
+    dev_log!("");
+
+    // Load configuration
+    dev_log!("Loading configuration...");
+    let config = match config_path {
+        Some(path) => {
+            dev_log!("  Config path: {:?}", path);
+            Config::load_from_file(path)?
+        }
+        None => {
+            dev_log!("  Using default config path (autocode.toml)");
+            Config::load(None)?
+        }
+    };
+
+    // Log full configuration
+    dev_log!("Configuration loaded:");
+    dev_log!("  models.autonomous: {}", config.models.autonomous);
+    dev_log!("  models.default: {}", config.models.default);
+    dev_log!("  models.reasoning: {}", config.models.reasoning);
+    dev_log!("  models.enhancement: {}", config.models.enhancement);
+    dev_log!("  autonomous.max_iterations: {}", config.autonomous.max_iterations);
+    dev_log!("  autonomous.delay_between_sessions: {}", config.autonomous.delay_between_sessions);
+    dev_log!("  autonomous.log_level: {}", config.autonomous.log_level);
+    dev_log!("  agent.max_retry_attempts: {}", config.agent.max_retry_attempts);
+    dev_log!("  paths.feature_list_file: {}", config.paths.feature_list_file);
+    dev_log!("  notifications.webhook_enabled: {}", config.notifications.webhook_enabled);
+    dev_log!("");
 
     let delay = config.autonomous.delay_between_sessions;
     let max_iterations = if config.autonomous.max_iterations == 0 {
@@ -59,6 +115,9 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
     );
     println!("Model: {}", model);
     println!("Delay between sessions: {}s", delay);
+    if developer_mode {
+        println!("Developer mode: ENABLED (see opencode-debug.log)");
+    }
     println!();
     println!("Sessions will run in batch mode and continue automatically.");
     println!("Press Ctrl+C to stop.");
@@ -71,9 +130,11 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
 
     loop {
         iteration += 1;
+        dev_log!("=== Session {} started ===", iteration);
 
         // Check max iterations
         if iteration > max_iterations {
+            dev_log!("Reached max iterations ({}), stopping", max_iterations);
             println!();
             println!("Reached max iterations ({})", max_iterations);
             break;
@@ -91,15 +152,21 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
 
         // Determine command based on feature_list.json existence
         let feature_path = Path::new(feature_list_file);
+        dev_log!("Feature list path: {:?}", feature_path);
+        dev_log!("Feature list exists: {}", feature_path.exists());
+
         let command = if !feature_path.exists() {
+            dev_log!("First run detected, using auto-init");
             println!("→ First run: auto-init");
             "auto-init"
         } else {
             // Count remaining tests
             let (passing, remaining) = count_feature_status(feature_path)?;
+            dev_log!("Feature status: {} passing, {} remaining", passing, remaining);
             println!("→ Progress: {} passing, {} remaining", passing, remaining);
 
             if remaining == 0 && passing > 0 {
+                dev_log!("All tests passing! Project complete!");
                 println!();
                 println!("🎉 All tests passing! Project complete!");
                 break;
@@ -108,20 +175,37 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
             "auto-continue"
         };
 
+        dev_log!("Running command: {}", command);
         println!("→ Running: opencode run --command /{}", command);
         println!();
 
         // Capture passing features before session
         let before_passing = get_passing_features(feature_path)?;
+        dev_log!("Features passing before session: {:?}", before_passing);
 
         // Execute opencode
-        let result = run_opencode_session(command, model, log_level, session_id.as_deref())?;
+        dev_log!("Executing opencode session...");
+        dev_log!("  Model: {}", model);
+        dev_log!("  Log level: {}", log_level);
+        let result = run_opencode_session(command, model, log_level, session_id.as_deref(), developer_mode)?;
+        dev_log!("Session result: {:?}", result);
 
         // Capture passing features after session
         let after_passing = get_passing_features(feature_path)?;
+        dev_log!("Features passing after session: {:?}", after_passing);
 
         // Find newly completed features
-        let new_features = after_passing.difference(&before_passing);
+        let new_features: Vec<_> = after_passing.difference(&before_passing).collect();
+        dev_log!("Newly completed features: {:?}", new_features);
+
+        // Get current progress for webhook
+        let (current_passing, total_remaining) = if feature_path.exists() {
+            count_feature_status(feature_path).unwrap_or((0, 0))
+        } else {
+            (0, 0)
+        };
+        let total_features = current_passing + total_remaining;
+        
         for feature_desc in new_features {
             // Find the full feature object
             if let Ok(features) = regression::parse_feature_list(feature_path) {
@@ -129,7 +213,15 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
                     .into_iter()
                     .find(|f| f.description == *feature_desc)
                 {
-                    if let Err(e) = send_webhook_notification(&config, &feature) {
+                    dev_log!("Sending webhook for feature: {}", feature_desc);
+                    if let Err(e) = send_webhook_notification(
+                        &config,
+                        &feature,
+                        iteration,
+                        current_passing,
+                        total_features,
+                    ) {
+                        dev_log!("Webhook error: {}", e);
                         println!("⚠ Webhook error: {}", e);
                     }
                 }
@@ -139,17 +231,20 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
         match result {
             SessionResult::Continue => {
                 consecutive_errors = 0; // Reset on success
+                dev_log!("Session completed successfully, continuing...");
                 println!("→ Session complete, continuing...");
                 println!("→ Next session in {}s (Ctrl+C to stop)", delay);
                 thread::sleep(Duration::from_secs(delay as u64));
             }
             SessionResult::Complete => {
+                dev_log!("PROJECT COMPLETE signal received");
                 println!();
                 println!("🎉 All tests passing! Project complete!");
                 break;
             }
             SessionResult::Error(msg) => {
                 consecutive_errors += 1;
+                dev_log!("Session error (attempt {}/{}): {}", consecutive_errors, max_retries, msg);
                 println!();
                 println!(
                     "⚠ Session error (attempt {}/{}): {}",
@@ -157,16 +252,19 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
                 );
 
                 if consecutive_errors >= max_retries {
+                    dev_log!("Exceeded max retries, stopping");
                     println!("❌ Exceeded max retries ({}), stopping.", max_retries);
                     break;
                 }
 
                 // Exponential backoff: delay * 2^(attempts-1)
                 let backoff = delay * (1 << (consecutive_errors - 1).min(4));
+                dev_log!("Exponential backoff: {}s", backoff);
                 println!("→ Retrying in {}s (exponential backoff)...", backoff);
                 thread::sleep(Duration::from_secs(backoff as u64));
             }
             SessionResult::Stopped => {
+                dev_log!("Stop signal detected (.opencode-stop file exists)");
                 println!();
                 println!("Stop signal detected (.opencode-stop file exists)");
                 let _ = std::fs::remove_file(".opencode-stop");
@@ -175,6 +273,7 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
         }
     }
 
+    dev_log!("=== Runner stopped ===");
     println!();
     println!("═══════════════════════════════════════════════════");
     println!("  Runner stopped");
@@ -185,11 +284,18 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>) -> Result<()> {
     let feature_path = Path::new(feature_list_file);
     if feature_path.exists() {
         let (passing, remaining) = count_feature_status(feature_path)?;
+        dev_log!("Final status: {} / {} tests passing", passing, passing + remaining);
         println!(
             "Status: {} / {} tests passing",
             passing,
             passing + remaining
         );
+    }
+
+    if developer_mode {
+        println!();
+        println!("📋 Debug log saved to: opencode-debug.log");
+        dev_log!("=== Log complete ===");
     }
 
     println!();
@@ -213,6 +319,7 @@ fn run_opencode_session(
     model: &str,
     log_level: &str,
     session_id: Option<&str>,
+    _developer_mode: bool,
 ) -> Result<SessionResult> {
     // Check for stop signal before running
     if Path::new(".opencode-stop").exists() {
@@ -257,7 +364,13 @@ fn run_opencode_session(
 }
 
 /// Send a webhook notification for a completed feature
-fn send_webhook_notification(config: &Config, feature: &regression::Feature) -> Result<()> {
+fn send_webhook_notification(
+    config: &Config,
+    feature: &regression::Feature,
+    session_number: usize,
+    current_passing: usize,
+    total_features: usize,
+) -> Result<()> {
     if !config.notifications.webhook_enabled {
         return Ok(());
     }
@@ -280,12 +393,36 @@ fn send_webhook_notification(config: &Config, feature: &regression::Feature) -> 
 
     let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
 
+    // Format verification steps (limit to first 5 for embed)
+    let verification_steps = if feature.steps.is_empty() {
+        "No steps defined".to_string()
+    } else {
+        feature.steps
+            .iter()
+            .take(5)
+            .map(|s| format!("• {}", s))
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
+
+    // Calculate progress percentage
+    let progress_percent = if total_features > 0 {
+        (current_passing * 100) / total_features
+    } else {
+        0
+    };
+
     // Prepare template data
     let mut data = std::collections::HashMap::new();
     data.insert("feature_name", feature.description.clone());
-    data.insert("feature_description", feature.description.clone()); // Using description as name for now
+    data.insert("feature_category", capitalize_first(&feature.category));
     data.insert("project_name", project_name);
     data.insert("timestamp", timestamp);
+    data.insert("session_number", session_number.to_string());
+    data.insert("progress_current", current_passing.to_string());
+    data.insert("progress_total", total_features.to_string());
+    data.insert("progress_percent", progress_percent.to_string());
+    data.insert("verification_steps", verification_steps);
 
     // Render template
     let handlebars = handlebars::Handlebars::new();
@@ -294,7 +431,7 @@ fn send_webhook_notification(config: &Config, feature: &regression::Feature) -> 
         std::fs::read_to_string(template_path)?
     } else {
         // Fallback minimal template if file is missing
-        r#"{ "content": "✅ Feature Completed: {{feature_name}} in {{project_name}}" }"#.to_string()
+        r#"{ "content": "✅ Feature Completed: {{feature_name}} in {{project_name}} ({{progress_current}}/{{progress_total}})" }"#.to_string()
     };
 
     let rendered = handlebars
@@ -323,6 +460,15 @@ fn send_webhook_notification(config: &Config, feature: &regression::Feature) -> 
     }
 
     Ok(())
+}
+
+/// Capitalize the first letter of a string
+fn capitalize_first(s: &str) -> String {
+    let mut chars = s.chars();
+    match chars.next() {
+        None => String::new(),
+        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+    }
 }
 
 /// Get descriptions of currently passing features

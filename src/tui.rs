@@ -212,6 +212,7 @@ fn prompt_for_model(initial: Option<&str>) -> Result<Option<String>> {
         .with_prompt("Select model (type to filter)")
         .items(&options)
         .default(default_idx)
+        .max_length(15)
         .interact()?;
 
     if idx == 0 {
@@ -446,6 +447,21 @@ fn save_spec_to_file(output_dir: &Path, spec_text: &str) -> Result<()> {
         style("📄 Saved to:").cyan(),
         style(spec_path.display()).green()
     );
+
+    // Print next steps hint
+    println!("\n{}", style("─── Next Steps ───").cyan().bold());
+    println!(
+        "  {} Run {} to configure settings",
+        style("→").cyan(),
+        style("opencode-autocode --config").green()
+    );
+    println!(
+        "  {} Run {} to start the autonomous coding loop",
+        style("→").cyan(),
+        style("opencode-autocode vibe").green().bold()
+    );
+    println!();
+
     Ok(())
 }
 

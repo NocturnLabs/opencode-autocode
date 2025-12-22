@@ -104,6 +104,26 @@ Features can ONLY be marked as passing (change `"passes": false` to `"passes": t
 Never remove features, never edit descriptions, never modify testing steps.
 This ensures no functionality is missed.
 
+**E2E TESTING REQUIREMENTS:**
+
+1. **Detect project type from `app_spec.md`:**
+
+   - If the project has a frontend (web, PWA, SPA), it is a **web project**
+   - CLI tools, backend APIs, and libraries are **non-web projects**
+
+2. **For web projects:**
+
+   - You MUST scaffold an E2E testing framework (Playwright recommended)
+   - Run: `npm init playwright@latest` or equivalent for the stack
+   - Create `tests/e2e/` directory for E2E test files
+   - `verification_command` for each feature MUST invoke E2E tests (e.g., `npx playwright test feature.spec.ts`)
+   - Unit tests are NOT sufficient for feature verification
+   - Update `autocode.toml` to set `required_tools = ["chrome-devtools"]` in `[mcp]` section
+
+3. **For non-web projects:**
+   - Standard integration/unit tests are acceptable for `verification_command`
+   - E2E framework is optional
+
 ---
 
 ### SECOND TASK: Create Conductor Context

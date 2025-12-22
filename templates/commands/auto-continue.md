@@ -36,10 +36,19 @@ Start by orienting yourself. Examine the project structure:
 4. **Check opencode-progress.txt** for notes from previous sessions
 5. **Review git history** to see what's been done recently
 6. **Count remaining work** - how many tests are still failing?
+7. **Detect project type** - check `app_spec.md` for frontend/web components
 
 Understanding `app_spec.md` is critical - it contains the full requirements
 for the application you're building. **If you need to refine or update the spec,
 modify `app_spec.md` directly. Do NOT create separate files like `refined_specification.xml`.**
+
+**WEB PROJECT DETECTION:**
+If `app_spec.md` contains frontend technology (React, Vue, HTML, HTMX, etc.) or mentions
+"web app", "PWA", "SPA", or "frontend", this is a **web project**. For web projects:
+
+- You MUST use `chrome-devtools` MCP for interactive verification
+- Check browser console for errors after implementing features
+- E2E tests (Playwright) should be used for `verification_command`
 
 ---
 
@@ -59,8 +68,7 @@ grep -c '"passes": false' feature_list.json
 
 **If ALL tests pass (0 remaining):**
 
-- Write `===PROJECT_COMPLETE===` to signal completion
-- Exit gracefully
+- Go to **STEP 12: FINAL E2E VERIFICATION** before signaling completion
 
 **If tests remain:**
 
@@ -213,6 +221,18 @@ Signs you are stuck (trigger alternative approach generation immediately):
 - Check for edge cases
 - Verify error handling
 
+**FOR WEB PROJECTS (MANDATORY):**
+
+If this is a web project (detected in Step 1), you MUST:
+
+1. **Use `chrome-devtools` MCP** to open the application in a browser
+2. **Navigate to the feature** you just implemented
+3. **Check the browser console** (`list_console_messages`) for errors or warnings
+4. **Interact with the feature** (click buttons, fill forms, etc.)
+5. **Take a screenshot** to verify the UI renders correctly
+
+If there are ANY console errors, the feature does NOT pass. Fix them first.
+
 ---
 
 ### STEP 7.5: REGRESSION CHECKPOINT (MANDATORY!)
@@ -332,6 +352,76 @@ Ready for next iteration.
 This signals the runner script to start a new session automatically.
 
 **DO NOT wait for user input. DO NOT ask any questions. Just signal and end.**
+
+---
+
+### STEP 12: FINAL E2E VERIFICATION (BEFORE COMPLETION)
+
+**When all features show `"passes": true`, do NOT immediately signal completion.**
+
+Perform comprehensive end-to-end verification:
+
+1. **Run the full automated test suite:**
+
+   ```bash
+   # Run whatever test command is appropriate for the project
+   npm test || cargo test || pytest || go test ./...
+   ```
+
+2. **Start the application** and verify it runs without errors:
+
+   - Check for startup errors
+   - Verify no console errors or warnings
+   - Confirm the main UI/CLI loads correctly
+
+3. **Execute ALL verification_commands** from feature_list.json:
+
+   ```bash
+   # For each feature that has a verification_command, run it
+   ```
+
+4. **Walk through the complete user journey:**
+
+   - Test core workflows end-to-end as a real user would
+   - For web apps: Click through all major features
+   - For CLIs: Run common command sequences
+   - For APIs: Test key endpoints
+
+5. **Check for hidden issues:**
+
+   - TypeScript errors: `npm run typecheck` or `tsc --noEmit`
+   - Lint errors: `npm run lint` or equivalent
+   - Browser console errors (for web apps)
+   - Runtime warnings or deprecation notices
+
+6. **Log the final verification:**
+   ```
+   FINAL E2E VERIFICATION:
+   - Automated tests: PASS/FAIL
+   - Application startup: PASS/FAIL
+   - Manual walkthrough: PASS/FAIL
+   - No console errors: PASS/FAIL
+   ```
+
+**If ANY issues are found:**
+
+- Mark the affected feature(s) as `"passes": false` in feature_list.json
+- Document the issues in `opencode-progress.txt`
+- Continue to STEP 5 (work on fixing the issues)
+- Do NOT signal PROJECT_COMPLETE
+
+**Only if EVERYTHING passes:**
+
+- Write the completion signal:
+  ```bash
+  echo "COMPLETE" > .opencode-signal
+  ```
+- Output:
+  ```
+  ===PROJECT_COMPLETE===
+  All features verified end-to-end.
+  ```
+- Exit gracefully
 
 ---
 

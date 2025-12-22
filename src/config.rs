@@ -271,6 +271,8 @@ impl Default for AlternativeApproachesConfig {
 pub struct McpConfig {
     /// MCP tools in priority order
     pub priority_order: Vec<String>,
+    /// Required MCP tools (set by spec generator based on project type)
+    pub required_tools: Vec<String>,
     /// Prefer osgrep over grep
     pub prefer_osgrep: bool,
     /// Use sequential thinking for complex decisions
@@ -283,6 +285,8 @@ impl Default for McpConfig {
             // Empty by default - users configure their available MCPs
             // See autocode.toml for example tools with repo links
             priority_order: vec![],
+            // Empty by default - spec generator populates for web projects
+            required_tools: vec![],
             prefer_osgrep: false,
             use_sequential_thinking: true,
         }
