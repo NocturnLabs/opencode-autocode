@@ -210,17 +210,24 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: boo
         };
         let total_features = current_passing + total_remaining;
         
+        // Parse feature list once for all new features (avoid re-parsing in loop)
+        let features_list = if !new_features.is_empty() && feature_path.exists() {
+            regression::parse_feature_list(feature_path).ok()
+        } else {
+            None
+        };
+        
         for feature_desc in new_features {
-            // Find the full feature object
-            if let Ok(features) = regression::parse_feature_list(feature_path) {
+            // Find the full feature object from pre-parsed list
+            if let Some(ref features) = features_list {
                 if let Some(feature) = features
-                    .into_iter()
+                    .iter()
                     .find(|f| f.description == *feature_desc)
                 {
                     dev_log!("Sending webhook for feature: {}", feature_desc);
                     if let Err(e) = send_webhook_notification(
                         &config,
-                        &feature,
+                        feature,
                         iteration,
                         current_passing,
                         total_features,
