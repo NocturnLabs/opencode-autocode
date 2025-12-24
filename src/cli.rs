@@ -16,7 +16,7 @@ pub struct Cli {
     pub command: Option<Commands>,
 
     /// Launch interactive TUI to build app spec (scaffolding mode)
-    #[arg(long)]
+    #[arg(long, visible_alias = "init")]
     pub interactive: bool,
 
     /// Use the default app spec template (scaffolding mode)
@@ -64,6 +64,10 @@ pub enum Commands {
         /// Path to custom config file (default: autocode.toml)
         #[arg(long, value_name = "FILE")]
         config_file: Option<PathBuf>,
+
+        /// Enable developer mode with comprehensive debug logging
+        #[arg(long)]
+        developer: bool,
     },
     /// Manage project templates
     Templates {

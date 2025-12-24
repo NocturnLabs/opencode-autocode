@@ -4,4 +4,4 @@ Total Tests: 6
 Passed: 6
 Failed: 0
 Success Rate: 100.0%
-Total Duration: 0.12s
+Total Duration: 0.10s

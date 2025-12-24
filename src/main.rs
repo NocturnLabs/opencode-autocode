@@ -31,9 +31,11 @@ fn main() -> Result<()> {
     // Handle subcommands first (vibe is the main one)
     if let Some(command) = &cli.command {
         return match command {
-            Commands::Vibe { limit, config_file } => {
-                autonomous::run(*limit, config_file.as_deref())
-            }
+            Commands::Vibe {
+                limit,
+                config_file,
+                developer,
+            } => autonomous::run(*limit, config_file.as_deref(), *developer),
             Commands::Templates { action } => match action {
                 TemplateAction::List => {
                     templates::list_templates();

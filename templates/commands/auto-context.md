@@ -1,0 +1,158 @@
+# Context Setup Session
+
+This session establishes the foundational context for the project.
+Output is saved to `.conductor/` directory for use in all future sessions.
+
+**AUTONOMOUS MODE: Create context files, then signal for continuation.**
+
+---
+
+### SECURITY CONSTRAINTS (MANDATORY - READ FIRST!)
+
+**Before executing ANY commands, you MUST:**
+
+1. Read `scripts/security-allowlist.json` if it exists
+2. Check the `blocked_patterns` array for commands you must NEVER run
+3. Only use commands listed in `allowed_commands` categories
+
+---
+
+### STEP 1: Read Project Specification
+
+Start by reading `app_spec.md` to understand what you're building.
+Extract the following information:
+
+- **Target users**: Who will use this application?
+- **Product goals**: What problems does it solve?
+- **Core features**: What are the main capabilities?
+- **Tech stack**: What technologies are specified?
+
+---
+
+### STEP 2: Create product.md
+
+Create `.conductor/product.md` with the following structure:
+
+```markdown
+# Product Context
+
+## Target Users
+
+- [Primary user persona]
+- [Secondary user personas]
+
+## Product Goals
+
+1. [Goal 1: What problem does this solve?]
+2. [Goal 2: What value does it provide?]
+3. [Goal 3: What is the key differentiator?]
+
+## High-Level Features
+
+- [Feature category 1]
+  - [Specific feature]
+  - [Specific feature]
+- [Feature category 2]
+  - [Specific feature]
+
+## Success Criteria
+
+- [Measurable outcome 1]
+- [Measurable outcome 2]
+```
+
+---
+
+### STEP 3: Create tech_stack.md
+
+Create `.conductor/tech_stack.md` with the following structure:
+
+```markdown
+# Tech Stack
+
+## Language/Runtime
+
+- **Primary**: [e.g., TypeScript, Rust, Python]
+- **Version**: [e.g., Node 20, Python 3.11]
+
+## Frameworks
+
+- **Frontend**: [e.g., React, Vue, Next.js]
+- **Backend**: [e.g., Express, FastAPI, Actix]
+- **CSS**: [e.g., Tailwind, styled-components]
+
+## Database
+
+- **Type**: [e.g., PostgreSQL, MongoDB, SQLite]
+- **ORM/Driver**: [e.g., Prisma, SQLAlchemy, Diesel]
+
+## External Services
+
+- [API/Service 1]
+- [API/Service 2]
+
+## Package Manager
+
+- [e.g., npm, pnpm, cargo, pip]
+```
+
+---
+
+### STEP 4: Create workflow.md
+
+Create `.conductor/workflow.md` with the following structure:
+
+```markdown
+# Workflow Preferences
+
+## Testing Strategy
+
+- **Unit tests**: [Framework, coverage expectations]
+- **Integration tests**: [Approach]
+- **E2E tests**: [Framework if any]
+
+## Code Style
+
+- **Linting**: [ESLint, Clippy, Ruff, etc.]
+- **Formatting**: [Prettier, rustfmt, Black, etc.]
+- **Naming conventions**: [camelCase, snake_case, etc.]
+
+## Git Workflow
+
+- **Commit style**: [Conventional commits, etc.]
+- **Branch naming**: [feature/*, fix/*, etc.]
+
+## Development Conventions
+
+- [Convention 1: e.g., "All API responses follow JSON:API spec"]
+- [Convention 2: e.g., "Error messages should be user-friendly"]
+- [Convention 3: e.g., "All functions have docstrings"]
+```
+
+---
+
+### STEP 5: Commit Context Files
+
+```bash
+git add .conductor/
+git commit -m "Add project context files for Conductor workflow"
+```
+
+---
+
+### STEP 6: Signal Continuation
+
+Write the continuation signal:
+
+```bash
+echo "CONTINUE" > .opencode-signal
+```
+
+Then output:
+
+```
+===SESSION_COMPLETE===
+Ready for next iteration.
+```
+
+**DO NOT wait for user input. Just signal and end.**

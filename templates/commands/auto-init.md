@@ -28,7 +28,7 @@ Example: If `"cargo build"` is in blocked_patterns, you may NOT run `cargo build
 
 ### FIRST: Read the Project Specification
 
-Start by reading `app_spec.txt` in your working directory. This file contains
+Start by reading `app_spec.md` in your working directory. This file contains
 the complete specification for what you need to build. Read it carefully
 before proceeding. Understand:
 
@@ -37,11 +37,16 @@ before proceeding. Understand:
 - What features need to be built
 - What success criteria must be met
 
+**IMPORTANT**: If you need to refine, clarify, or update the specification during
+your work, **modify `app_spec.md` directly**. Do NOT create separate files like
+`refined_specification.xml` or `updated_spec.md`. The single source of truth for
+the project specification is always `app_spec.md`.
+
 ---
 
 ### CRITICAL FIRST TASK: Create feature_list.json
 
-Based on `app_spec.txt`, create a file called `feature_list.json` with detailed
+Based on `app_spec.md`, create a file called `feature_list.json` with detailed
 end-to-end test cases appropriate for the technology stack specified.
 
 **Format:**
@@ -99,9 +104,96 @@ Features can ONLY be marked as passing (change `"passes": false` to `"passes": t
 Never remove features, never edit descriptions, never modify testing steps.
 This ensures no functionality is missed.
 
+**E2E TESTING REQUIREMENTS:**
+
+1. **Detect project type from `app_spec.md`:**
+
+   - If the project has a frontend (web, PWA, SPA), it is a **web project**
+   - CLI tools, backend APIs, and libraries are **non-web projects**
+
+2. **For web projects:**
+
+   - You MUST scaffold an E2E testing framework (Playwright recommended)
+   - Run: `npm init playwright@latest` or equivalent for the stack
+   - Create `tests/e2e/` directory for E2E test files
+   - `verification_command` for each feature MUST invoke E2E tests (e.g., `npx playwright test feature.spec.ts`)
+   - Unit tests are NOT sufficient for feature verification
+   - Update `autocode.toml` to set `required_tools = ["chrome-devtools"]` in `[mcp]` section
+
+3. **For non-web projects:**
+   - Standard integration/unit tests are acceptable for `verification_command`
+   - E2E framework is optional
+
 ---
 
-### SECOND TASK: Create init.sh
+### SECOND TASK: Create Conductor Context
+
+Create the `.conductor/` directory with context files that inform all future sessions:
+
+**Create `.conductor/product.md`:**
+
+```markdown
+# Product Context
+
+## Target Users
+
+- [Primary user persona from app_spec.md]
+
+## Product Goals
+
+1. [Goal 1 from spec]
+2. [Goal 2 from spec]
+
+## High-Level Features
+
+- [Feature categories from spec]
+
+## Success Criteria
+
+- [From spec's success criteria]
+```
+
+**Create `.conductor/tech_stack.md`:**
+
+```markdown
+# Tech Stack
+
+## Language/Runtime
+
+- **Primary**: [From app_spec.md]
+
+## Frameworks
+
+- [Frontend/Backend frameworks from spec]
+
+## Database
+
+- [Database choice from spec]
+```
+
+**Create `.conductor/workflow.md`:**
+
+```markdown
+# Workflow Preferences
+
+## Testing Strategy
+
+- [Based on tech stack]
+
+## Code Style
+
+- [Based on tech stack defaults]
+```
+
+Also create the `tracks/` directory for per-feature planning:
+
+```bash
+mkdir -p .conductor tracks
+```
+
+---
+
+### THIRD TASK: Create init.sh
 
 Create a script called `init.sh` that future agents can use to quickly
 set up and run the development environment. The script should:
@@ -110,26 +202,67 @@ set up and run the development environment. The script should:
 2. Start any necessary servers or services
 3. Print helpful information about how to access the running application
 
-Base the script on the technology stack specified in `app_spec.txt`.
+Base the script on the technology stack specified in `app_spec.md`.
 Make the script as portable and robust as possible.
 
 ---
 
-### THIRD TASK: Initialize Git
+### FOURTH TASK: Create .gitignore
 
-Create a git repository and make your first commit with:
+Before initializing git, create a `.gitignore` file with common patterns:
 
-- feature_list.json (complete with all features)
-- init.sh (environment setup script)
-- README.md (project overview and setup instructions)
+```gitignore
+# OS files
+.DS_Store
+Thumbs.db
 
-Commit message: "Initial setup: feature_list.json, init.sh, and project structure"
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Semantic code search (osgrep)
+.osgrep/
+
+# Common build artifacts (adjust based on tech stack)
+node_modules/
+dist/
+build/
+target/
+__pycache__/
+*.pyc
+.env
+.env.local
+
+# Test artifacts
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+```
+
+Adjust the ignores based on the tech stack in `app_spec.md`.
 
 ---
 
-### FOURTH TASK: Create Project Structure
+### FIFTH TASK: Initialize Git
 
-Set up the basic project structure based on what's specified in `app_spec.txt`.
+Create a git repository and make your first commit with:
+
+- .gitignore (configured for the project)
+- feature_list.json (complete with all features)
+- .conductor/ (context files)
+- init.sh (environment setup script)
+- README.md (project overview and setup instructions)
+
+Commit message: "Initial setup: feature_list.json, conductor context, and project structure"
+
+---
+
+### SIXTH TASK: Create Project Structure
+
+Set up the basic project structure based on what's specified in `app_spec.md`.
 This includes directories for source code, tests, and any other components
 mentioned in the spec.
 

@@ -146,6 +146,11 @@ cache_dir = ".approach-cache"
 # Example: priority_order = ["osgrep", "sequential-thinking"]
 priority_order = []
 
+# Required MCP tools for this project (set by spec generator based on project type)
+# For web projects, this will be populated with ["chrome-devtools"]
+# Leave empty - spec generator will set this automatically
+required_tools = []
+
 # Prefer osgrep over grep for code search (set true if osgrep is installed)
 prefer_osgrep = false
 

@@ -56,6 +56,21 @@ The specification MUST include:
 
 ## Output Format
 
+**CRITICAL XML ESCAPING RULES:**
+The output MUST be valid XML. Escape these special characters:
+
+- `&` → `&amp;` (e.g., URLs with query params: `?foo=1&amp;bar=2`)
+- `<` → `&lt;` (when showing code or comparisons)
+- `>` → `&gt;` (when showing code or comparisons)
+- `"` → `&quot;` (inside attribute values)
+- `'` → `&apos;` (inside attribute values)
+
+**Common mistakes to avoid:**
+
+- URLs with `&` in query strings (MUST escape as `&amp;`)
+- Code examples showing `<` or `>` operators
+- Raw HTML examples inside the spec
+
 Output ONLY the specification in this XML structure. Fill every section with substantial content—no placeholders or sparse sections.
 
 ```xml
@@ -192,7 +207,14 @@ Output ONLY the specification in this XML structure. Fill every section with sub
 <e2e_tests>
  - Critical flows to cover
  - Browser/device matrix
+ - **MANDATORY**: Every core feature MUST have a scriptable E2E test (Playwright/Cypress)
+ - verification_command in feature_list.json MUST invoke E2E tests, NOT unit tests
 </e2e_tests>
+<interactive_verification>
+ - For web projects: Agent MUST use chrome-devtools MCP for manual verification
+ - Check browser console for errors after each feature implementation
+ - This is in ADDITION to automated E2E tests
+</interactive_verification>
 </testing_strategy>
 
 <implementation_steps>

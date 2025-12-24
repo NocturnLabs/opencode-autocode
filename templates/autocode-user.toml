@@ -92,3 +92,22 @@ verbose = false
 # [security]
 # enforce_allowlist = true
 # allowlist_file = "scripts/security-allowlist.json"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CONDUCTOR - Context-driven planning settings
+# ─────────────────────────────────────────────────────────────────────────────
+[conductor]
+# Directory for project context files (product, tech stack, workflow)
+context_dir = ".conductor"
+
+# Directory for track-based work units (per-feature specs and plans)
+tracks_dir = "tracks"
+
+# Auto-generate context files during first auto-init run
+auto_setup = true
+
+# Planning mode: "auto" (AI generates plan) or "manual" (user writes plan)
+planning_mode = "auto"
+
+# Checkpoint frequency: save progress after N completed tasks
+checkpoint_frequency = 1

@@ -33,6 +33,7 @@ pub struct Config {
     pub security: SecurityConfig,
     pub ui: UiConfig,
     pub notifications: NotificationsConfig,
+    pub conductor: ConductorConfig,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -270,6 +271,8 @@ impl Default for AlternativeApproachesConfig {
 pub struct McpConfig {
     /// MCP tools in priority order
     pub priority_order: Vec<String>,
+    /// Required MCP tools (set by spec generator based on project type)
+    pub required_tools: Vec<String>,
     /// Prefer osgrep over grep
     pub prefer_osgrep: bool,
     /// Use sequential thinking for complex decisions
@@ -282,6 +285,8 @@ impl Default for McpConfig {
             // Empty by default - users configure their available MCPs
             // See autocode.toml for example tools with repo links
             priority_order: vec![],
+            // Empty by default - spec generator populates for web projects
+            required_tools: vec![],
             prefer_osgrep: false,
             use_sequential_thinking: true,
         }
@@ -436,6 +441,37 @@ pub struct NotificationsConfig {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Conductor Configuration (Context-Driven Planning)
+// ─────────────────────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default)]
+pub struct ConductorConfig {
+    /// Directory for project context files
+    pub context_dir: String,
+    /// Directory for track-based work units (per-feature specs/plans)
+    pub tracks_dir: String,
+    /// Auto-generate context files on first run
+    pub auto_setup: bool,
+    /// Planning mode: "auto" (AI generates) or "manual" (user writes)
+    pub planning_mode: String,
+    /// Checkpoint frequency: save progress after N completed tasks
+    pub checkpoint_frequency: u32,
+}
+
+impl Default for ConductorConfig {
+    fn default() -> Self {
+        Self {
+            context_dir: ".conductor".to_string(),
+            tracks_dir: "tracks".to_string(),
+            auto_setup: true,
+            planning_mode: "auto".to_string(),
+            checkpoint_frequency: 1,
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Default Implementation for Main Config
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -491,6 +527,8 @@ impl Config {
             .collect();
         self.scaffolding.output_dir = expand_env_var(&self.scaffolding.output_dir);
         self.security.allowlist_file = expand_env_var(&self.security.allowlist_file);
+        self.conductor.context_dir = expand_env_var(&self.conductor.context_dir);
+        self.conductor.tracks_dir = expand_env_var(&self.conductor.tracks_dir);
         if let Some(ref url) = self.notifications.webhook_url {
             self.notifications.webhook_url = Some(expand_env_var(url));
         }

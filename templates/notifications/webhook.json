@@ -1,23 +1,41 @@
 {
   "embeds": [
     {
-      "title": "✅ Feature Completed: {{feature_name}}",
-      "description": "{{feature_description}}",
+      "title": "✅ Feature Completed",
+      "description": "A feature has been successfully implemented and verified.",
       "color": 3066993,
       "fields": [
         {
-          "name": "Project",
-          "value": "{{project_name}}",
+          "name": "📋 Feature",
+          "value": "{{feature_name}}",
+          "inline": false
+        },
+        {
+          "name": "📁 Project",
+          "value": "`{{project_name}}`",
           "inline": true
         },
         {
-          "name": "Status",
-          "value": "Passed Verification",
+          "name": "🏷️ Category",
+          "value": "{{feature_category}}",
           "inline": true
+        },
+        {
+          "name": "📊 Progress",
+          "value": "{{progress_current}}/{{progress_total}} features ({{progress_percent}}%)",
+          "inline": true
+        },
+        {
+          "name": "✔️ Verification Steps",
+          "value": "{{verification_steps}}",
+          "inline": false
         }
       ],
       "footer": {
-        "text": "OpenCode Autocode • {{timestamp}}"
+        "text": "OpenCode Autocode • Session {{session_number}} • {{timestamp}}"
+      },
+      "thumbnail": {
+        "url": "https://raw.githubusercontent.com/NocturnLabs/.github/main/assets/opencode-icon.png"
       }
     }
   ]

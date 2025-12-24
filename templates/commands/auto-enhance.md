@@ -16,7 +16,7 @@ Research and propose enhancements for the current project based on popular patte
 
 ### STEP 1: UNDERSTAND THE PROJECT
 
-Read app_spec.txt and feature_list.json to understand:
+Read app_spec.md and feature_list.json to understand:
 
 - What the project does
 - What technology stack is used
@@ -182,4 +182,4 @@ Use structured reasoning to organize your findings and determine priority.
 
 ---
 
-Begin by reading app_spec.txt to understand the project.
+Begin by reading app_spec.md to understand the project.

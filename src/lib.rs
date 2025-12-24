@@ -4,6 +4,7 @@
 
 pub mod autonomous;
 pub mod cli;
+pub mod conductor;
 pub mod config;
 pub mod config_tui;
 pub mod generator;
