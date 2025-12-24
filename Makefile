@@ -14,8 +14,9 @@ build:
 test:
 	cargo test
 
-# Run clippy linting
+# Run clippy and format check
 lint:
+	cargo fmt --check
 	cargo clippy -- -D warnings
 
 # Build and run regression tests (replaces tests/regression/run_regression_tests.sh)

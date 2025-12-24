@@ -76,10 +76,7 @@ pub fn display_token_stats(stats: &super::session::TokenStats) {
     println!("───────────────────────────────────────────────────");
     println!("  📊 Token Usage (this project)");
     println!("───────────────────────────────────────────────────");
-    println!(
-        "  Input:  {:>12} tokens",
-        format_number(stats.input_tokens)
-    );
+    println!("  Input:  {:>12} tokens", format_number(stats.input_tokens));
     println!(
         "  Output: {:>12} tokens",
         format_number(stats.output_tokens)
@@ -105,4 +102,3 @@ fn format_number(n: u64) -> String {
     }
     result
 }
-

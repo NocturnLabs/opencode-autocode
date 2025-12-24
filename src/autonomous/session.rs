@@ -76,7 +76,11 @@ fn extract_number(s: &str) -> Option<u64> {
         .replace(',', "");
 
     // Take the last number in the string (usually the value after the label)
-    num_str.split_whitespace().last()?.parse().ok()
+    num_str
+        .split_whitespace()
+        .last()?
+        .parse()
+        .ok()
         .or_else(|| num_str.parse().ok())
 }
 
@@ -126,7 +130,18 @@ pub fn execute_opencode_session(
     }
 
     let mut cmd = build_opencode_command(command, model, log_level, session_id);
-    logger.log_command("opencode", &["run", "--command", command, "--model", model, "--log-level", log_level]);
+    logger.log_command(
+        "opencode",
+        &[
+            "run",
+            "--command",
+            command,
+            "--model",
+            model,
+            "--log-level",
+            log_level,
+        ],
+    );
 
     if timeout_minutes > 0 {
         execute_with_timeout(&mut cmd, timeout_minutes, logger)
@@ -168,10 +183,17 @@ fn build_opencode_command(
     cmd
 }
 
-fn execute_with_timeout(cmd: &mut Command, timeout_minutes: u32, logger: &DebugLogger) -> Result<SessionResult> {
+fn execute_with_timeout(
+    cmd: &mut Command,
+    timeout_minutes: u32,
+    logger: &DebugLogger,
+) -> Result<SessionResult> {
     let timeout_secs = timeout_minutes as u64 * 60;
     println!("→ Session timeout: {} minutes", timeout_minutes);
-    logger.debug(&format!("Session timeout set to {} minutes", timeout_minutes));
+    logger.debug(&format!(
+        "Session timeout set to {} minutes",
+        timeout_minutes
+    ));
 
     // Capture stdout and stderr
     cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
@@ -248,7 +270,10 @@ fn execute_with_timeout(cmd: &mut Command, timeout_minutes: u32, logger: &DebugL
                 if start.elapsed().as_secs() > timeout_secs {
                     println!();
                     println!("⏱ Session timeout reached ({} minutes)", timeout_minutes);
-                    logger.error(&format!("Session timeout after {} minutes", timeout_minutes));
+                    logger.error(&format!(
+                        "Session timeout after {} minutes",
+                        timeout_minutes
+                    ));
                     terminate_child(&mut child);
                     return Ok(SessionResult::Error("session timeout".to_string()));
                 }
@@ -314,7 +339,9 @@ fn execute_synchronously(cmd: &mut Command, logger: &DebugLogger) -> Result<Sess
         })
     });
 
-    let status = child.wait().context("Failed to wait for opencode command")?;
+    let status = child
+        .wait()
+        .context("Failed to wait for opencode command")?;
 
     // Wait for output threads and log
     if let Some(handle) = stdout_handle {

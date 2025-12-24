@@ -92,7 +92,10 @@ impl DebugLogger {
         if !self.enabled {
             return;
         }
-        self.log("─────", "────────────────────────────────────────────────────");
+        self.log(
+            "─────",
+            "────────────────────────────────────────────────────",
+        );
     }
 
     /// Check if logging is enabled

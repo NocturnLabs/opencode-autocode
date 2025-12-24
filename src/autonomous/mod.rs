@@ -3,13 +3,13 @@
 //! Runs OpenCode in batch mode with automatic session continuation
 //! until all features pass.
 
+pub mod debug_logger;
 mod display;
 mod features;
 mod git;
 mod session;
 mod settings;
 mod webhook;
-pub mod debug_logger;
 
 use anyhow::Result;
 use std::path::Path;
@@ -35,10 +35,25 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: boo
     logger.separator();
     logger.info("OpenCode Autonomous Agent Runner starting");
     logger.info(&format!("Developer mode: {}", developer_mode));
-    logger.info(&format!("Project directory: {}", std::env::current_dir().map(|p| p.display().to_string()).unwrap_or_default()));
+    logger.info(&format!(
+        "Project directory: {}",
+        std::env::current_dir()
+            .map(|p| p.display().to_string())
+            .unwrap_or_default()
+    ));
     logger.info(&format!("Model: {}", settings.model));
-    logger.info(&format!("Max iterations: {}", if settings.max_iterations == usize::MAX { "unlimited".to_string() } else { settings.max_iterations.to_string() }));
-    logger.info(&format!("Session timeout: {} minutes", settings.session_timeout));
+    logger.info(&format!(
+        "Max iterations: {}",
+        if settings.max_iterations == usize::MAX {
+            "unlimited".to_string()
+        } else {
+            settings.max_iterations.to_string()
+        }
+    ));
+    logger.info(&format!(
+        "Session timeout: {} minutes",
+        settings.session_timeout
+    ));
     logger.separator();
 
     display::display_banner(
@@ -59,7 +74,10 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: boo
         (0, 0)
     };
     logger.separator();
-    logger.info(&format!("Runner stopped. Final status: {}/{} tests passing", passing, total));
+    logger.info(&format!(
+        "Runner stopped. Final status: {}/{} tests passing",
+        passing, total
+    ));
     logger.separator();
 
     display::display_final_status(passing, total, developer_mode);
@@ -84,13 +102,20 @@ fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
         iteration += 1;
 
         if iteration > settings.max_iterations {
-            logger.info(&format!("Reached max iterations ({})", settings.max_iterations));
+            logger.info(&format!(
+                "Reached max iterations ({})",
+                settings.max_iterations
+            ));
             println!("\nReached max iterations ({})", settings.max_iterations);
             break;
         }
 
         logger.separator();
-        logger.info(&format!("Session {} starting at {}", iteration, chrono::Local::now().format("%H:%M:%S")));
+        logger.info(&format!(
+            "Session {} starting at {}",
+            iteration,
+            chrono::Local::now().format("%H:%M:%S")
+        ));
         display::display_session_header(iteration);
 
         let command = determine_command(feature_path, config)?;
@@ -129,13 +154,19 @@ fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
 
         // Display token usage after each session
         if let Some(ref stats) = session::fetch_token_stats() {
-            logger.info(&format!("Token usage: input={}, output={}, cost=${:.4}", stats.input_tokens, stats.output_tokens, stats.total_cost));
+            logger.info(&format!(
+                "Token usage: input={}, output={}, cost=${:.4}",
+                stats.input_tokens, stats.output_tokens, stats.total_cost
+            ));
             display::display_token_stats(stats);
         }
 
         match handle_session_result(result, settings, &mut consecutive_errors) {
             LoopAction::Continue => {
-                logger.debug(&format!("Sleeping {}s before next session", settings.delay_seconds));
+                logger.debug(&format!(
+                    "Sleeping {}s before next session",
+                    settings.delay_seconds
+                ));
                 thread::sleep(Duration::from_secs(settings.delay_seconds as u64));
             }
             LoopAction::Break => {
@@ -174,8 +205,14 @@ fn determine_command(feature_path: &Path, config: &Config) -> Result<Option<&'st
         let plan_path = track.path.join("plan.md");
         if let Ok(tasks) = conductor::parse_plan(&plan_path) {
             if let Some(next_task) = conductor::get_next_task(&tasks) {
-                logger.info(&format!("Phase 3: Continuing track '{}', next task: {}", track.name, next_task.description));
-                println!("→ Active track: {} (next: {})", track.name, next_task.description);
+                logger.info(&format!(
+                    "Phase 3: Continuing track '{}', next task: {}",
+                    track.name, next_task.description
+                ));
+                println!(
+                    "→ Active track: {} (next: {})",
+                    track.name, next_task.description
+                );
                 return Ok(Some("auto-continue"));
             }
         }
