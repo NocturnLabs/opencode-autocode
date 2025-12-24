@@ -19,6 +19,10 @@ lint:
 	cargo fmt --check
 	cargo clippy -- -D warnings
 
+# Create a GitHub release (v0.1.0)
+release:
+	gh release create v0.1.0 --title "v0.1.0 - Conductor & Debugging Update" --generate-notes
+
 # Build and run regression tests (replaces tests/regression/run_regression_tests.sh)
 regression: build
 	@echo "═══════════════════════════════════════════════════"
