@@ -99,6 +99,9 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: boo
     let model = &config.models.autonomous;
     let log_level = &config.autonomous.log_level;
     let feature_list_file = &config.paths.feature_list_file;
+    let session_timeout = config.autonomous.session_timeout_minutes;
+    let auto_commit = config.autonomous.auto_commit;
+    let verbose = config.ui.verbose;
 
     println!("═══════════════════════════════════════════════════");
     println!("  OpenCode Autonomous Agent Runner");
@@ -187,7 +190,8 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: boo
         dev_log!("Executing opencode session...");
         dev_log!("  Model: {}", model);
         dev_log!("  Log level: {}", log_level);
-        let result = run_opencode_session(command, model, log_level, session_id.as_deref(), developer_mode)?;
+        dev_log!("  Session timeout: {} minutes", session_timeout);
+        let result = run_opencode_session(command, model, log_level, session_id.as_deref(), session_timeout, developer_mode)?;
         dev_log!("Session result: {:?}", result);
 
         // Capture passing features after session
@@ -223,6 +227,17 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: boo
                     ) {
                         dev_log!("Webhook error: {}", e);
                         println!("⚠ Webhook error: {}", e);
+                    }
+
+                    // Auto-commit if enabled
+                    if auto_commit {
+                        dev_log!("Auto-committing feature: {}", feature_desc);
+                        if let Err(e) = auto_commit_feature(&feature.description, verbose) {
+                            dev_log!("Auto-commit error: {}", e);
+                            if verbose {
+                                println!("⚠ Auto-commit error: {}", e);
+                            }
+                        }
                     }
                 }
             }
@@ -313,12 +328,13 @@ fn count_feature_status(path: &Path) -> Result<(usize, usize)> {
     Ok((passing, remaining))
 }
 
-/// Run a single OpenCode session
+/// Run a single OpenCode session with optional timeout
 fn run_opencode_session(
     command: &str,
     model: &str,
     log_level: &str,
     session_id: Option<&str>,
+    timeout_minutes: u32,
     _developer_mode: bool,
 ) -> Result<SessionResult> {
     // Check for stop signal before running
@@ -340,19 +356,71 @@ fn run_opencode_session(
         println!("→ Continuing session: {}", sid);
     }
 
-    let status = cmd.status().context("Failed to execute opencode command")?;
+    // If timeout is configured, spawn with timeout handling
+    if timeout_minutes > 0 {
+        let timeout_secs = timeout_minutes as u64 * 60;
+        println!("→ Session timeout: {} minutes", timeout_minutes);
 
-    println!();
-    println!(
-        "→ OpenCode exited with code: {}",
-        status.code().unwrap_or(-1)
-    );
+        let mut child = cmd.spawn().context("Failed to spawn opencode command")?;
 
-    if !status.success() {
-        return Ok(SessionResult::Error(format!(
-            "exit code {}",
+        // Wait with timeout
+        let start = std::time::Instant::now();
+        loop {
+            match child.try_wait() {
+                Ok(Some(status)) => {
+                    // Process finished
+                    println!();
+                    println!("→ OpenCode exited with code: {}", status.code().unwrap_or(-1));
+
+                    if !status.success() {
+                        return Ok(SessionResult::Error(format!(
+                            "exit code {}",
+                            status.code().unwrap_or(-1)
+                        )));
+                    }
+                    break;
+                }
+                Ok(None) => {
+                    // Still running, check timeout
+                    if start.elapsed().as_secs() > timeout_secs {
+                        println!();
+                        println!("⏱ Session timeout reached ({} minutes), terminating...", timeout_minutes);
+                        let _ = child.kill();
+                        let _ = child.wait(); // Reap the process
+                        return Ok(SessionResult::Error("session timeout".to_string()));
+                    }
+                    // Check for stop signal while running
+                    if Path::new(".opencode-stop").exists() {
+                        println!();
+                        println!("→ Stop signal detected, terminating session...");
+                        let _ = child.kill();
+                        let _ = child.wait();
+                        return Ok(SessionResult::Stopped);
+                    }
+                    // Sleep briefly before checking again
+                    thread::sleep(Duration::from_millis(500));
+                }
+                Err(e) => {
+                    return Err(e).context("Failed to check process status");
+                }
+            }
+        }
+    } else {
+        // No timeout, run synchronously
+        let status = cmd.status().context("Failed to execute opencode command")?;
+
+        println!();
+        println!(
+            "→ OpenCode exited with code: {}",
             status.code().unwrap_or(-1)
-        )));
+        );
+
+        if !status.success() {
+            return Ok(SessionResult::Error(format!(
+                "exit code {}",
+                status.code().unwrap_or(-1)
+            )));
+        }
     }
 
     // Check for stop signal after running
@@ -457,6 +525,39 @@ fn send_webhook_notification(
             "⚠ Failed to send webhook notification (curl exit {})",
             status
         );
+    }
+
+    Ok(())
+}
+
+/// Auto-commit a completed feature to git
+fn auto_commit_feature(feature_description: &str, verbose: bool) -> Result<()> {
+    // Stage all changes
+    let add_status = Command::new("git")
+        .args(["add", "."])
+        .status()
+        .context("Failed to run git add")?;
+
+    if !add_status.success() {
+        anyhow::bail!("git add failed with exit code {}", add_status.code().unwrap_or(-1));
+    }
+
+    // Create commit with feature description
+    let commit_msg = format!("feat: {}", feature_description);
+    let commit_status = Command::new("git")
+        .args(["commit", "-m", &commit_msg])
+        .status()
+        .context("Failed to run git commit")?;
+
+    if commit_status.success() {
+        if verbose {
+            println!("✓ Auto-committed: {}", commit_msg);
+        }
+    } else {
+        // Exit code 1 often means "nothing to commit" which is OK
+        if verbose {
+            println!("→ Git commit skipped (nothing to commit or already committed)");
+        }
     }
 
     Ok(())
