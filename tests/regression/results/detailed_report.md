@@ -9,7 +9,7 @@
 | end_to_end_workflow_test | ✅ PASS | 0ms | integration |
 | full_project_generation_test | ✅ PASS | 0ms | integration |
 | template_processing_test | ✅ PASS | 0ms | integration |
-| cli_mode_test | ✅ PASS | 105ms | functional |
+| cli_mode_test | ✅ PASS | 112ms | functional |
 
 ## Baseline Comparison
 
