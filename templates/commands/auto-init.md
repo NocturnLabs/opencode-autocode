@@ -207,10 +207,50 @@ Make the script as portable and robust as possible.
 
 ---
 
-### FOURTH TASK: Initialize Git
+### FOURTH TASK: Create .gitignore
+
+Before initializing git, create a `.gitignore` file with common patterns:
+
+```gitignore
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Semantic code search (osgrep)
+.osgrep/
+
+# Common build artifacts (adjust based on tech stack)
+node_modules/
+dist/
+build/
+target/
+__pycache__/
+*.pyc
+.env
+.env.local
+
+# Test artifacts
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+```
+
+Adjust the ignores based on the tech stack in `app_spec.md`.
+
+---
+
+### FIFTH TASK: Initialize Git
 
 Create a git repository and make your first commit with:
 
+- .gitignore (configured for the project)
 - feature_list.json (complete with all features)
 - .conductor/ (context files)
 - init.sh (environment setup script)
@@ -220,7 +260,7 @@ Commit message: "Initial setup: feature_list.json, conductor context, and projec
 
 ---
 
-### FIFTH TASK: Create Project Structure
+### SIXTH TASK: Create Project Structure
 
 Set up the basic project structure based on what's specified in `app_spec.md`.
 This includes directories for source code, tests, and any other components
