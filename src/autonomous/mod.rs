@@ -95,6 +95,11 @@ fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
 
         handle_completed_features(config, settings, &new_features, feature_path, iteration)?;
 
+        // Display token usage after each session
+        if let Some(stats) = session::fetch_token_stats() {
+            display::display_token_stats(&stats);
+        }
+
         match handle_session_result(result, settings, &mut consecutive_errors) {
             LoopAction::Continue => {
                 thread::sleep(Duration::from_secs(settings.delay_seconds as u64));
