@@ -118,7 +118,6 @@ This ensures no functionality is missed.
    - Create `tests/e2e/` directory for E2E test files
    - `verification_command` for each feature MUST invoke E2E tests (e.g., `npx playwright test feature.spec.ts`)
    - Unit tests are NOT sufficient for feature verification
-   - Update `autocode.toml` to set `required_tools = ["chrome-devtools"]` in `[mcp]` section
 
 3. **For non-web projects:**
    - Standard integration/unit tests are acceptable for `verification_command`

@@ -1,10 +1,13 @@
 //! OpenCode session execution with timeout support
 
 use anyhow::{Context, Result};
+use std::io::{BufRead, BufReader};
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::thread;
 use std::time::Duration;
+
+use super::debug_logger::DebugLogger;
 
 /// Token usage statistics from OpenCode
 #[derive(Debug, Default, Clone)]
@@ -115,17 +118,20 @@ pub fn execute_opencode_session(
     log_level: &str,
     session_id: Option<&str>,
     timeout_minutes: u32,
+    logger: &DebugLogger,
 ) -> Result<SessionResult> {
     if stop_signal_exists() {
+        logger.info("Stop signal detected before session start");
         return Ok(SessionResult::Stopped);
     }
 
     let mut cmd = build_opencode_command(command, model, log_level, session_id);
+    logger.log_command("opencode", &["run", "--command", command, "--model", model, "--log-level", log_level]);
 
     if timeout_minutes > 0 {
-        execute_with_timeout(&mut cmd, timeout_minutes)
+        execute_with_timeout(&mut cmd, timeout_minutes, logger)
     } else {
-        execute_synchronously(&mut cmd)
+        execute_synchronously(&mut cmd, logger)
     }
 }
 
@@ -162,27 +168,83 @@ fn build_opencode_command(
     cmd
 }
 
-fn execute_with_timeout(cmd: &mut Command, timeout_minutes: u32) -> Result<SessionResult> {
+fn execute_with_timeout(cmd: &mut Command, timeout_minutes: u32, logger: &DebugLogger) -> Result<SessionResult> {
     let timeout_secs = timeout_minutes as u64 * 60;
     println!("→ Session timeout: {} minutes", timeout_minutes);
+    logger.debug(&format!("Session timeout set to {} minutes", timeout_minutes));
+
+    // Capture stdout and stderr
+    cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
 
     let mut child = cmd.spawn().context("Failed to spawn opencode command")?;
     let start = std::time::Instant::now();
 
+    // Take ownership of stdout/stderr for reading
+    let stdout = child.stdout.take();
+    let stderr = child.stderr.take();
+
+    // Spawn threads to read output
+    let logger_enabled = logger.is_enabled();
+    let stdout_handle = stdout.map(|s| {
+        thread::spawn(move || {
+            let reader = BufReader::new(s);
+            let mut lines = Vec::new();
+            for line in reader.lines() {
+                if let Ok(line) = line {
+                    println!("{}", line);
+                    lines.push(line);
+                }
+            }
+            lines
+        })
+    });
+
+    let stderr_handle = stderr.map(|s| {
+        thread::spawn(move || {
+            let reader = BufReader::new(s);
+            let mut lines = Vec::new();
+            for line in reader.lines() {
+                if let Ok(line) = line {
+                    eprintln!("{}", line);
+                    lines.push(line);
+                }
+            }
+            lines
+        })
+    });
+
     loop {
         match child.try_wait() {
             Ok(Some(status)) => {
+                // Wait for output threads to finish
+                if let Some(handle) = stdout_handle {
+                    if let Ok(lines) = handle.join() {
+                        if logger_enabled {
+                            for line in lines {
+                                logger.log_output("stdout", &line);
+                            }
+                        }
+                    }
+                }
+                if let Some(handle) = stderr_handle {
+                    if let Ok(lines) = handle.join() {
+                        if logger_enabled {
+                            for line in lines {
+                                logger.log_output("stderr", &line);
+                            }
+                        }
+                    }
+                }
+
                 println!();
-                println!(
-                    "→ OpenCode exited with code: {}",
-                    status.code().unwrap_or(-1)
-                );
+                let exit_code = status.code().unwrap_or(-1);
+                println!("→ OpenCode exited with code: {}", exit_code);
+                logger.info(&format!("OpenCode exited with code: {}", exit_code));
 
                 if !status.success() {
-                    return Ok(SessionResult::Error(format!(
-                        "exit code {}",
-                        status.code().unwrap_or(-1)
-                    )));
+                    let err_msg = format!("exit code {}", exit_code);
+                    logger.error(&format!("Session failed: {}", err_msg));
+                    return Ok(SessionResult::Error(err_msg));
                 }
                 break;
             }
@@ -190,6 +252,7 @@ fn execute_with_timeout(cmd: &mut Command, timeout_minutes: u32) -> Result<Sessi
                 if start.elapsed().as_secs() > timeout_secs {
                     println!();
                     println!("⏱ Session timeout reached ({} minutes)", timeout_minutes);
+                    logger.error(&format!("Session timeout after {} minutes", timeout_minutes));
                     terminate_child(&mut child);
                     return Ok(SessionResult::Error("session timeout".to_string()));
                 }
@@ -197,6 +260,7 @@ fn execute_with_timeout(cmd: &mut Command, timeout_minutes: u32) -> Result<Sessi
                 if stop_signal_exists() {
                     println!();
                     println!("→ Stop signal detected, terminating session...");
+                    logger.info("Stop signal detected, terminating session");
                     terminate_child(&mut child);
                     return Ok(SessionResult::Stopped);
                 }
@@ -204,35 +268,95 @@ fn execute_with_timeout(cmd: &mut Command, timeout_minutes: u32) -> Result<Sessi
                 thread::sleep(Duration::from_millis(POLL_INTERVAL_MS));
             }
             Err(e) => {
+                logger.error(&format!("Failed to check process status: {}", e));
                 return Err(e).context("Failed to check process status");
             }
         }
     }
 
     if stop_signal_exists() {
+        logger.info("Stop signal detected after session");
         return Ok(SessionResult::Stopped);
     }
 
     Ok(SessionResult::Continue)
 }
 
-fn execute_synchronously(cmd: &mut Command) -> Result<SessionResult> {
-    let status = cmd.status().context("Failed to execute opencode command")?;
+fn execute_synchronously(cmd: &mut Command, logger: &DebugLogger) -> Result<SessionResult> {
+    // Capture stdout and stderr
+    cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
+
+    let mut child = cmd.spawn().context("Failed to spawn opencode command")?;
+
+    // Take ownership of stdout/stderr for reading
+    let stdout = child.stdout.take();
+    let stderr = child.stderr.take();
+
+    // Spawn threads to read output
+    let logger_enabled = logger.is_enabled();
+    let stdout_handle = stdout.map(|s| {
+        thread::spawn(move || {
+            let reader = BufReader::new(s);
+            let mut lines = Vec::new();
+            for line in reader.lines() {
+                if let Ok(line) = line {
+                    println!("{}", line);
+                    lines.push(line);
+                }
+            }
+            lines
+        })
+    });
+
+    let stderr_handle = stderr.map(|s| {
+        thread::spawn(move || {
+            let reader = BufReader::new(s);
+            let mut lines = Vec::new();
+            for line in reader.lines() {
+                if let Ok(line) = line {
+                    eprintln!("{}", line);
+                    lines.push(line);
+                }
+            }
+            lines
+        })
+    });
+
+    let status = child.wait().context("Failed to wait for opencode command")?;
+
+    // Wait for output threads and log
+    if let Some(handle) = stdout_handle {
+        if let Ok(lines) = handle.join() {
+            if logger_enabled {
+                for line in lines {
+                    logger.log_output("stdout", &line);
+                }
+            }
+        }
+    }
+    if let Some(handle) = stderr_handle {
+        if let Ok(lines) = handle.join() {
+            if logger_enabled {
+                for line in lines {
+                    logger.log_output("stderr", &line);
+                }
+            }
+        }
+    }
 
     println!();
-    println!(
-        "→ OpenCode exited with code: {}",
-        status.code().unwrap_or(-1)
-    );
+    let exit_code = status.code().unwrap_or(-1);
+    println!("→ OpenCode exited with code: {}", exit_code);
+    logger.info(&format!("OpenCode exited with code: {}", exit_code));
 
     if !status.success() {
-        return Ok(SessionResult::Error(format!(
-            "exit code {}",
-            status.code().unwrap_or(-1)
-        )));
+        let err_msg = format!("exit code {}", exit_code);
+        logger.error(&format!("Session failed: {}", err_msg));
+        return Ok(SessionResult::Error(err_msg));
     }
 
     if stop_signal_exists() {
+        logger.info("Stop signal detected after session");
         return Ok(SessionResult::Stopped);
     }
 
