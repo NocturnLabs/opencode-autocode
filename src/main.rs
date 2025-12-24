@@ -8,6 +8,7 @@
 mod autonomous;
 mod cli;
 mod config;
+mod conductor;
 mod config_tui;
 mod generator;
 mod regression;

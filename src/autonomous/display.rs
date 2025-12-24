@@ -69,3 +69,40 @@ pub fn display_final_status(passing: usize, total: usize, developer_mode: bool) 
     println!("To resume: opencode-autocode autonomous");
     println!("To stop:   touch .opencode-stop");
 }
+
+/// Display token usage statistics after a session
+pub fn display_token_stats(stats: &super::session::TokenStats) {
+    println!();
+    println!("───────────────────────────────────────────────────");
+    println!("  📊 Token Usage (this project)");
+    println!("───────────────────────────────────────────────────");
+    println!(
+        "  Input:  {:>12} tokens",
+        format_number(stats.input_tokens)
+    );
+    println!(
+        "  Output: {:>12} tokens",
+        format_number(stats.output_tokens)
+    );
+    println!(
+        "  Total:  {:>12} tokens",
+        format_number(stats.input_tokens + stats.output_tokens)
+    );
+    if stats.total_cost > 0.0 {
+        println!("  Cost:   {:>12}", format!("${:.4}", stats.total_cost));
+    }
+    println!("───────────────────────────────────────────────────");
+}
+
+fn format_number(n: u64) -> String {
+    let s = n.to_string();
+    let mut result = String::new();
+    for (i, c) in s.chars().rev().enumerate() {
+        if i > 0 && i % 3 == 0 {
+            result.insert(0, ',');
+        }
+        result.insert(0, c);
+    }
+    result
+}
+

@@ -8,6 +8,8 @@
 //! This module integrates with the existing feature_list.json workflow,
 //! adding persistent planning artifacts that survive across sessions.
 
+#![allow(dead_code)]
+
 use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
