@@ -39,9 +39,20 @@ pub fn run_interactive(output_dir: &Path) -> Result<()> {
 }
 
 fn display_header() {
-    println!("\n{}", style("═══════════════════════════════════════════════════").cyan());
-    println!("{}", style("  OpenCode Autonomous Plugin - Interactive Setup").cyan().bold());
-    println!("{}\n", style("═══════════════════════════════════════════════════").cyan());
+    println!(
+        "\n{}",
+        style("═══════════════════════════════════════════════════").cyan()
+    );
+    println!(
+        "{}",
+        style("  OpenCode Autonomous Plugin - Interactive Setup")
+            .cyan()
+            .bold()
+    );
+    println!(
+        "{}\n",
+        style("═══════════════════════════════════════════════════").cyan()
+    );
 }
 
 fn select_mode() -> Result<InteractiveMode> {
@@ -79,13 +90,21 @@ fn run_from_spec_file_mode(output_dir: &Path) -> Result<()> {
     }
 
     scaffold_custom(output_dir, &spec_path)?;
-    println!("\n{}", style("✅ Project scaffolded from spec file!").green().bold());
+    println!(
+        "\n{}",
+        style("✅ Project scaffolded from spec file!")
+            .green()
+            .bold()
+    );
     Ok(())
 }
 
 fn run_default_mode(output_dir: &Path) -> Result<()> {
     println!("\n{}", style("─── Default Mode ───").yellow().bold());
-    println!("{}", style("Using the built-in default specification.").dim());
+    println!(
+        "{}",
+        style("Using the built-in default specification.").dim()
+    );
 
     if Confirm::new()
         .with_prompt("Scaffold project with default spec?")
@@ -93,7 +112,12 @@ fn run_default_mode(output_dir: &Path) -> Result<()> {
         .interact()?
     {
         scaffold_default(output_dir)?;
-        println!("\n{}", style("✅ Project scaffolded with default spec!").green().bold());
+        println!(
+            "\n{}",
+            style("✅ Project scaffolded with default spec!")
+                .green()
+                .bold()
+        );
     } else {
         println!("{}", style("Cancelled.").red());
     }

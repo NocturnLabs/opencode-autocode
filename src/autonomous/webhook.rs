@@ -24,7 +24,10 @@ pub fn notify_feature_complete(
         None => return Ok(()),
     };
 
-    println!("→ Sending webhook notification for: {}", feature.description);
+    println!(
+        "→ Sending webhook notification for: {}",
+        feature.description
+    );
 
     let payload = build_webhook_payload(feature, session_number, current_passing, total_features)?;
     send_webhook_request(url, &payload)?;
@@ -49,7 +52,8 @@ fn build_webhook_payload(
     let verification_steps = if feature.steps.is_empty() {
         "No steps defined".to_string()
     } else {
-        feature.steps
+        feature
+            .steps
             .iter()
             .take(5)
             .map(|s| format!("• {}", s))
@@ -91,16 +95,23 @@ fn build_webhook_payload(
 
 fn send_webhook_request(url: &str, payload: &str) -> Result<()> {
     let status = Command::new("curl")
-        .arg("-X").arg("POST")
-        .arg("-H").arg("Content-Type: application/json")
-        .arg("-d").arg(payload)
+        .arg("-X")
+        .arg("POST")
+        .arg("-H")
+        .arg("Content-Type: application/json")
+        .arg("-d")
+        .arg(payload)
         .arg(url)
         .arg("--silent")
-        .arg("--output").arg("/dev/null")
+        .arg("--output")
+        .arg("/dev/null")
         .status()?;
 
     if !status.success() {
-        println!("⚠ Failed to send webhook notification (curl exit {})", status);
+        println!(
+            "⚠ Failed to send webhook notification (curl exit {})",
+            status
+        );
     }
 
     Ok(())

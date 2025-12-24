@@ -146,7 +146,10 @@ spec_preview_lines = {}
         // MCP
         config.mcp.prefer_osgrep,
         config.mcp.use_sequential_thinking,
-        config.mcp.required_tools.iter()
+        config
+            .mcp
+            .required_tools
+            .iter()
             .map(|t| format!("\"{}\"", t))
             .collect::<Vec<_>>()
             .join(", "),
@@ -187,7 +190,10 @@ spec_preview_lines = {}
 fn format_opencode_json(config: &Config) -> String {
     let osgrep_enabled = config.mcp.prefer_osgrep;
     let sequential_thinking_enabled = config.mcp.use_sequential_thinking;
-    let chrome_devtools_enabled = config.mcp.required_tools.iter()
+    let chrome_devtools_enabled = config
+        .mcp
+        .required_tools
+        .iter()
         .any(|t| t.eq_ignore_ascii_case("chrome-devtools"));
 
     format!(
@@ -225,8 +231,6 @@ fn format_opencode_json(config: &Config) -> String {
   }}
 }}
 "#,
-        osgrep_enabled,
-        sequential_thinking_enabled,
-        chrome_devtools_enabled,
+        osgrep_enabled, sequential_thinking_enabled, chrome_devtools_enabled,
     )
 }

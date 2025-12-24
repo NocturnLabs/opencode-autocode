@@ -157,7 +157,10 @@ pub fn parse_plan(plan_path: &Path) -> Result<Vec<PlanTask>> {
                 complete: false,
                 level,
             });
-        } else if let Some(rest) = trimmed.strip_prefix("- [x]").or_else(|| trimmed.strip_prefix("- [X]")) {
+        } else if let Some(rest) = trimmed
+            .strip_prefix("- [x]")
+            .or_else(|| trimmed.strip_prefix("- [X]"))
+        {
             let description = rest.trim().to_string();
             tasks.push(PlanTask {
                 line_number: line_idx + 1,

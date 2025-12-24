@@ -9,23 +9,38 @@ use crate::config::Config;
 
 /// Configure AI model selections
 pub fn configure_models(config: &mut Config, available_models: &[String]) -> Result<()> {
-    display_section("Models", "Configure which AI models to use for different tasks");
+    display_section(
+        "Models",
+        "Configure which AI models to use for different tasks",
+    );
 
     display_hint("Model used for the autonomous vibe loop coding sessions");
-    config.models.autonomous =
-        prompt_model_selection("Autonomous model", available_models, &config.models.autonomous)?;
+    config.models.autonomous = prompt_model_selection(
+        "Autonomous model",
+        available_models,
+        &config.models.autonomous,
+    )?;
 
     display_hint("Model used for generating initial app specifications");
-    config.models.default =
-        prompt_model_selection("Default/Spec model", available_models, &config.models.default)?;
+    config.models.default = prompt_model_selection(
+        "Default/Spec model",
+        available_models,
+        &config.models.default,
+    )?;
 
     display_hint("Model used for reasoning and planning complex decisions");
-    config.models.reasoning =
-        prompt_model_selection("Reasoning model", available_models, &config.models.reasoning)?;
+    config.models.reasoning = prompt_model_selection(
+        "Reasoning model",
+        available_models,
+        &config.models.reasoning,
+    )?;
 
     display_hint("Model used for discovering enhancement opportunities");
-    config.models.enhancement =
-        prompt_model_selection("Enhancement model", available_models, &config.models.enhancement)?;
+    config.models.enhancement = prompt_model_selection(
+        "Enhancement model",
+        available_models,
+        &config.models.enhancement,
+    )?;
 
     Ok(())
 }
@@ -70,7 +85,10 @@ pub fn configure_autonomous(config: &mut Config) -> Result<()> {
 
 /// Configure agent retry and verification behavior
 pub fn configure_agent(config: &mut Config) -> Result<()> {
-    display_section("Agent Behavior", "Fine-tune how the AI agent approaches tasks");
+    display_section(
+        "Agent Behavior",
+        "Fine-tune how the AI agent approaches tasks",
+    );
 
     display_hint("Retries before triggering research mode");
     config.agent.max_retry_attempts = Input::new()
@@ -265,7 +283,10 @@ pub fn configure_security(config: &mut Config) -> Result<()> {
 
 /// Configure webhook notifications
 pub fn configure_notifications(config: &mut Config) -> Result<()> {
-    display_section("Notifications", "Webhook notifications for feature completions");
+    display_section(
+        "Notifications",
+        "Webhook notifications for feature completions",
+    );
 
     display_hint("Send webhook notifications when features complete");
     config.notifications.webhook_enabled = Confirm::new()

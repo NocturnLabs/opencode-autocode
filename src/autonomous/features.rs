@@ -47,9 +47,6 @@ pub fn get_passing_feature_descriptions(path: &Path) -> Result<HashSet<String>> 
 }
 
 /// Detect newly completed features by comparing before/after sets
-pub fn detect_newly_completed(
-    before: &HashSet<String>,
-    after: &HashSet<String>,
-) -> Vec<String> {
+pub fn detect_newly_completed(before: &HashSet<String>, after: &HashSet<String>) -> Vec<String> {
     after.difference(before).cloned().collect()
 }

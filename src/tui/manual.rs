@@ -10,7 +10,10 @@ use crate::spec::{AppSpec, Feature, Priority, TechStack};
 
 /// Run manual step-by-step spec creation
 pub fn run_manual_mode(output_dir: &Path) -> Result<()> {
-    println!("\n{}", style("─── Manual Spec Creation ───").yellow().bold());
+    println!(
+        "\n{}",
+        style("─── Manual Spec Creation ───").yellow().bold()
+    );
 
     let spec = collect_spec_details()?;
     display_summary(&spec);
@@ -30,7 +33,9 @@ pub fn run_manual_mode(output_dir: &Path) -> Result<()> {
 
 fn collect_spec_details() -> Result<AppSpec> {
     let project_name: String = Input::new().with_prompt("Project name").interact_text()?;
-    let overview: String = Input::new().with_prompt("Brief description").interact_text()?;
+    let overview: String = Input::new()
+        .with_prompt("Brief description")
+        .interact_text()?;
 
     let technology = if Confirm::new()
         .with_prompt("Define technology stack?")
@@ -58,7 +63,10 @@ fn collect_spec_details() -> Result<AppSpec> {
 
 fn collect_features() -> Result<Vec<Feature>> {
     println!("\n{}", style("Add Features").yellow().bold());
-    println!("{}", style("(Enter features one at a time, empty to finish)").dim());
+    println!(
+        "{}",
+        style("(Enter features one at a time, empty to finish)").dim()
+    );
 
     let mut features = Vec::new();
     loop {
@@ -103,7 +111,10 @@ fn select_priority() -> Result<Priority> {
 
 fn collect_success_criteria() -> Result<Vec<String>> {
     println!("\n{}", style("Success Criteria").yellow().bold());
-    println!("{}", style("(Enter criteria one at a time, empty to finish)").dim());
+    println!(
+        "{}",
+        style("(Enter criteria one at a time, empty to finish)").dim()
+    );
 
     let mut criteria = Vec::new();
     loop {
@@ -121,12 +132,21 @@ fn collect_success_criteria() -> Result<Vec<String>> {
 }
 
 fn display_summary(spec: &AppSpec) {
-    println!("\n{}", style("═══════════════════════════════════════════════════").cyan());
+    println!(
+        "\n{}",
+        style("═══════════════════════════════════════════════════").cyan()
+    );
     println!("{}", style("  Summary").cyan().bold());
-    println!("{}", style("═══════════════════════════════════════════════════").cyan());
+    println!(
+        "{}",
+        style("═══════════════════════════════════════════════════").cyan()
+    );
     println!("  Project: {}", style(&spec.project_name).green());
     println!("  Features: {}", style(spec.features.len()).yellow());
-    println!("  Criteria: {}", style(spec.success_criteria.len()).yellow());
+    println!(
+        "  Criteria: {}",
+        style(spec.success_criteria.len()).yellow()
+    );
     println!();
 }
 
@@ -139,7 +159,10 @@ fn collect_tech_stack() -> Result<TechStack> {
 
     let frameworks = collect_with_other(
         "Frameworks (space to select)",
-        &["React", "Next.js", "Vue", "Svelte", "Express", "Actix", "Axum", "FastAPI", "Django", "Gin", "Other"],
+        &[
+            "React", "Next.js", "Vue", "Svelte", "Express", "Actix", "Axum", "FastAPI", "Django",
+            "Gin", "Other",
+        ],
         "Other frameworks (comma-separated)",
     )?;
 

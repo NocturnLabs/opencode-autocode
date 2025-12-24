@@ -139,8 +139,10 @@ fn handle_completed_features(
         return Ok(());
     }
 
-    let progress =
-        FeatureProgress::load(feature_path).unwrap_or(FeatureProgress { passing: 0, remaining: 0 });
+    let progress = FeatureProgress::load(feature_path).unwrap_or(FeatureProgress {
+        passing: 0,
+        remaining: 0,
+    });
     let features_list = regression::parse_feature_list(feature_path).ok();
 
     for feature_desc in new_features {

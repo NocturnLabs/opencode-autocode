@@ -56,7 +56,10 @@ pub fn handle_session_result(
         SessionResult::Continue => {
             *consecutive_errors = 0;
             println!("→ Session complete, continuing...");
-            println!("→ Next session in {}s (Ctrl+C to stop)", settings.delay_seconds);
+            println!(
+                "→ Next session in {}s (Ctrl+C to stop)",
+                settings.delay_seconds
+            );
             LoopAction::Continue
         }
         SessionResult::Complete => {
@@ -71,7 +74,10 @@ pub fn handle_session_result(
             );
 
             if *consecutive_errors >= settings.max_retries {
-                println!("❌ Exceeded max retries ({}), stopping.", settings.max_retries);
+                println!(
+                    "❌ Exceeded max retries ({}), stopping.",
+                    settings.max_retries
+                );
                 return LoopAction::Break;
             }
 

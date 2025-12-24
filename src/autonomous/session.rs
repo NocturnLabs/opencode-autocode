@@ -91,7 +91,10 @@ fn execute_with_timeout(cmd: &mut Command, timeout_minutes: u32) -> Result<Sessi
         match child.try_wait() {
             Ok(Some(status)) => {
                 println!();
-                println!("→ OpenCode exited with code: {}", status.code().unwrap_or(-1));
+                println!(
+                    "→ OpenCode exited with code: {}",
+                    status.code().unwrap_or(-1)
+                );
 
                 if !status.success() {
                     return Ok(SessionResult::Error(format!(
@@ -135,7 +138,10 @@ fn execute_synchronously(cmd: &mut Command) -> Result<SessionResult> {
     let status = cmd.status().context("Failed to execute opencode command")?;
 
     println!();
-    println!("→ OpenCode exited with code: {}", status.code().unwrap_or(-1));
+    println!(
+        "→ OpenCode exited with code: {}",
+        status.code().unwrap_or(-1)
+    );
 
     if !status.success() {
         return Ok(SessionResult::Error(format!(

@@ -40,17 +40,27 @@ fn prompt_for_model(initial: Option<&str>) -> Result<Option<String>> {
     let models = match fetch_available_models() {
         Ok(m) => m,
         Err(_) => {
-            println!("{}", style("Could not fetch models, enter manually").yellow());
+            println!(
+                "{}",
+                style("Could not fetch models, enter manually").yellow()
+            );
             let input: String = Input::new()
                 .with_prompt("Model (leave empty for default)")
                 .default(initial.unwrap_or("").to_string())
                 .allow_empty(true)
                 .interact_text()?;
-            return Ok(if input.trim().is_empty() { None } else { Some(input.trim().to_string()) });
+            return Ok(if input.trim().is_empty() {
+                None
+            } else {
+                Some(input.trim().to_string())
+            });
         }
     };
 
-    println!("{}", style(format!("Found {} available models", models.len())).dim());
+    println!(
+        "{}",
+        style(format!("Found {} available models", models.len())).dim()
+    );
 
     let mut options = vec!["(Use default model)".to_string()];
     options.extend(models);
@@ -102,7 +112,10 @@ fn generate_initial_spec(idea: &str, model: Option<&str>) -> Result<String> {
     print!("\x1B[2K\r");
     let _ = std::io::stdout().flush();
 
-    println!("\n{}", style("─────────────────────────────────────────────").dim());
+    println!(
+        "\n{}",
+        style("─────────────────────────────────────────────").dim()
+    );
 
     generate_spec_from_idea(idea, model, |msg| {
         print!("{}", msg);
@@ -112,7 +125,7 @@ fn generate_initial_spec(idea: &str, model: Option<&str>) -> Result<String> {
 
 fn handle_generation_error(e: anyhow::Error, output_dir: &Path) -> Result<()> {
     use dialoguer::Confirm;
-    
+
     println!("\n{} {}", style("Error:").red().bold(), e);
 
     if Confirm::new()

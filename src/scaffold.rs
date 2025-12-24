@@ -122,8 +122,12 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     // Write opencode.json for OpenCode native configuration
     let opencode_json_path = output_dir.join("opencode.json");
     let opencode_json_content = generate_opencode_json();
-    fs::write(&opencode_json_path, opencode_json_content)
-        .with_context(|| format!("Failed to write opencode.json: {}", opencode_json_path.display()))?;
+    fs::write(&opencode_json_path, opencode_json_content).with_context(|| {
+        format!(
+            "Failed to write opencode.json: {}",
+            opencode_json_path.display()
+        )
+    })?;
     println!("   ⚙️  Created opencode.json");
 
     Ok(())
@@ -250,5 +254,6 @@ fn generate_opencode_json() -> String {
     "edit": "allow"
   }
 }
-"#.to_string()
+"#
+    .to_string()
 }

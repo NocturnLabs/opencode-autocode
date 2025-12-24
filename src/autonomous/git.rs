@@ -17,7 +17,10 @@ fn stage_all_changes() -> Result<()> {
         .context("Failed to run git add")?;
 
     if !status.success() {
-        anyhow::bail!("git add failed with exit code {}", status.code().unwrap_or(-1));
+        anyhow::bail!(
+            "git add failed with exit code {}",
+            status.code().unwrap_or(-1)
+        );
     }
 
     Ok(())
@@ -25,7 +28,7 @@ fn stage_all_changes() -> Result<()> {
 
 fn create_feature_commit(feature_description: &str, verbose: bool) -> Result<()> {
     let commit_msg = format!("feat: {}", feature_description);
-    
+
     let status = Command::new("git")
         .args(["commit", "-m", &commit_msg])
         .status()
