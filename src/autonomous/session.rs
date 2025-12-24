@@ -189,11 +189,9 @@ fn execute_with_timeout(cmd: &mut Command, timeout_minutes: u32, logger: &DebugL
         thread::spawn(move || {
             let reader = BufReader::new(s);
             let mut lines = Vec::new();
-            for line in reader.lines() {
-                if let Ok(line) = line {
-                    println!("{}", line);
-                    lines.push(line);
-                }
+            for line in reader.lines().map_while(Result::ok) {
+                println!("{}", line);
+                lines.push(line);
             }
             lines
         })
@@ -203,11 +201,9 @@ fn execute_with_timeout(cmd: &mut Command, timeout_minutes: u32, logger: &DebugL
         thread::spawn(move || {
             let reader = BufReader::new(s);
             let mut lines = Vec::new();
-            for line in reader.lines() {
-                if let Ok(line) = line {
-                    eprintln!("{}", line);
-                    lines.push(line);
-                }
+            for line in reader.lines().map_while(Result::ok) {
+                eprintln!("{}", line);
+                lines.push(line);
             }
             lines
         })
@@ -298,11 +294,9 @@ fn execute_synchronously(cmd: &mut Command, logger: &DebugLogger) -> Result<Sess
         thread::spawn(move || {
             let reader = BufReader::new(s);
             let mut lines = Vec::new();
-            for line in reader.lines() {
-                if let Ok(line) = line {
-                    println!("{}", line);
-                    lines.push(line);
-                }
+            for line in reader.lines().map_while(Result::ok) {
+                println!("{}", line);
+                lines.push(line);
             }
             lines
         })
@@ -312,11 +306,9 @@ fn execute_synchronously(cmd: &mut Command, logger: &DebugLogger) -> Result<Sess
         thread::spawn(move || {
             let reader = BufReader::new(s);
             let mut lines = Vec::new();
-            for line in reader.lines() {
-                if let Ok(line) = line {
-                    eprintln!("{}", line);
-                    lines.push(line);
-                }
+            for line in reader.lines().map_while(Result::ok) {
+                eprintln!("{}", line);
+                lines.push(line);
             }
             lines
         })
