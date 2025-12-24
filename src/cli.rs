@@ -16,7 +16,7 @@ pub struct Cli {
     pub command: Option<Commands>,
 
     /// Launch interactive TUI to build app spec (scaffolding mode)
-    #[arg(long)]
+    #[arg(long, visible_alias = "init")]
     pub interactive: bool,
 
     /// Use the default app spec template (scaffolding mode)

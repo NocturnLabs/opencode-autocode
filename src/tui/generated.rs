@@ -87,6 +87,10 @@ fn prompt_for_idea() -> Result<String> {
         .with_prompt("Describe your project idea")
         .interact_text()?;
 
+    // Clear any lingering terminal echo
+    print!("\x1B[A\x1B[2K");
+    let _ = std::io::stdout().flush();
+
     if idea.trim().is_empty() {
         println!("{}", style("No idea provided.").red());
         return Ok(String::new());

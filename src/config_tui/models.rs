@@ -7,34 +7,23 @@ use std::process::Command;
 /// Fetch available models from opencode CLI
 pub fn fetch_available_models() -> Result<Vec<String>> {
     let output = Command::new("opencode")
-        .args(["models", "--json"])
+        .arg("models")
         .output()
         .context("Failed to run 'opencode models'. Is OpenCode installed?")?;
 
     if !output.status.success() {
         // Fallback to common models if command fails
         return Ok(vec![
-            "anthropic/claude-sonnet-4-20250514".to_string(),
-            "google/gemini-2.5-pro".to_string(),
-            "openai/gpt-4.1".to_string(),
+            "opencode/big-pickle".to_string(),
+            "opencode/grok-code".to_string(),
+            "opencode/glm-4.7-free".to_string(),
         ]);
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let models: Vec<String> = stdout
         .lines()
-        .filter_map(|line| {
-            // Parse JSON-like output or plain text
-            let trimmed = line.trim();
-            if trimmed.starts_with('"') && trimmed.ends_with('"') {
-                Some(trimmed[1..trimmed.len() - 1].to_string())
-            } else if !trimmed.is_empty() && !trimmed.starts_with('[') && !trimmed.starts_with(']')
-            {
-                Some(trimmed.trim_matches(',').trim_matches('"').to_string())
-            } else {
-                None
-            }
-        })
+        .map(|line| line.trim().to_string())
         .filter(|s| !s.is_empty())
         .collect();
 
