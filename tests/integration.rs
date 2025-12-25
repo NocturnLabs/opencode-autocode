@@ -17,13 +17,14 @@ fn test_scaffold_creates_expected_files() {
 
     // Verify expected files exist
     let expected_files = vec![
-        "app_spec.md",
+        ".autocode/app_spec.md",
         ".opencode/command/auto-init.md",
         ".opencode/command/auto-continue.md",
         ".opencode/command/auto-enhance.md",
-        "scripts/security-allowlist.json",
-        "opencode-progress.txt",
-        "autocode.toml",
+        ".autocode/security-allowlist.json",
+        ".autocode/progress.db",
+        ".autocode/config.toml",
+        "opencode.json",
     ];
 
     for file in expected_files {
@@ -77,8 +78,8 @@ fn test_scaffold_generates_valid_config() {
     opencode_autocode::scaffold::scaffold_default(output_path).expect("Scaffold should succeed");
 
     // Verify config file exists and is valid TOML
-    let config_path = output_path.join("autocode.toml");
-    assert!(config_path.exists(), "autocode.toml should exist");
+    let config_path = output_path.join(".autocode/config.toml");
+    assert!(config_path.exists(), ".autocode/config.toml should exist");
 
     let content = fs::read_to_string(&config_path).expect("Failed to read config");
     assert!(

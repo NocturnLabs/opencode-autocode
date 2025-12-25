@@ -10,6 +10,7 @@ mod cli;
 mod conductor;
 mod config;
 mod config_tui;
+mod db;
 mod generator;
 mod regression;
 mod scaffold;
@@ -20,7 +21,7 @@ mod validation;
 
 use anyhow::Result;
 use clap::Parser;
-use cli::{Cli, Commands, Mode, TemplateAction};
+use cli::{Cli, Commands, DbAction, Mode, TemplateAction};
 use std::path::PathBuf;
 
 fn main() -> Result<()> {
@@ -44,6 +45,7 @@ fn main() -> Result<()> {
                 }
                 TemplateAction::Use { name } => templates::use_template(name, &output_dir),
             },
+            Commands::Db { action } => handle_db_command(action),
         };
     }
 
@@ -114,4 +116,101 @@ fn print_next_steps(output_dir: &std::path::Path) {
     println!("   1. cd {}", output_dir.display());
     println!("   2. opencode-autocode --config  # Configure settings");
     println!("   3. opencode-autocode vibe      # Start autonomous loop");
+}
+
+/// Handle database subcommands
+fn handle_db_command(action: &DbAction) -> Result<()> {
+    match action {
+        DbAction::Init { path } => {
+            let db_path = path
+                .clone()
+                .unwrap_or_else(|| PathBuf::from(db::DEFAULT_DB_PATH));
+
+            if db_path.exists() {
+                println!("⚠️  Database already exists: {}", db_path.display());
+                println!("   Use 'db migrate' to import features from JSON.");
+                return Ok(());
+            }
+
+            println!("🗃️  Initializing database: {}", db_path.display());
+            let _db = db::Database::open(&db_path)?;
+            println!("✅ Database initialized successfully!");
+            println!("\n📋 Next steps:");
+            println!("   1. Run 'opencode-autocode db migrate feature_list.json' to import existing features");
+            Ok(())
+        }
+        DbAction::Migrate { json_path } => {
+            let json_path = json_path
+                .clone()
+                .unwrap_or_else(|| PathBuf::from("feature_list.json"));
+
+            if !json_path.exists() {
+                anyhow::bail!("Feature list not found: {}", json_path.display());
+            }
+
+            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
+            println!("📥 Migrating features from {} to {}", json_path.display(), db_path.display());
+
+            let db = db::Database::open(&db_path)?;
+            let count = db.features().import_from_json(&json_path)?;
+
+            println!("✅ Migrated {} features successfully!", count);
+
+            let (passing, remaining) = db.features().count()?;
+            println!("   📊 Status: {} passing, {} remaining", passing, remaining);
+
+            Ok(())
+        }
+        DbAction::Export { output } => {
+            let output_path = output
+                .clone()
+                .unwrap_or_else(|| PathBuf::from("feature_list_export.json"));
+
+            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
+            if !db_path.exists() {
+                anyhow::bail!("Database not found: {}. Run 'db init' first.", db_path.display());
+            }
+
+            println!("📤 Exporting features to {}", output_path.display());
+
+            let db = db::Database::open(&db_path)?;
+            db.features().export_to_json(&output_path)?;
+
+            let features = db.features().list_all()?;
+            println!("✅ Exported {} features successfully!", features.len());
+
+            Ok(())
+        }
+        DbAction::Stats => {
+            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
+            if !db_path.exists() {
+                anyhow::bail!("Database not found: {}. Run 'db init' first.", db_path.display());
+            }
+
+            let db = db::Database::open(&db_path)?;
+
+            // Feature stats
+            let (passing, remaining) = db.features().count()?;
+            let total = passing + remaining;
+
+            // Session stats
+            let session_stats = db.sessions().get_stats()?;
+
+            println!("\n📊 Database Statistics");
+            println!("═══════════════════════════════════════");
+            println!();
+            println!("Features:");
+            println!("  Total:     {}", total);
+            println!("  Passing:   {} ({:.1}%)", passing, if total > 0 { passing as f64 / total as f64 * 100.0 } else { 0.0 });
+            println!("  Remaining: {}", remaining);
+            println!();
+            println!("Sessions:");
+            println!("  Total:             {}", session_stats.total_sessions);
+            println!("  Completed:         {}", session_stats.completed_sessions);
+            println!("  Features completed: {}", session_stats.total_features_completed);
+            println!();
+
+            Ok(())
+        }
+    }
 }

@@ -65,9 +65,9 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: boo
 
     run_main_loop(&config, &settings)?;
 
-    let feature_path = Path::new(&settings.feature_list_file);
-    let (passing, total) = if feature_path.exists() {
-        FeatureProgress::load(feature_path)
+    let db_path = Path::new(&settings.database_file);
+    let (passing, total) = if db_path.exists() {
+        FeatureProgress::load_from_db(db_path)
             .map(|p| (p.passing, p.total()))
             .unwrap_or((0, 0))
     } else {
@@ -93,7 +93,7 @@ fn load_config(config_path: Option<&Path>) -> Result<Config> {
 }
 
 fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
-    let feature_path = Path::new(&settings.feature_list_file);
+    let db_path = Path::new(&settings.database_file);
     let mut iteration = 0usize;
     let mut consecutive_errors = 0u32;
     let logger = debug_logger::get();
@@ -118,7 +118,7 @@ fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
         ));
         display::display_session_header(iteration);
 
-        let command = determine_command(feature_path, config)?;
+        let command = determine_command(db_path, config)?;
         if command.is_none() {
             logger.info("All tests passing! Project complete!");
             println!("\n🎉 All tests passing! Project complete!");
@@ -130,7 +130,7 @@ fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
         println!("→ Running: opencode run --command /{}", command);
         println!();
 
-        let before_passing = features::get_passing_feature_descriptions(feature_path)?;
+        let before_passing = features::get_passing_feature_descriptions(db_path)?;
 
         let result = session::execute_opencode_session(
             command,
@@ -141,7 +141,7 @@ fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
             logger,
         )?;
 
-        let after_passing = features::get_passing_feature_descriptions(feature_path)?;
+        let after_passing = features::get_passing_feature_descriptions(db_path)?;
         let new_features = features::detect_newly_completed(&before_passing, &after_passing);
 
         if !new_features.is_empty() {
@@ -150,7 +150,7 @@ fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
             }
         }
 
-        handle_completed_features(config, settings, &new_features, feature_path, iteration)?;
+        handle_completed_features(config, settings, &new_features, db_path, iteration)?;
 
         // Display token usage after each session
         if let Some(ref stats) = session::fetch_token_stats() {
@@ -183,11 +183,11 @@ fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
     Ok(())
 }
 
-fn determine_command(feature_path: &Path, config: &Config) -> Result<Option<&'static str>> {
+fn determine_command(db_path: &Path, config: &Config) -> Result<Option<&'static str>> {
     let logger = debug_logger::get();
 
-    // Phase 1: First run - auto-init creates feature_list.json and scaffolds project
-    if !feature_path.exists() {
+    // Phase 1: First run - auto-init populates features in the database
+    if !FeatureProgress::has_features(db_path) {
         logger.info("Phase 1: First run, running auto-init");
         println!("→ First run: auto-init");
         return Ok(Some("auto-init"));
@@ -218,8 +218,8 @@ fn determine_command(feature_path: &Path, config: &Config) -> Result<Option<&'st
         }
     }
 
-    // Phase 4: Check feature_list.json progress
-    let progress = FeatureProgress::load(feature_path)?;
+    // Phase 4: Check database feature progress
+    let progress = FeatureProgress::load_from_db(db_path)?;
     println!(
         "→ Progress: {} passing, {} remaining",
         progress.passing, progress.remaining
@@ -232,7 +232,6 @@ fn determine_command(feature_path: &Path, config: &Config) -> Result<Option<&'st
 
     // Phase 5: No active track, but features remain - use auto-continue
     // (The AI in auto-continue will pick the next failing feature)
-    // Note: auto-plan could be used here if scaffolded, but auto-continue works
     logger.info("Phase 5: No active track, running auto-continue for next feature");
     Ok(Some("auto-continue"))
 }
@@ -241,25 +240,42 @@ fn handle_completed_features(
     config: &Config,
     settings: &LoopSettings,
     new_features: &[String],
-    feature_path: &Path,
+    db_path: &Path,
     session_number: usize,
 ) -> Result<()> {
     if new_features.is_empty() {
         return Ok(());
     }
 
-    let progress = FeatureProgress::load(feature_path).unwrap_or(FeatureProgress {
+    let progress = FeatureProgress::load_from_db(db_path).unwrap_or(FeatureProgress {
         passing: 0,
         remaining: 0,
     });
-    let features_list = regression::parse_feature_list(feature_path).ok();
+
+    // Load features from database for webhook notifications
+    let features_list = if db_path.exists() {
+        crate::db::Database::open(db_path)
+            .ok()
+            .and_then(|db| db.features().list_all().ok())
+    } else {
+        None
+    };
 
     for feature_desc in new_features {
         if let Some(ref features) = features_list {
             if let Some(feature) = features.iter().find(|f| f.description == *feature_desc) {
+                // Convert db::Feature to regression::Feature for webhook
+                let regression_feature = regression::Feature {
+                    category: feature.category.clone(),
+                    description: feature.description.clone(),
+                    steps: feature.steps.clone(),
+                    passes: feature.passes,
+                    verification_command: feature.verification_command.clone(),
+                };
+
                 let _ = webhook::notify_feature_complete(
                     config,
-                    feature,
+                    &regression_feature,
                     session_number,
                     progress.passing,
                     progress.total(),
@@ -274,3 +290,4 @@ fn handle_completed_features(
 
     Ok(())
 }
+

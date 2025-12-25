@@ -11,7 +11,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 /// Default config filename
-const CONFIG_FILENAME: &str = "autocode.toml";
+const CONFIG_FILENAME: &str = ".autocode/config.toml";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Config Struct
@@ -135,9 +135,9 @@ pub struct PathsConfig {
     pub log_dir: String,
     /// Cache directory for verbalized sampling results
     pub vs_cache_dir: String,
-    /// Progress file name
-    pub progress_file: String,
-    /// Feature list file name
+    /// SQLite database file name
+    pub database_file: String,
+    /// Feature list file name (legacy, for migration)
     pub feature_list_file: String,
     /// App spec file name
     pub app_spec_file: String,
@@ -153,9 +153,9 @@ impl Default for PathsConfig {
             ],
             log_dir: get_default_log_dir(),
             vs_cache_dir: ".vs-cache".to_string(),
-            progress_file: "opencode-progress.txt".to_string(),
+            database_file: ".autocode/progress.db".to_string(),
             feature_list_file: "feature_list.json".to_string(),
-            app_spec_file: "app_spec.md".to_string(),
+            app_spec_file: ".autocode/app_spec.md".to_string(),
         }
     }
 }
@@ -384,7 +384,7 @@ pub struct SecurityConfig {
 impl Default for SecurityConfig {
     fn default() -> Self {
         Self {
-            allowlist_file: "scripts/security-allowlist.json".to_string(),
+            allowlist_file: ".autocode/security-allowlist.json".to_string(),
             enforce_allowlist: true,
             blocked_patterns: vec![
                 "rm -rf /".to_string(),

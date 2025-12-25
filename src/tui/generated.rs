@@ -95,16 +95,20 @@ fn prompt_for_model(initial: Option<&str>) -> Result<Option<String>> {
 fn prompt_for_idea() -> Result<String> {
     let idea: String = Input::new()
         .with_prompt("Describe your project idea")
-        .interact_text()?;
-
-    // Clear duplicate: move up 2 lines, clear each (prompt line + echoed input line)
-    print!("\x1B[A\x1B[2K\x1B[A\x1B[2K");
-    let _ = std::io::stdout().flush();
+        .interact()?;
 
     if idea.trim().is_empty() {
         println!("{}", style("No idea provided.").red());
         return Ok(String::new());
     }
+
+    // Print the idea once since .interact() doesn't echo
+    println!(
+        "{}: {}",
+        style("Describe your project idea").green(),
+        idea
+    );
+
     Ok(idea)
 }
 
