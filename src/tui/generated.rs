@@ -103,11 +103,7 @@ fn prompt_for_idea() -> Result<String> {
     }
 
     // Print the idea once since .interact() doesn't echo
-    println!(
-        "{}: {}",
-        style("Describe your project idea").green(),
-        idea
-    );
+    println!("{}: {}", style("Describe your project idea").green(), idea);
 
     Ok(idea)
 }

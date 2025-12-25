@@ -77,7 +77,10 @@ impl SessionRepository {
             params![
                 session_id,
                 event_types::STARTED,
-                format!("Session {} started with {} features", session_number, features_before)
+                format!(
+                    "Session {} started with {} features",
+                    session_number, features_before
+                )
             ],
         )
         .context("Failed to log session start")?;
@@ -86,12 +89,7 @@ impl SessionRepository {
     }
 
     /// End a session
-    pub fn end_session(
-        &self,
-        session_id: i64,
-        features_after: i32,
-        status: &str,
-    ) -> Result<()> {
+    pub fn end_session(&self, session_id: i64, features_after: i32, status: &str) -> Result<()> {
         let conn = self.conn.lock().unwrap();
 
         conn.execute(
@@ -128,11 +126,9 @@ impl SessionRepository {
         let conn = self.conn.lock().unwrap();
 
         let max: Option<i32> = conn
-            .query_row(
-                "SELECT MAX(session_number) FROM sessions",
-                [],
-                |row| row.get(0),
-            )
+            .query_row("SELECT MAX(session_number) FROM sessions", [], |row| {
+                row.get(0)
+            })
             .context("Failed to get max session number")?;
 
         Ok(max.unwrap_or(0) + 1)
@@ -291,8 +287,12 @@ mod tests {
         assert_eq!(session.status, "running");
 
         // Log an event
-        repo.log_event(session_id, event_types::FEATURE_COMPLETED, Some("Test feature"))
-            .unwrap();
+        repo.log_event(
+            session_id,
+            event_types::FEATURE_COMPLETED,
+            Some("Test feature"),
+        )
+        .unwrap();
 
         // End session
         repo.end_session(session_id, 12, status::COMPLETED).unwrap();

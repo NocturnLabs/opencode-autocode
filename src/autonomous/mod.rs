@@ -290,4 +290,3 @@ fn handle_completed_features(
 
     Ok(())
 }
-

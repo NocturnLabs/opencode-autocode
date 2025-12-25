@@ -149,7 +149,11 @@ fn handle_db_command(action: &DbAction) -> Result<()> {
             }
 
             let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
-            println!("📥 Migrating features from {} to {}", json_path.display(), db_path.display());
+            println!(
+                "📥 Migrating features from {} to {}",
+                json_path.display(),
+                db_path.display()
+            );
 
             let db = db::Database::open(&db_path)?;
             let count = db.features().import_from_json(&json_path)?;
@@ -168,7 +172,10 @@ fn handle_db_command(action: &DbAction) -> Result<()> {
 
             let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
             if !db_path.exists() {
-                anyhow::bail!("Database not found: {}. Run 'db init' first.", db_path.display());
+                anyhow::bail!(
+                    "Database not found: {}. Run 'db init' first.",
+                    db_path.display()
+                );
             }
 
             println!("📤 Exporting features to {}", output_path.display());
@@ -184,7 +191,10 @@ fn handle_db_command(action: &DbAction) -> Result<()> {
         DbAction::Stats => {
             let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
             if !db_path.exists() {
-                anyhow::bail!("Database not found: {}. Run 'db init' first.", db_path.display());
+                anyhow::bail!(
+                    "Database not found: {}. Run 'db init' first.",
+                    db_path.display()
+                );
             }
 
             let db = db::Database::open(&db_path)?;
@@ -201,13 +211,24 @@ fn handle_db_command(action: &DbAction) -> Result<()> {
             println!();
             println!("Features:");
             println!("  Total:     {}", total);
-            println!("  Passing:   {} ({:.1}%)", passing, if total > 0 { passing as f64 / total as f64 * 100.0 } else { 0.0 });
+            println!(
+                "  Passing:   {} ({:.1}%)",
+                passing,
+                if total > 0 {
+                    passing as f64 / total as f64 * 100.0
+                } else {
+                    0.0
+                }
+            );
             println!("  Remaining: {}", remaining);
             println!();
             println!("Sessions:");
             println!("  Total:             {}", session_stats.total_sessions);
             println!("  Completed:         {}", session_stats.completed_sessions);
-            println!("  Features completed: {}", session_stats.total_features_completed);
+            println!(
+                "  Features completed: {}",
+                session_stats.total_features_completed
+            );
             println!();
 
             Ok(())

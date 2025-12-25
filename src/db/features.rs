@@ -97,15 +97,19 @@ impl FeatureRepository {
         let conn = self.conn.lock().unwrap();
 
         let passing: i32 = conn
-            .query_row("SELECT COUNT(*) FROM features WHERE passes = 1", [], |row| {
-                row.get(0)
-            })
+            .query_row(
+                "SELECT COUNT(*) FROM features WHERE passes = 1",
+                [],
+                |row| row.get(0),
+            )
             .context("Failed to count passing features")?;
 
         let remaining: i32 = conn
-            .query_row("SELECT COUNT(*) FROM features WHERE passes = 0", [], |row| {
-                row.get(0)
-            })
+            .query_row(
+                "SELECT COUNT(*) FROM features WHERE passes = 0",
+                [],
+                |row| row.get(0),
+            )
             .context("Failed to count remaining features")?;
 
         Ok((passing as usize, remaining as usize))
@@ -197,11 +201,11 @@ impl FeatureRepository {
         let feature_rows = stmt
             .query_map([], |row| {
                 Ok((
-                    row.get::<_, i64>(0)?,              // id
-                    row.get::<_, String>(1)?,           // category
-                    row.get::<_, String>(2)?,           // description
-                    row.get::<_, i32>(3)? != 0,         // passes
-                    row.get::<_, Option<String>>(4)?,   // verification_command
+                    row.get::<_, i64>(0)?,            // id
+                    row.get::<_, String>(1)?,         // category
+                    row.get::<_, String>(2)?,         // description
+                    row.get::<_, i32>(3)? != 0,       // passes
+                    row.get::<_, Option<String>>(4)?, // verification_command
                 ))
             })
             .context("Failed to query features")?;

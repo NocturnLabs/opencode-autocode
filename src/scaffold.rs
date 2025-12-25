@@ -104,12 +104,8 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
 
     // Initialize SQLite database inside .autocode/
     let db_path = autocode_dir.join("progress.db");
-    db::Database::open(&db_path).with_context(|| {
-        format!(
-            "Failed to initialize database: {}",
-            db_path.display()
-        )
-    })?;
+    db::Database::open(&db_path)
+        .with_context(|| format!("Failed to initialize database: {}", db_path.display()))?;
     println!("   🗃️  Created .autocode/progress.db");
 
     // Write user configuration file inside .autocode/
