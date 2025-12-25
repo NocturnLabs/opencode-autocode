@@ -34,6 +34,7 @@ pub struct Config {
     pub ui: UiConfig,
     pub notifications: NotificationsConfig,
     pub conductor: ConductorConfig,
+    pub communication: CommunicationConfig,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -467,6 +468,37 @@ impl Default for ConductorConfig {
             auto_setup: true,
             planning_mode: "auto".to_string(),
             checkpoint_frequency: 1,
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Communication Configuration (Agent-User Channel)
+// ─────────────────────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default)]
+pub struct CommunicationConfig {
+    /// Enable communication channel
+    pub enabled: bool,
+    /// Path to communication file
+    pub file_path: String,
+    /// Auto-post questions on repeated failures
+    pub auto_ask_on_error: bool,
+    /// Check for responses every N sessions
+    pub check_interval_sessions: u32,
+    /// Maximum pending questions
+    pub max_pending_questions: u32,
+}
+
+impl Default for CommunicationConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            file_path: ".autocode/COMMUNICATION.md".to_string(),
+            auto_ask_on_error: true,
+            check_interval_sessions: 1,
+            max_pending_questions: 5,
         }
     }
 }
