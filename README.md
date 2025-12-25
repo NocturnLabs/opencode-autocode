@@ -2,8 +2,7 @@
 
 A Rust CLI that scaffolds autonomous coding projects for [OpenCode](https://github.com/sst/opencode) and runs them to completion. It bridges the gap between high-level application specs and fully implemented features.
 
-> [!WARNING]
-> **AI-Generated Code Disclaimer**: Significant portions of this codebase (including logic, templates, and tests) were generated or refined using Large Language Models. Use with appropriate caution and always review changes in your local projects.
+> [!WARNING] > **AI-Generated Code Disclaimer**: Significant portions of this codebase (including logic, templates, and tests) were generated or refined using Large Language Models. Use with appropriate caution and always review changes in your local projects.
 
 ## Quick Start
 
@@ -20,15 +19,16 @@ opencode-autocode vibe --developer
 
 ## Features
 
-- 🚀 **Zero-Config Scaffolding**: Build complex app specs using a rich interactive TUI.
+- 🚀 **Zero-Config Scaffolding**: Build complex app specs using a rich interactive TUI, now stored in `.autocode/`.
+- 🗃️ **SQLite Persistence**: Industrial-grade progress tracking with a relational database (`.autocode/progress.db`).
 - 🔄 **Vibe Loop**: Automated session management with intelligent continuation and exponential backoff retry logic.
 - 🧠 **Conductor Workflow**: Context-driven planning that creates persistent `.conductor/` and `tracks/` directories to maintain project state.
 - 📝 **Developer Mode**: Detailed output captured in `opencode-debug.log` for debugging autonomous sessions.
 - ✅ **Auto-Commit**: Automatically commits each completed feature to Git with AI-generated messages.
 - 🔁 **Stuck Recovery**: Automatically generates alternative implementation paths when progress stalls.
-- 🧪 **Regression Testing**: CLI command to verify all previously completed features.
+- 🧪 **Regression Testing**: CLI command to verify all previously completed features directly from the database.
 - 🔔 **Webhooks**: Real-time integration with Discord/Slack for feature completion alerts.
-- 🛠️ **MCP Native**: First-class support for Model Context Protocol tools like `osgrep` and `chrome-devtools`.
+- 🛠️ **MCP Native**: First-class support for Model Context Protocol tools like `osgrep`, `chrome-devtools`, and `sqlite-mcp`.
 
 ## CLI Reference
 
@@ -47,17 +47,23 @@ opencode-autocode vibe --developer
   - `--limit <N>`: Stop the loop after N iterations.
   - `--config-file <FILE>`: Load a custom TOML configuration.
 
+### Database Operations
+
+- `db init`: Initialize a new progress database.
+- `db migrate`: Import legacy `feature_list.json` data into the SQLite database.
+- `db stats`: View high-level feature and session statistics.
+- `db export <FILE>`: Export the database contents to a JSON file.
+
 ### Utility Commands
 
 - `--config`: Launch the settings configuration TUI.
-- `--regression-check`: Verify all features marked as `passes: true` in `feature_list.json`.
-  - `--feature-list <FILE>`: Specify a custom feature list path.
+- `--regression-check`: Verify all features marked as passing in the database.
 - `templates list`: View available project templates (Web App, CLI, API).
 - `templates use <name>`: Scaffold a project directly from a named template.
 
 ## Configuration
 
-Settings are stored in `autocode.toml`. You can either use `opencode-autocode --config` or edit the file manually. Paths support environment variables like `$HOME` or `%APPDATA%`.
+Settings are stored in `.autocode/config.toml`. You can either use `opencode-autocode --config` or edit the file manually. Paths support environment variables like `$HOME`.
 
 ```toml
 [models]
@@ -67,6 +73,7 @@ reasoning = "opencode/grok-code"   # Used for planning and complex decisions
 enhancement = "opencode/big-pickle" # Used for discovering improvements
 
 [autonomous]
+database_file = ".autocode/progress.db" # Path to progress database
 delay_between_sessions = 5      # Seconds to wait between sessions
 max_iterations = 0              # 0 = Run until all features pass
 session_timeout_minutes = 60    # Kill hung sessions after N minutes
@@ -91,7 +98,7 @@ tracks_dir = "tracks"           # Per-feature specifications and plans
 [mcp]
 prefer_osgrep = true            # Use semantic code search
 use_sequential_thinking = true  # Enable multi-step reasoning protocol
-required_tools = ["chrome-devtools"]
+required_tools = ["chrome-devtools", "sqlite-mcp"]
 
 [security]
 enforce_allowlist = true        # Use scripts/security-allowlist.json
@@ -107,10 +114,10 @@ webhook_url = "https://discord.com/api/webhooks/..."
 
 When you run `vibe`, the engine determines the next action using a phased approach:
 
-1.  **Phase 1: Init** → Runs `auto-init` command to create `feature_list.json` and basic structure.
+1.  **Phase 1: Init** → Runs `auto-init` command to populate the `.autocode/progress.db` and basic structure.
 2.  **Phase 2: Context** → (If Conductor enabled) Runs `auto-context` to define product goals and tech stack.
 3.  **Phase 3: Work** → Runs `auto-continue` to implement the next task in the active `plan.md`.
-4.  **Phase 4: Verify** → Checks overall progress and marks features passing based on session results.
+4.  **Phase 4: Verify** → Checks database for progress and marks features passing based on session results.
 5.  **Phase 5: Plan** → (If no active track) Runs `auto-plan` to create a new track/plan for the next failing feature.
 
 ## Requirements
