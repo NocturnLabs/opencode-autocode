@@ -54,6 +54,7 @@ pub fn prompt_model_selection(prompt: &str, models: &[String], current: &str) ->
         .with_prompt(prompt)
         .items(&options)
         .default(default_idx)
+        .max_length(5)
         .interact()?;
 
     if options[selection] == "(enter custom)" {
