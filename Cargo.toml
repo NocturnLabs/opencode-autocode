@@ -43,6 +43,9 @@ chrono = "0.4"
 quick-xml = "0.38"
 similar = "2.6"
 
+# SQLite database for progress tracking
+rusqlite = { version = "0.32", features = ["bundled"] }
+
 [dev-dependencies]
 # Temporary files for testing
 tempfile = "3"

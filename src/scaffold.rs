@@ -4,6 +4,8 @@ use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
 
+use crate::db;
+
 /// Embedded default app spec template
 const DEFAULT_APP_SPEC: &str = include_str!("../default_app_spec.md");
 
@@ -41,31 +43,32 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
         !output_dir.as_os_str().is_empty(),
         "Output dir cannot be empty"
     );
-    // Create directory structure
-    let opencode_dir = output_dir.join(".opencode");
-    let command_dir = opencode_dir.join("command"); // OpenCode expects singular "command"
-    let scripts_dir = output_dir.join("scripts");
 
+    // Create .autocode parent directory for all autocode-managed files
+    let autocode_dir = output_dir.join(".autocode");
+    let opencode_dir = output_dir.join(".opencode");
+    let command_dir = opencode_dir.join("command"); // OpenCode expects this at .opencode/command
+
+    fs::create_dir_all(&autocode_dir).with_context(|| {
+        format!(
+            "Failed to create .autocode directory: {}",
+            autocode_dir.display()
+        )
+    })?;
     fs::create_dir_all(&command_dir).with_context(|| {
         format!(
             "Failed to create command directory: {}",
             command_dir.display()
         )
     })?;
-    fs::create_dir_all(&scripts_dir).with_context(|| {
-        format!(
-            "Failed to create scripts directory: {}",
-            scripts_dir.display()
-        )
-    })?;
 
-    // Write app_spec.md
-    let spec_path = output_dir.join("app_spec.md");
+    // Write app_spec.md inside .autocode/
+    let spec_path = autocode_dir.join("app_spec.md");
     fs::write(&spec_path, spec_content)
         .with_context(|| format!("Failed to write app_spec.md: {}", spec_path.display()))?;
-    println!("   📄 Created app_spec.md");
+    println!("   📄 Created .autocode/app_spec.md");
 
-    // Write command files
+    // Write command files (these stay in .opencode/ for OpenCode compatibility)
     let auto_init_path = command_dir.join("auto-init.md");
     fs::write(&auto_init_path, AUTO_INIT_TEMPLATE)
         .with_context(|| format!("Failed to write auto-init.md: {}", auto_init_path.display()))?;
@@ -89,37 +92,29 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     })?;
     println!("   📄 Created .opencode/command/auto-enhance.md");
 
-    // Write security allowlist
-    let allowlist_path = scripts_dir.join("security-allowlist.json");
+    // Write security allowlist inside .autocode/
+    let allowlist_path = autocode_dir.join("security-allowlist.json");
     fs::write(&allowlist_path, SECURITY_ALLOWLIST).with_context(|| {
         format!(
             "Failed to write security-allowlist.json: {}",
             allowlist_path.display()
         )
     })?;
-    println!("   📄 Created scripts/security-allowlist.json");
+    println!("   📄 Created .autocode/security-allowlist.json");
 
-    // Create empty progress file
-    let progress_path = output_dir.join("opencode-progress.txt");
-    fs::write(
-        &progress_path,
-        "# OpenCode Autonomous Progress\n\nNo sessions completed yet.\n",
-    )
-    .with_context(|| {
-        format!(
-            "Failed to write opencode-progress.txt: {}",
-            progress_path.display()
-        )
-    })?;
-    println!("   📄 Created opencode-progress.txt");
+    // Initialize SQLite database inside .autocode/
+    let db_path = autocode_dir.join("progress.db");
+    db::Database::open(&db_path)
+        .with_context(|| format!("Failed to initialize database: {}", db_path.display()))?;
+    println!("   🗃️  Created .autocode/progress.db");
 
-    // Write user configuration file
-    let config_path = output_dir.join("autocode.toml");
+    // Write user configuration file inside .autocode/
+    let config_path = autocode_dir.join("config.toml");
     fs::write(&config_path, USER_CONFIG_TEMPLATE)
-        .with_context(|| format!("Failed to write autocode.toml: {}", config_path.display()))?;
-    println!("   ⚙️  Created autocode.toml");
+        .with_context(|| format!("Failed to write config.toml: {}", config_path.display()))?;
+    println!("   ⚙️  Created .autocode/config.toml");
 
-    // Write opencode.json for OpenCode native configuration
+    // Write opencode.json at project root (required by OpenCode)
     let opencode_json_path = output_dir.join("opencode.json");
     let opencode_json_content = generate_opencode_json();
     fs::write(&opencode_json_path, opencode_json_content).with_context(|| {
@@ -143,9 +138,9 @@ pub fn scaffold_from_spec(output_dir: &Path, spec: &crate::spec::AppSpec) -> Res
 pub fn preview_scaffold(output_dir: &Path) {
     use console::style;
 
+    let autocode_dir = output_dir.join(".autocode");
     let opencode_dir = output_dir.join(".opencode");
     let command_dir = opencode_dir.join("command");
-    let scripts_dir = output_dir.join("scripts");
 
     println!(
         "\n{}",
@@ -157,15 +152,15 @@ pub fn preview_scaffold(output_dir: &Path) {
 
     // Directories
     println!("\n{}", style("Directories:").yellow());
+    println!("   📁 {}", style(autocode_dir.display()).dim());
     println!("   📁 {}", style(opencode_dir.display()).dim());
     println!("   📁 {}", style(command_dir.display()).dim());
-    println!("   📁 {}", style(scripts_dir.display()).dim());
 
     // Files
     println!("\n{}", style("Files:").yellow());
     println!(
         "   📄 {}",
-        style(output_dir.join("app_spec.md").display()).green()
+        style(autocode_dir.join("app_spec.md").display()).green()
     );
     println!(
         "   📄 {}",
@@ -181,15 +176,15 @@ pub fn preview_scaffold(output_dir: &Path) {
     );
     println!(
         "   📄 {}",
-        style(scripts_dir.join("security-allowlist.json").display()).green()
+        style(autocode_dir.join("security-allowlist.json").display()).green()
     );
     println!(
-        "   📄 {}",
-        style(output_dir.join("opencode-progress.txt").display()).green()
+        "   🗃️  {}",
+        style(autocode_dir.join("progress.db").display()).green()
     );
     println!(
         "   ⚙️  {}",
-        style(output_dir.join("autocode.toml").display()).green()
+        style(autocode_dir.join("config.toml").display()).green()
     );
     println!(
         "   ⚙️  {}",
@@ -214,14 +209,23 @@ fn generate_opencode_json() -> String {
   
   // Instruction files for the AI to read
   "instructions": [
-    "autocode.toml",
-    "app_spec.md"
+    ".autocode/config.toml",
+    ".autocode/app_spec.md"
   ],
   
   // MCP server configurations
   // Enable/disable MCP tools based on your installed servers
   // See: https://opencode.ai/docs/mcp-servers
   "mcp": {
+    // SQLite database for feature tracking (REQUIRED for autonomous mode)
+    // Provides: read_query, write_query, list_tables, describe_table
+    // Use this to query and update feature status in .autocode/progress.db
+    "sqlite": {
+      "type": "local",
+      "command": ["npx", "-y", "@anthropic-ai/mcp-server-sqlite", ".autocode/progress.db"],
+      "enabled": true
+    },
+    
     // Semantic code search - faster than grep for large codebases
     // Install: https://github.com/Ryandonofrio3/osgrep
     "osgrep": {

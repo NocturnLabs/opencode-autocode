@@ -7,6 +7,7 @@ pub mod cli;
 pub mod conductor;
 pub mod config;
 pub mod config_tui;
+pub mod db;
 pub mod generator;
 pub mod regression;
 pub mod scaffold;

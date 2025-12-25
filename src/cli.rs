@@ -74,6 +74,11 @@ pub enum Commands {
         #[command(subcommand)]
         action: TemplateAction,
     },
+    /// Database management commands
+    Db {
+        #[command(subcommand)]
+        action: DbAction,
+    },
 }
 
 /// Template subcommand actions
@@ -86,6 +91,31 @@ pub enum TemplateAction {
         /// Name of the template to use
         name: String,
     },
+}
+
+/// Database subcommand actions
+#[derive(Subcommand, Debug)]
+pub enum DbAction {
+    /// Initialize the SQLite database
+    Init {
+        /// Custom database path (default: .opencode.db)
+        #[arg(long, value_name = "FILE")]
+        path: Option<PathBuf>,
+    },
+    /// Import features from feature_list.json into the database
+    Migrate {
+        /// Path to feature_list.json (default: feature_list.json)
+        #[arg(value_name = "FILE")]
+        json_path: Option<PathBuf>,
+    },
+    /// Export features from database to JSON file
+    Export {
+        /// Output JSON file path (default: feature_list_export.json)
+        #[arg(value_name = "FILE")]
+        output: Option<PathBuf>,
+    },
+    /// Show database statistics
+    Stats,
 }
 
 /// The mode of operation

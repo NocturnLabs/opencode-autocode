@@ -4,7 +4,7 @@ use anyhow::Result;
 use std::collections::HashSet;
 use std::path::Path;
 
-use crate::regression;
+use crate::db;
 
 /// Feature progress status
 pub struct FeatureProgress {
@@ -13,12 +13,25 @@ pub struct FeatureProgress {
 }
 
 impl FeatureProgress {
-    /// Count passing and remaining features from feature_list.json
-    pub fn load(path: &Path) -> Result<Self> {
-        let features = regression::parse_feature_list(path)?;
-        let passing = features.iter().filter(|f| f.passes).count();
-        let remaining = features.iter().filter(|f| !f.passes).count();
+    /// Count passing and remaining features from SQLite database
+    pub fn load_from_db(db_path: &Path) -> Result<Self> {
+        let database = db::Database::open(db_path)?;
+        let repo = database.features();
+        let (passing, remaining) = repo.count()?;
         Ok(Self { passing, remaining })
+    }
+
+    /// Check if the database has any features (determines if init has run)
+    pub fn has_features(db_path: &Path) -> bool {
+        if !db_path.exists() {
+            return false;
+        }
+        if let Ok(database) = db::Database::open(db_path) {
+            if let Ok((passing, remaining)) = database.features().count() {
+                return passing + remaining > 0;
+            }
+        }
+        false
     }
 
     /// Total number of features
@@ -32,18 +45,15 @@ impl FeatureProgress {
     }
 }
 
-/// Get descriptions of currently passing features
-pub fn get_passing_feature_descriptions(path: &Path) -> Result<HashSet<String>> {
-    if !path.exists() {
+/// Get descriptions of currently passing features from database
+pub fn get_passing_feature_descriptions(db_path: &Path) -> Result<HashSet<String>> {
+    if !db_path.exists() {
         return Ok(HashSet::new());
     }
 
-    let features = regression::parse_feature_list(path)?;
-    Ok(features
-        .into_iter()
-        .filter(|f| f.passes)
-        .map(|f| f.description)
-        .collect())
+    let database = db::Database::open(db_path)?;
+    let descriptions = database.features().get_passing_descriptions()?;
+    Ok(descriptions)
 }
 
 /// Detect newly completed features by comparing before/after sets

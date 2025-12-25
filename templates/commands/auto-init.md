@@ -11,7 +11,7 @@ The goal is to set up the foundation for all future coding sessions.
 
 **Before executing ANY commands, you MUST:**
 
-1. Read `scripts/security-allowlist.json` if it exists
+1. Read `.autocode/security-allowlist.json` if it exists
 2. Check the `blocked_patterns` array for commands you must NEVER run
 3. Only use commands listed in `allowed_commands` categories
 
@@ -44,65 +44,45 @@ the project specification is always `app_spec.md`.
 
 ---
 
-### CRITICAL FIRST TASK: Create feature_list.json
+### CRITICAL FIRST TASK: Populate Features in SQLite Database
 
-Based on `app_spec.md`, create a file called `feature_list.json` with detailed
-end-to-end test cases appropriate for the technology stack specified.
+Based on `.autocode/app_spec.md`, insert features into the SQLite database using the SQLite MCP.
 
-**Format:**
+**Use the SQLite MCP `write_query` tool to insert features:**
 
-```json
-[
-  {
-    "category": "functional",
-    "description": "Brief description of the feature and what this test verifies",
-    "steps": [
-      "Step 1: Navigate to relevant page or run command",
-      "Step 2: Perform action",
-      "Step 3: Verify expected result"
-    ],
-    "passes": false,
-    "verification_command": "npm test -- --grep 'feature-name'"
-  },
-  {
-    "category": "style",
-    "description": "Brief description of UI/UX requirement",
-    "steps": [
-      "Step 1: Navigate to page",
-      "Step 2: Take screenshot or inspect",
-      "Step 3: Verify visual requirements"
-    ],
-    "passes": false
-  }
-]
+```sql
+INSERT INTO features (category, description, passes, verification_command)
+VALUES ('functional', 'Brief description of what this test verifies', 0, 'npm test -- --grep "feature-name"');
 ```
 
-**Field Descriptions:**
+**Also insert the steps for each feature:**
 
-- `category`: "functional", "style", "integration", "performance"
-- `description`: Clear description of what the feature does and what this test verifies
-- `steps`: Human-readable verification steps (always required)
-- `passes`: Starts as `false`, changed to `true` only after thorough verification
-- `verification_command` (OPTIONAL): Shell command that validates the feature automatically
-  - Use for features with automated tests (unit/integration/e2e)
-  - Enables fast regression checking in long-running projects
-  - Omit for features requiring manual verification only
+```sql
+INSERT INTO feature_steps (feature_id, step_order, step_text)
+VALUES (1, 1, 'Step 1: Navigate to relevant page or run command');
+```
 
-**Requirements for feature_list.json:**
+**Database Schema (already created in `.autocode/progress.db`):**
 
-- Include comprehensive tests covering all features in the spec
-- Both "functional" and "style" categories (if applicable to the project)
-- Mix of narrow tests (2-5 steps) and comprehensive tests (10+ steps)
-- Order features by priority: fundamental features first
-- ALL tests start with `"passes": false`
+- `features` table: `id`, `category`, `description`, `passes` (0/1), `verification_command`, `created_at`, `updated_at`
+- `feature_steps` table: `feature_id`, `step_order`, `step_text`
+
+**Category Options:** "functional", "style", "integration", "performance"
+
+**Requirements:**
+
+- Insert comprehensive features covering all requirements in the spec
+- Both "functional" and "style" categories (if applicable)
+- Mix of narrow features (2-5 steps) and comprehensive features (10+ steps)
+- Order by priority: fundamental features first
+- ALL features start with `passes = 0`
 - Cover every feature in the spec exhaustively
-- **Add `verification_command` where possible** to enable automated regression testing
+- **Add `verification_command` where possible** for automated regression testing
 
 **CRITICAL INSTRUCTION:**
-IT IS CATASTROPHIC TO REMOVE OR EDIT FEATURES IN FUTURE SESSIONS.
-Features can ONLY be marked as passing (change `"passes": false` to `"passes": true`).
-Never remove features, never edit descriptions, never modify testing steps.
-This ensures no functionality is missed.
+IT IS CATASTROPHIC TO DELETE OR UPDATE feature descriptions in future sessions.
+Features can ONLY be marked as passing: `UPDATE features SET passes = 1 WHERE id = X`
+Never delete features, never edit descriptions. This ensures no functionality is missed.
 
 **E2E TESTING REQUIREMENTS:**
 
@@ -116,7 +96,7 @@ This ensures no functionality is missed.
    - You MUST scaffold an E2E testing framework (Playwright recommended)
    - Run: `npm init playwright@latest` or equivalent for the stack
    - Create `tests/e2e/` directory for E2E test files
-   - `verification_command` for each feature MUST invoke E2E tests (e.g., `npx playwright test feature.spec.ts`)
+   - `verification_command` for each feature MUST invoke E2E tests
    - Unit tests are NOT sufficient for feature verification
 
 3. **For non-web projects:**
@@ -250,12 +230,12 @@ Adjust the ignores based on the tech stack in `app_spec.md`.
 Create a git repository and make your first commit with:
 
 - .gitignore (configured for the project)
-- feature_list.json (complete with all features)
+- .autocode/features.json (complete with all features)
 - .conductor/ (context files)
 - init.sh (environment setup script)
 - README.md (project overview and setup instructions)
 
-Commit message: "Initial setup: feature_list.json, conductor context, and project structure"
+Commit message: "Initial setup: .autocode/features.json, conductor context, and project structure"
 
 ---
 
@@ -301,10 +281,14 @@ Use Sequential Thinking to structure your reasoning:
 ### OPTIONAL: Start Implementation
 
 If you have time remaining in this session, you may begin implementing
-the highest-priority features from feature_list.json. Remember:
+the highest-priority features. Query the database for incomplete features:
+
+```sql
+SELECT id, description FROM features WHERE passes = 0 ORDER BY id LIMIT 1;
+```
 
 - Work on ONE feature at a time
-- Test thoroughly before marking `"passes": true`
+- Test thoroughly before marking as passing: `UPDATE features SET passes = 1 WHERE id = X`
 - Commit your progress before session ends
 
 ---
@@ -314,9 +298,8 @@ the highest-priority features from feature_list.json. Remember:
 Before your context fills up:
 
 1. Commit all work with descriptive messages
-2. Create or update `opencode-progress.txt` with a summary of what you accomplished
-3. Ensure feature_list.json is complete and saved
-4. Leave the environment in a clean, working state
+2. Ensure all features are inserted in the database (query to verify)
+3. Leave the environment in a clean, working state
 
 **THEN signal for continuation:**
 

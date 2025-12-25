@@ -11,7 +11,7 @@ This is a FRESH context window—no memory of previous sessions exists.
 
 **Before executing ANY commands, you MUST:**
 
-1. Read `scripts/security-allowlist.json` if it exists
+1. Read `.autocode/security-allowlist.json` if it exists
 2. Check the `blocked_patterns` array for commands you must NEVER run
 3. Only use commands listed in `allowed_commands` categories
 
@@ -32,8 +32,8 @@ Start by orienting yourself. Examine the project structure:
 
 1. **List files** to understand project structure
 2. **Read app_spec.md** to understand what you're building
-3. **Read feature_list.json** to see all work and current progress
-4. **Check opencode-progress.txt** for notes from previous sessions
+3. **Query the SQLite database via MCP** to see all work and current progress
+4. **Check .autocode/session.log** for notes from previous sessions
 5. **Review git history** to see what's been done recently
 6. **Count remaining work** - how many tests are still failing?
 7. **Detect project type** - check `app_spec.md` for frontend/web components
@@ -62,8 +62,8 @@ Check if all tests are passing. Use code search for efficient searching:
 ```
 
 ```bash
-grep -c '"passes": true' feature_list.json
-grep -c '"passes": false' feature_list.json
+Use SQLite MCP: SELECT COUNT(*) FROM features WHERE passes = 1
+Use SQLite MCP: SELECT COUNT(*) FROM features WHERE passes = 0
 ```
 
 **If ALL tests pass (0 remaining):**
@@ -99,7 +99,7 @@ new, you MUST verify that ALL existing passing features still work.
 1. **Get the count of passing features:**
 
    ```bash
-   grep -c '"passes": true' feature_list.json
+   Use SQLite MCP: SELECT COUNT(*) FROM features WHERE passes = 1
    ```
 
 2. **Run verification for EVERY feature marked as passing:**
@@ -115,7 +115,7 @@ new, you MUST verify that ALL existing passing features still work.
 
 **If you find ANY issues:**
 
-- Mark that feature as `"passes": false` immediately
+- Update the database: UPDATE features SET passes = 0 WHERE id = X
 - Add issues to a list
 - Fix all issues BEFORE moving to new features
 - This includes:
@@ -129,7 +129,7 @@ new, you MUST verify that ALL existing passing features still work.
 
 ### STEP 5: CHOOSE ONE FEATURE TO IMPLEMENT
 
-Look at feature_list.json and find the highest-priority feature with `"passes": false`.
+Query database: SELECT id, description FROM features WHERE passes = 0 ORDER BY id LIMIT 1.
 
 Focus on completing one feature perfectly in this session before moving on.
 It's okay if you only complete one feature - there will be more sessions.
@@ -151,7 +151,7 @@ If an edit or fix fails 3 times in a row:
 
 1. **STOP** - Do NOT try the same approach again
 
-2. **DOCUMENT** - Write the blocker to `opencode-progress.txt`:
+2. **DOCUMENT** -
 
    ```
    BLOCKED: [feature name] - [brief reason]
@@ -178,8 +178,6 @@ If an edit or fix fails 3 times in a row:
    - What if you changed the API contract?
    - What approach would prioritize debuggability over elegance?
    - What's an unconventional solution you'd normally dismiss?
-
-   Document these in `opencode-progress.txt`:
 
    ```
    ALTERNATIVE_APPROACHES: [feature name]
@@ -245,7 +243,7 @@ projects stay stable throughout development.
 1. **Get the list of all currently passing features:**
 
    ```bash
-   grep -c '"passes": true' feature_list.json
+   Use SQLite MCP: SELECT COUNT(*) FROM features WHERE passes = 1
    ```
 
 2. **Run verification for EACH passing feature:**
@@ -257,8 +255,7 @@ projects stay stable throughout development.
 3. **If ANY regression is detected:**
 
    - Immediately mark that feature as `"passes": false`
-   - Document in `opencode-progress.txt`:
-     ```
+   - ```
      REGRESSION DETECTED: [regressed feature name]
      Caused by: [current feature being implemented]
      Symptoms: [what broke]
@@ -276,31 +273,26 @@ Catching regressions immediately is cheaper than debugging cascading failures la
 
 ---
 
-### STEP 8: UPDATE feature_list.json (CAREFULLY!)
+### STEP 8: UPDATE FEATURE STATUS IN DATABASE (CAREFULLY!)
 
-**YOU CAN ONLY MODIFY ONE FIELD: "passes"**
+**YOU CAN ONLY CHANGE THE `passes` FIELD**
 
-After thorough verification, change:
+After thorough verification, use the SQLite MCP to update the feature:
 
-```json
-"passes": false
+```sql
+UPDATE features SET passes = 1 WHERE id = X;
 ```
 
-to:
-
-```json
-"passes": true
-```
+(Replace X with the actual feature ID from your SELECT query in Step 5)
 
 **NEVER:**
 
-- Remove tests
-- Edit test descriptions
-- Modify test steps
-- Combine or consolidate tests
-- Reorder tests
+- Delete features from the database
+- Edit feature descriptions
+- Modify feature steps
+- Change feature order
 
-**ONLY CHANGE "passes" FIELD AFTER THOROUGH VERIFICATION.**
+**ONLY UPDATE `passes` TO 1 AFTER THOROUGH VERIFICATION.**
 
 ---
 
@@ -314,15 +306,13 @@ git commit -m "Implement [feature name] - verified end-to-end
 
 - Added [specific changes]
 - Tested [how you tested]
-- Updated feature_list.json: marked test #X as passing
+- Updated .autocode/features.json: marked test #X as passing
 "
 ```
 
 ---
 
 ### STEP 10: UPDATE PROGRESS NOTES
-
-Update `opencode-progress.txt` with:
 
 - What you accomplished this session
 - Which test(s) you completed
@@ -374,7 +364,7 @@ Perform comprehensive end-to-end verification:
    - Verify no console errors or warnings
    - Confirm the main UI/CLI loads correctly
 
-3. **Execute ALL verification_commands** from feature_list.json:
+3. **Execute ALL verification_commands** from .autocode/features.json:
 
    ```bash
    # For each feature that has a verification_command, run it
@@ -405,8 +395,8 @@ Perform comprehensive end-to-end verification:
 
 **If ANY issues are found:**
 
-- Mark the affected feature(s) as `"passes": false` in feature_list.json
-- Document the issues in `opencode-progress.txt`
+- Mark the affected feature(s) as `"passes": false` in .autocode/features.json
+- Document the issues in `.autocode/session.log`
 - Continue to STEP 5 (work on fixing the issues)
 - Do NOT signal PROJECT_COMPLETE
 

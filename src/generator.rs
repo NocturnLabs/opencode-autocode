@@ -276,7 +276,7 @@ mod tests {
 
         assert!(prompt.contains("A todo app with tags"));
         assert!(prompt.contains("<project_specification>"));
-        assert!(prompt.contains("{{IDEA}}") == false);
+        assert!(!prompt.contains("{{IDEA}}"));
     }
 
     #[test]

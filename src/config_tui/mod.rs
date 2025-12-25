@@ -22,7 +22,7 @@ pub fn run_config_tui() -> Result<()> {
     helpers::display_header();
 
     // Load existing config or defaults
-    let config_path = Path::new("autocode.toml");
+    let config_path = Path::new(".autocode/config.toml");
     let mut config = if config_path.exists() {
         Config::load_from_file(config_path)?
     } else {
@@ -54,7 +54,7 @@ pub fn run_config_tui() -> Result<()> {
 
     println!(
         "\n{}",
-        style("✅ Configuration saved to autocode.toml and opencode.json")
+        style("✅ Configuration saved to .autocode/config.toml and opencode.json")
             .green()
             .bold()
     );
@@ -78,7 +78,7 @@ fn display_next_steps() {
     println!(
         "  {} Edit {} directly for advanced options",
         style("→").cyan(),
-        style("autocode.toml").dim()
+        style(".autocode/config.toml").dim()
     );
     println!();
 }

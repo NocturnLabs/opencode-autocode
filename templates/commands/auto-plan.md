@@ -11,7 +11,7 @@ This ensures structured, checkpointable work that survives across sessions.
 
 **Before executing ANY commands, you MUST:**
 
-1. Read `scripts/security-allowlist.json` if it exists
+1. Read `.autocode/security-allowlist.json` if it exists
 2. Check the `blocked_patterns` array for commands you must NEVER run
 3. Only use commands listed in `allowed_commands` categories
 
@@ -19,7 +19,7 @@ This ensures structured, checkpointable work that survives across sessions.
 
 ### STEP 1: Identify Target Feature
 
-Read `feature_list.json` and select the highest-priority feature with `"passes": false`.
+Read `.autocode/features.json` and select the highest-priority feature with `"passes": false`.
 
 Note the feature description and category for planning.
 
@@ -151,7 +151,7 @@ As you complete each task:
 
 1. Mark the task as complete: `- [x] Task description`
 2. Commit progress periodically
-3. Update `opencode-progress.txt` with status
+3. Update `.autocode/session.log` with status
 
 ---
 
