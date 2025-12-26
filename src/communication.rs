@@ -64,11 +64,6 @@ impl CommunicationChannel {
         }
     }
 
-    /// Create with default path
-    pub fn default() -> Self {
-        Self::new(Path::new(DEFAULT_COMMUNICATION_PATH))
-    }
-
     /// Check if communication file exists
     pub fn exists(&self) -> bool {
         self.path.exists()
@@ -273,6 +268,12 @@ This file enables communication between you and the autonomous agent during `vib
     pub fn has_unread_responses(&self) -> Result<bool> {
         let responses = self.check_responses()?;
         Ok(!responses.is_empty())
+    }
+}
+
+impl Default for CommunicationChannel {
+    fn default() -> Self {
+        Self::new(Path::new(DEFAULT_COMMUNICATION_PATH))
     }
 }
 
