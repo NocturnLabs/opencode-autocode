@@ -20,7 +20,7 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 
 /// Default database filename
-pub const DEFAULT_DB_PATH: &str = ".opencode.db";
+pub const DEFAULT_DB_PATH: &str = ".autocode/progress.db";
 
 /// Database connection wrapper with thread-safe access
 pub struct Database {
