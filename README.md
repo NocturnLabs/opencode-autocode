@@ -2,8 +2,7 @@
 
 A Rust CLI that scaffolds autonomous coding projects for [OpenCode](https://github.com/sst/opencode) and runs them to completion. It bridges the gap between high-level application specs and fully implemented features.
 
-> [!WARNING]
-> **AI-Generated Code Disclaimer**: Significant portions of this codebase (including logic, templates, and tests) were generated or refined using Large Language Models. Use with appropriate caution and always review changes in your local projects.
+> [!WARNING] > **AI-Generated Code Disclaimer**: Significant portions of this codebase (including logic, templates, and tests) were generated or refined using Large Language Models. Use with appropriate caution and always review changes in your local projects.
 
 ## Quick Start
 
@@ -54,6 +53,12 @@ opencode-autocode vibe --developer
 - `db migrate`: Import legacy `feature_list.json` data into the SQLite database.
 - `db stats`: View high-level feature and session statistics.
 - `db export <FILE>`: Export the database contents to a JSON file.
+- `db query "<SQL>"`: Execute a SELECT query and display results.
+- `db exec "<SQL>"`: Execute a write query (INSERT/UPDATE/DELETE).
+- `db tables`: List all tables in the database.
+- `db schema <table>`: Show the schema for a specific table.
+- `db next-feature`: Get the next incomplete feature.
+- `db mark-pass <id>`: Mark a feature as passing.
 
 ### Utility Commands
 
