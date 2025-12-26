@@ -5,6 +5,10 @@ A Rust CLI that scaffolds autonomous coding projects for [OpenCode](https://gith
 > [!WARNING]
 > **AI-Generated Code Disclaimer**: Significant portions of this codebase (including logic, templates, and tests) were generated or refined using Large Language Models. Use with appropriate caution and always review changes in your local projects.
 
+## Example
+
+![OpenCode Autocode Demo](demo.gif)
+
 ## Quick Start
 
 ```bash
