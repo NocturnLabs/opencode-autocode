@@ -292,13 +292,7 @@ fn generate_opencode_json() -> String {
     ".autocode/config.toml",
     ".autocode/app_spec.md"
   ],
-  "mcp": {
-    "chrome-devtools": {
-      "type": "local",
-      "command": ["npx", "-y", "chrome-devtools-mcp@latest", "--headless=true"],
-      "enabled": false
-    }
-  },
+  "mcp": {},
   "permission": {
     "bash": "allow",
     "edit": "allow"
