@@ -271,18 +271,18 @@ fn generate_opencode_json() -> String {
     },
     
     // Sequential thinking for complex reasoning
-    // Install: npx -y @anthropic/thinking-mcp
+    // Install: npx -y @modelcontextprotocol/server-sequential-thinking
     "sequential-thinking": {
       "type": "local", 
-      "command": ["npx", "-y", "@anthropic/thinking-mcp"],
+      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
       "enabled": false
     },
     
     // Chrome DevTools for web projects (browser testing)
-    // Install: npx -y @anthropic/chrome-devtools-mcp
+    // Install: npx -y chrome-devtools-mcp@latest
     "chrome-devtools": {
       "type": "local",
-      "command": ["npx", "-y", "@anthropic/chrome-devtools-mcp"],
+      "command": ["npx", "-y", "chrome-devtools-mcp@latest"],
       "enabled": false
     }
   },
