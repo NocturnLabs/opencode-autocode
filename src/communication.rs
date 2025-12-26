@@ -325,9 +325,7 @@ mod tests {
         channel.init().unwrap();
         assert!(!channel.has_pending_questions().unwrap());
 
-        channel
-            .post_question(1, "Test", "Test body", &[])
-            .unwrap();
+        channel.post_question(1, "Test", "Test body", &[]).unwrap();
         assert!(channel.has_pending_questions().unwrap());
     }
 }

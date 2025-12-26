@@ -4,8 +4,8 @@ use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
 
-use crate::db;
 use crate::communication::CommunicationChannel;
+use crate::db;
 
 /// Embedded default app spec template
 const DEFAULT_APP_SPEC: &str = include_str!("../default_app_spec.md");
@@ -116,9 +116,7 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     println!("   ⚙️  Created .autocode/config.toml");
 
     // Initialize communication channel
-    let comm_channel = CommunicationChannel::new(
-        &autocode_dir.join("COMMUNICATION.md"),
-    );
+    let comm_channel = CommunicationChannel::new(&autocode_dir.join("COMMUNICATION.md"));
     comm_channel.init()?;
     println!("   💬 Created .autocode/COMMUNICATION.md");
 
