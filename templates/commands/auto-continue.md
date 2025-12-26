@@ -119,6 +119,35 @@ Otherwise, start any required servers or services manually and document the proc
 
 ---
 
+### STEP 3.5: CHECK PORT AVAILABILITY (FOR WEB PROJECTS)
+
+Before starting any servers or running tests, verify required ports are free:
+
+1. **Check if default ports are in use:**
+
+   ```bash
+   # Common ports to check: 3000, 5173 (Vite), 8000, 8080
+   lsof -i :8000 -t 2>/dev/null && echo "Port 8000 in use" || echo "Port 8000 free"
+   lsof -i :3000 -t 2>/dev/null && echo "Port 3000 in use" || echo "Port 3000 free"
+   ```
+
+2. **If ports are occupied:**
+
+   - Kill conflicting processes if they belong to this project
+   - Or choose an alternative port (8001, 8002, etc.)
+   - Update `playwright.config.ts` or other configs to use the free port:
+     ```bash
+     # Update port in playwright config
+     sed -i 's/localhost:[0-9]*/localhost:NEW_PORT/g' playwright.config.ts
+     ```
+
+3. **Document the port decision:**
+   ```
+   PORT CHECK: Using port 8001 (port 8000 occupied by PID 12345)
+   ```
+
+---
+
 ### STEP 4: FULL REGRESSION TEST (CRITICAL!)
 
 **MANDATORY BEFORE NEW WORK:**
@@ -260,6 +289,35 @@ If this is a web project (detected in Step 1), you MUST:
 5. **Take a screenshot** to verify the UI renders correctly
 
 If there are ANY console errors, the feature does NOT pass. Fix them first.
+
+**FOR JAVASCRIPT/TYPESCRIPT PROJECTS (MANDATORY):**
+
+Before considering a feature complete, verify module imports are correct:
+
+1. **Check for import errors** in browser console (`ReferenceError`, `SyntaxError`)
+
+2. **For each file you created or modified:**
+
+   - Verify all `import` statements point to correct relative paths
+   - Verify all imported names match `export` names in source files
+   - Check that ES6 module files use `.js` extensions in imports (for browser)
+
+3. **Quick import validation:**
+
+   ```bash
+   # List all exports in the project
+   grep -rn "export class\|export function\|export const" src/**/*.js src/**/*.ts 2>/dev/null | head -20
+
+   # List all imports in the project
+   grep -rn "^import " src/**/*.js src/**/*.ts 2>/dev/null | head -20
+   ```
+
+4. **Common issues to check:**
+   - Missing imports (class used but not imported)
+   - Wrong paths (`./service.js` vs `./services/service.js`)
+   - Named vs default export mismatch (`import { X }` vs `import X`)
+
+If there are ANY import/export mismatches, fix them before marking the feature as passing.
 
 ---
 

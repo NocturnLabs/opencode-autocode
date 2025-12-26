@@ -13,7 +13,11 @@ use super::manual::run_manual_mode;
 use super::validation::run_validation_loop;
 
 /// Run AI-generated spec mode
-pub fn run_generated_mode(output_dir: &Path, initial_model: Option<&str>) -> Result<()> {
+pub fn run_generated_mode(
+    output_dir: &Path,
+    initial_model: Option<&str>,
+    use_subagents: bool,
+) -> Result<()> {
     println!("\n{}", style("─── AI Spec Generation ───").yellow().bold());
     println!(
         "{}",
@@ -28,7 +32,7 @@ pub fn run_generated_mode(output_dir: &Path, initial_model: Option<&str>) -> Res
         return Ok(());
     }
 
-    let mut spec_text = match generate_initial_spec(&idea, model) {
+    let mut spec_text = match generate_initial_spec(&idea, model, use_subagents) {
         Ok(spec) => spec,
         Err(e) => return handle_generation_error(e, output_dir),
     };
@@ -108,7 +112,7 @@ fn prompt_for_idea() -> Result<String> {
     Ok(idea)
 }
 
-fn generate_initial_spec(idea: &str, model: Option<&str>) -> Result<String> {
+fn generate_initial_spec(idea: &str, model: Option<&str>, use_subagents: bool) -> Result<String> {
     print!("\x1B[2K\r");
     let _ = std::io::stdout().flush();
 
@@ -117,7 +121,7 @@ fn generate_initial_spec(idea: &str, model: Option<&str>) -> Result<String> {
         style("─────────────────────────────────────────────").dim()
     );
 
-    generate_spec_from_idea(idea, model, |msg| {
+    generate_spec_from_idea(idea, model, use_subagents, |msg| {
         print!("{}", msg);
         let _ = std::io::stdout().flush();
     })

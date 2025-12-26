@@ -104,7 +104,7 @@ fn main() -> Result<()> {
                 scaffold::preview_scaffold(&output_dir);
                 return Ok(());
             }
-            tui::run_interactive(&output_dir)?;
+            tui::run_interactive(&output_dir, !cli.no_subagents)?;
             Ok(())
         }
     }

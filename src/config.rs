@@ -100,6 +100,8 @@ pub struct GenerationConfig {
     pub include_accessibility: bool,
     /// Include future enhancements section
     pub include_future_enhancements: bool,
+    /// Enable parallel subagent spec generation (faster but uses more tokens)
+    pub enable_subagents: bool,
 }
 
 impl Default for GenerationConfig {
@@ -119,6 +121,7 @@ impl Default for GenerationConfig {
             include_devops_section: true,
             include_accessibility: true,
             include_future_enhancements: true,
+            enable_subagents: true,
         }
     }
 }

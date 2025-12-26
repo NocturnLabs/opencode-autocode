@@ -54,6 +54,12 @@ The specification MUST include:
 - Testing strategy (unit, integration, e2e)
 - CI/CD and deployment considerations
 
+**For JavaScript/TypeScript projects:**
+
+- ES6 module system (import/export) requirements
+- Module bundling approach (Vite, esbuild, webpack)
+- Entry point file structure and dependency tree
+
 ## Output Format
 
 **CRITICAL XML ESCAPING RULES:**
@@ -208,13 +214,19 @@ Output ONLY the specification in this XML structure. Fill every section with sub
  - Critical flows to cover
  - Browser/device matrix
  - **MANDATORY**: Every core feature MUST have a scriptable E2E test (Playwright/Cypress)
- - verification_command in feature_list.json MUST invoke E2E tests, NOT unit tests
+ - verification_command in the database MUST invoke E2E tests, NOT unit tests
 </e2e_tests>
 <interactive_verification>
  - For web projects: Agent MUST use chrome-devtools MCP for manual verification
  - Check browser console for errors after each feature implementation
  - This is in ADDITION to automated E2E tests
 </interactive_verification>
+<module_verification>
+ - All ES6 imports resolve correctly (no ReferenceErrors)
+ - Named exports match import statements
+ - Relative paths use correct file extensions (.js for browser)
+ - No circular dependency issues
+</module_verification>
 </testing_strategy>
 
 <implementation_steps>

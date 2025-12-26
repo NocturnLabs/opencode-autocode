@@ -21,6 +21,12 @@ const SECURITY_ALLOWLIST: &str = include_str!("../templates/scripts/security-all
 /// Embedded user configuration template
 const USER_CONFIG_TEMPLATE: &str = include_str!("../templates/autocode-user.toml");
 
+/// Embedded subagent templates for parallel spec generation
+const SPEC_PRODUCT_AGENT: &str = include_str!("../templates/scaffold/agents/spec-product.md");
+const SPEC_ARCHITECTURE_AGENT: &str =
+    include_str!("../templates/scaffold/agents/spec-architecture.md");
+const SPEC_QUALITY_AGENT: &str = include_str!("../templates/scaffold/agents/spec-quality.md");
+
 /// Scaffold with the default embedded app spec
 pub fn scaffold_default(output_dir: &Path) -> Result<()> {
     scaffold_with_spec_text(output_dir, DEFAULT_APP_SPEC)
@@ -62,6 +68,11 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
             command_dir.display()
         )
     })?;
+
+    // Create .opencode/agent directory for subagent definitions
+    let agent_dir = opencode_dir.join("agent");
+    fs::create_dir_all(&agent_dir)
+        .with_context(|| format!("Failed to create agent directory: {}", agent_dir.display()))?;
 
     // Write app_spec.md inside .autocode/
     let spec_path = autocode_dir.join("app_spec.md");
@@ -114,6 +125,34 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     fs::write(&config_path, USER_CONFIG_TEMPLATE)
         .with_context(|| format!("Failed to write config.toml: {}", config_path.display()))?;
     println!("   ⚙️  Created .autocode/config.toml");
+
+    // Write subagent definitions for parallel spec generation
+    let spec_product_path = agent_dir.join("spec-product.md");
+    fs::write(&spec_product_path, SPEC_PRODUCT_AGENT).with_context(|| {
+        format!(
+            "Failed to write spec-product.md: {}",
+            spec_product_path.display()
+        )
+    })?;
+    println!("   🤖 Created .opencode/agent/spec-product.md");
+
+    let spec_arch_path = agent_dir.join("spec-architecture.md");
+    fs::write(&spec_arch_path, SPEC_ARCHITECTURE_AGENT).with_context(|| {
+        format!(
+            "Failed to write spec-architecture.md: {}",
+            spec_arch_path.display()
+        )
+    })?;
+    println!("   🤖 Created .opencode/agent/spec-architecture.md");
+
+    let spec_quality_path = agent_dir.join("spec-quality.md");
+    fs::write(&spec_quality_path, SPEC_QUALITY_AGENT).with_context(|| {
+        format!(
+            "Failed to write spec-quality.md: {}",
+            spec_quality_path.display()
+        )
+    })?;
+    println!("   🤖 Created .opencode/agent/spec-quality.md");
 
     // Initialize communication channel
     let comm_channel = CommunicationChannel::new(&autocode_dir.join("COMMUNICATION.md"));
@@ -232,18 +271,18 @@ fn generate_opencode_json() -> String {
     },
     
     // Sequential thinking for complex reasoning
-    // Install: npx -y @anthropic/thinking-mcp
+    // Install: npx -y @modelcontextprotocol/server-sequential-thinking
     "sequential-thinking": {
       "type": "local", 
-      "command": ["npx", "-y", "@anthropic/thinking-mcp"],
+      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
       "enabled": false
     },
     
     // Chrome DevTools for web projects (browser testing)
-    // Install: npx -y @anthropic/chrome-devtools-mcp
+    // Install: npx -y chrome-devtools-mcp@latest
     "chrome-devtools": {
       "type": "local",
-      "command": ["npx", "-y", "@anthropic/chrome-devtools-mcp"],
+      "command": ["npx", "-y", "chrome-devtools-mcp@latest"],
       "enabled": false
     }
   },

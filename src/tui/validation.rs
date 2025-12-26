@@ -40,7 +40,12 @@ pub fn run_validation_loop(
             }
             SpecAction::Refine => super::actions::handle_refine(spec_text, model_owned.as_deref())?,
             SpecAction::Regenerate => {
-                return super::generated::run_generated_mode(output_dir, model_owned.as_deref());
+                // Default to subagents for regeneration (can't know original flag)
+                return super::generated::run_generated_mode(
+                    output_dir,
+                    model_owned.as_deref(),
+                    true,
+                );
             }
             SpecAction::Cancel => {
                 println!("{}", style("Cancelled.").red());

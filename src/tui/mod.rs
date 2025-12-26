@@ -27,11 +27,13 @@ enum InteractiveMode {
 }
 
 /// Run the interactive TUI to build an app spec
-pub fn run_interactive(output_dir: &Path) -> Result<()> {
+pub fn run_interactive(output_dir: &Path, use_subagents: bool) -> Result<()> {
     display_header();
 
     match select_mode()? {
-        InteractiveMode::Generated => generated::run_generated_mode(output_dir, None),
+        InteractiveMode::Generated => {
+            generated::run_generated_mode(output_dir, None, use_subagents)
+        }
         InteractiveMode::Manual => manual::run_manual_mode(output_dir),
         InteractiveMode::FromSpecFile => run_from_spec_file_mode(output_dir),
         InteractiveMode::Default => run_default_mode(output_dir),
