@@ -13,7 +13,11 @@ use super::manual::run_manual_mode;
 use super::validation::run_validation_loop;
 
 /// Run AI-generated spec mode
-pub fn run_generated_mode(output_dir: &Path, initial_model: Option<&str>, use_subagents: bool) -> Result<()> {
+pub fn run_generated_mode(
+    output_dir: &Path,
+    initial_model: Option<&str>,
+    use_subagents: bool,
+) -> Result<()> {
     println!("\n{}", style("─── AI Spec Generation ───").yellow().bold());
     println!(
         "{}",

@@ -56,7 +56,7 @@ where
     let opencode_path = which_opencode(&config)?;
 
     let model_to_use = model.unwrap_or(&config.models.default);
-    
+
     // Performance timing
     let start_time = Instant::now();
     if use_subagents {
