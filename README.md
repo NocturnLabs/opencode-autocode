@@ -41,6 +41,8 @@ opencode-autocode vibe --developer
 - 🔌 **Port Conflict Prevention**: Automatic detection and resolution of port conflicts before starting servers or tests.
 - 📦 **Module Verification**: Validates ES6 import/export consistency to prevent ReferenceErrors at runtime.
 - 🧩 **Progressive Discovery**: Modular template system that reduces context window usage by ~80%.
+- 💬 **Agent-User Communication**: Polling-based Q&A channel via `.autocode/COMMUNICATION.md` for async collaboration.
+- ✅ **Spec Validation**: Validates generated specifications for structural correctness before scaffolding.
 
 ## CLI Reference
 
@@ -51,6 +53,7 @@ opencode-autocode vibe --developer
 - `--spec <FILE>`: Use a custom markdown specification file.
 - `--output <DIR>` (alias: `-o`): Specify the target directory for scaffolding.
 - `--preview` (alias: `--dry-run`): Preview what will be created without writing to disk.
+- `--no-subagents`: Disable parallel subagent spec generation (use legacy single-pass).
 
 ### Vibe Mode (Autonomous Loop)
 
@@ -129,6 +132,22 @@ blocked_patterns = ["rm -rf /", "sudo"] # Absolute constraints
 [notifications]
 webhook_enabled = false
 webhook_url = "https://discord.com/api/webhooks/..."
+
+[communication]
+enabled = true                  # Agent-user Q&A channel
+file_path = ".autocode/COMMUNICATION.md"
+auto_ask_on_error = true        # Auto-post questions on repeated failures
+
+[generation]
+complexity = "comprehensive"    # "comprehensive" or "minimal"
+enable_subagents = true         # Parallel spec generation (faster)
+include_security_section = true
+include_testing_strategy = true
+
+[ui]
+colored_output = true
+verbose = false
+show_progress = true
 ```
 
 ## How It Works: The 5-Phase Loop
