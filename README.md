@@ -37,7 +37,7 @@ opencode-autocode vibe --developer
 - 🔁 **Stuck Recovery**: Automatically generates alternative implementation paths when progress stalls.
 - 🧪 **Regression Testing**: CLI command to verify all previously completed features directly from the database.
 - 🔔 **Webhooks**: Real-time integration with Discord/Slack for feature completion alerts.
-- 🛠️ **MCP Native**: First-class support for Model Context Protocol tools like `osgrep`, `chrome-devtools`, and `sqlite-mcp`.
+- 🛠️ **MCP Native**: First-class support for Model Context Protocol tools like `osgrep`, `chrome-devtools`, and `sequential-thinking`.
 - 🔌 **Port Conflict Prevention**: Automatic detection and resolution of port conflicts before starting servers or tests.
 - 📦 **Module Verification**: Validates ES6 import/export consistency to prevent ReferenceErrors at runtime.
 - 🧩 **Progressive Discovery**: Modular template system that reduces context window usage by ~80%.
@@ -85,15 +85,18 @@ Settings are stored in `.autocode/config.toml`. You can either use `opencode-aut
 
 ```toml
 [models]
-default = "opencode/big-pickle"     # Used for spec generation
-autonomous = "opencode/grok-code"  # Used for heart of the coding loop
-reasoning = "opencode/grok-code"   # Used for planning and complex decisions
-enhancement = "opencode/big-pickle" # Used for discovering improvements
+default = "opencode/big-pickle"    # Used for spec generation
+autonomous = "opencode/grok-code" # Used for code implementation
+reasoning = "opencode/grok-code"  # Used for planning and logic
+enhancement = "opencode/big-pickle" # Used for discover_improvements
+
+[paths]
+database_file = ".autocode/progress.db"
+log_dir = "$HOME/.local/share/opencode/log"
 
 [autonomous]
-database_file = ".autocode/progress.db" # Path to progress database
-delay_between_sessions = 5      # Seconds to wait between sessions
-max_iterations = 0              # 0 = Run until all features pass
+delay_between_sessions = 5      # Seconds to wait
+max_iterations = 0              # 0 = Run until complete
 session_timeout_minutes = 60    # Kill hung sessions after N minutes
 auto_commit = true              # Commit to Git on feature completion
 log_level = "DEBUG"             # Logging verbosity
@@ -116,7 +119,7 @@ tracks_dir = "tracks"           # Per-feature specifications and plans
 [mcp]
 prefer_osgrep = true            # Use semantic code search
 use_sequential_thinking = true  # Enable multi-step reasoning protocol
-required_tools = ["chrome-devtools", "sqlite-mcp"]
+required_tools = ["chrome-devtools"]
 
 [security]
 enforce_allowlist = true        # Use .autocode/security-allowlist.json
@@ -140,11 +143,11 @@ webhook_url = "https://discord.com/api/webhooks/..."
 
 When you run `vibe`, the engine determines the next action using a phased approach:
 
-1.  **Phase 1: Init** → Runs `auto-init` command to populate the `.autocode/progress.db` and basic structure.
-2.  **Phase 2: Context** → (If Conductor enabled) Runs `auto-context` to define product goals and tech stack.
-3.  **Phase 3: Work** → Runs `auto-continue` to implement the next task in the active `plan.md`.
-4.  **Phase 4: Verify** → Checks database for progress and marks features passing based on session results.
-5.  **Phase 5: Work** → (If no active track) Runs `auto-continue` to pick and implement the next failing feature.
+1.  **Phase 1: Init** (`auto-init`) → Populates the database (`.autocode/progress.db`) and basic structure.
+2.  **Phase 2: Context** (`auto-context`) → Establishes project-wide product and technical requirements.
+3.  **Phase 3: Continue** (`auto-continue`) → Executes the next task in the active `plan.md` (Track mode).
+4.  **Phase 4: Completion** → Checks if all features pass; if so, terminates the loop gracefully.
+5.  **Phase 5: Transition** (`auto-continue`) → If no active track exists, picks the next failing feature to implement.
 
 ## Template Architecture: Progressive Discovery
 
