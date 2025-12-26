@@ -37,6 +37,11 @@ const SPEC_QUALITY_AGENT: &str = include_str!("../templates/scaffold/agents/spec
 
 /// Resolve {{INCLUDE path}} directives in templates
 /// Replaces include directives with the actual content of the referenced modules
+/// Resolve {{INCLUDE path}} directives in templates.
+///
+/// This implements the "Progressive Discovery" pattern, where high-level
+/// command templates (like auto-init.md) include modular core logic
+/// (like identity.md or security.md) only when needed by the agent.
 fn resolve_includes(template: &str) -> String {
     let mut result = template.to_string();
 
