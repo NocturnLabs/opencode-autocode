@@ -39,7 +39,7 @@ const SPEC_QUALITY_AGENT: &str = include_str!("../templates/scaffold/agents/spec
 /// Replaces include directives with the actual content of the referenced modules
 fn resolve_includes(template: &str) -> String {
     let mut result = template.to_string();
-    
+
     // Map of include paths to their embedded content
     let includes: &[(&str, &str)] = &[
         ("core/identity.md", CORE_IDENTITY),
@@ -49,12 +49,12 @@ fn resolve_includes(template: &str) -> String {
         ("core/communication.md", CORE_COMMUNICATION),
         ("core/mcp_guide.md", CORE_MCP_GUIDE),
     ];
-    
+
     for (path, content) in includes {
         let directive = format!("{{{{INCLUDE {}}}}}", path);
         result = result.replace(&directive, content);
     }
-    
+
     result
 }
 
