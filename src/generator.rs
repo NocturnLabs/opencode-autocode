@@ -28,6 +28,7 @@ const REFINE_PROMPT: &str = include_str!("../templates/refine_prompt.md");
 /// # Arguments
 /// * `idea` - The user's project idea description
 /// * `model` - Optional model to use (defaults to configured or big-pickle)
+/// * `use_subagents` - Whether to use parallel subagent generation
 /// * `on_output` - Callback for streaming output lines to the user
 ///
 /// # Returns
@@ -35,6 +36,7 @@ const REFINE_PROMPT: &str = include_str!("../templates/refine_prompt.md");
 pub fn generate_spec_from_idea<F>(
     idea: &str,
     model: Option<&str>,
+    use_subagents: bool,
     mut on_output: F,
 ) -> Result<String>
 where
@@ -43,8 +45,8 @@ where
     // Load config
     let config = Config::load(None).unwrap_or_default();
 
-    // Build the prompt with the user's idea (use subagents if enabled)
-    let prompt = if config.generation.enable_subagents {
+    // Build the prompt with the user's idea (use subagents if enabled via CLI flag)
+    let prompt = if use_subagents {
         build_subagent_prompt(idea)
     } else {
         build_generation_prompt(idea)
@@ -57,7 +59,7 @@ where
     
     // Performance timing
     let start_time = Instant::now();
-    if config.generation.enable_subagents {
+    if use_subagents {
         on_output(&format!(
             "[PERF] Starting subagent spec generation at {:?}\n",
             std::time::SystemTime::now()

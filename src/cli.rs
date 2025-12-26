@@ -43,6 +43,10 @@ pub struct Cli {
     #[arg(long, visible_alias = "preview")]
     pub dry_run: bool,
 
+    /// Disable parallel subagent spec generation (use legacy single-pass)
+    #[arg(long)]
+    pub no_subagents: bool,
+
     /// Path to feature_list.json (for --regression-check)
     #[arg(long, value_name = "FILE")]
     pub feature_list: Option<PathBuf>,
@@ -197,6 +201,7 @@ mod tests {
             regression_check: false,
             output: None,
             dry_run: false,
+            no_subagents: false,
             feature_list: None,
             verbose: false,
         }
