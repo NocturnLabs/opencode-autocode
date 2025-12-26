@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use console::style;
+use crossterm::terminal::disable_raw_mode;
 use dialoguer::{FuzzySelect, Input};
 use std::io::Write;
 use std::path::Path;
@@ -26,6 +27,12 @@ pub fn run_generated_mode(
 
     let model_owned = prompt_for_model(initial_model)?;
     let model = model_owned.as_deref();
+
+    // Ensure terminal is in proper state after FuzzySelect
+    // FuzzySelect uses raw mode which can leave artifacts
+    let _ = disable_raw_mode();
+    print!("\x1B[2K\r");
+    let _ = std::io::stdout().flush();
 
     let idea = prompt_for_idea()?;
     if idea.is_empty() {
@@ -97,9 +104,15 @@ fn prompt_for_model(initial: Option<&str>) -> Result<Option<String>> {
 }
 
 fn prompt_for_idea() -> Result<String> {
-    let idea: String = Input::new()
-        .with_prompt("Describe your project idea")
-        .interact_text()?;
+    use std::io::{self, BufRead};
+
+    print!("{}: ", style("Describe your project idea").green());
+    let _ = std::io::stdout().flush();
+
+    let stdin = io::stdin();
+    let idea = stdin.lock().lines().next()
+        .transpose()?
+        .unwrap_or_default();
 
     if idea.trim().is_empty() {
         println!("{}", style("No idea provided.").red());
