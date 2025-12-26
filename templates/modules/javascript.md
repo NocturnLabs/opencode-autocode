@@ -9,9 +9,9 @@ Read this module when working on web projects with JavaScript or TypeScript.
 Before starting any servers or running tests, verify required ports are free:
 
 ```bash
-# Check if default ports are in use
-lsof -i :8000 -t 2>/dev/null && echo "Port 8000 in use" || echo "Port 8000 free"
-lsof -i :3000 -t 2>/dev/null && echo "Port 3000 in use" || echo "Port 3000 free"
+# Check if default ports are in use (ss is more reliable than lsof)
+ss -tlnH "sport = :8000" | grep -q . && echo "Port 8000 in use" || echo "Port 8000 free"
+ss -tlnH "sport = :3000" | grep -q . && echo "Port 3000 in use" || echo "Port 3000 free"
 ```
 
 **If ports are occupied:**
@@ -63,10 +63,10 @@ Before marking a feature as passing, verify imports are correct:
 DEFAULT_PORT=8000
 PORT=$DEFAULT_PORT
 
-# Find an available port
+# Find an available port (using ss which is more reliable than lsof)
 find_free_port() {
     local port=$1
-    while lsof -i :$port -t >/dev/null 2>&1; do
+    while ss -tlnH "sport = :$port" | grep -q .; do
         echo "Port $port is in use, trying $((port + 1))..."
         port=$((port + 1))
     done

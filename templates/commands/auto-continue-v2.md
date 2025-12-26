@@ -44,13 +44,13 @@ Write code → Test → Fix → Verify end-to-end.
 **Before starting ANY server, check ports:**
 
 ```bash
-lsof -i :8000 -t 2>/dev/null && echo "8000 IN USE" || echo "8000 free"
+ss -tlnH "sport = :8000" | grep -q . && echo "8000 IN USE" || echo "8000 free"
 ```
 
 If port in use, find a free one:
 
 ```bash
-PORT=8000; while lsof -i :$PORT -t >/dev/null 2>&1; do PORT=$((PORT+1)); done; echo "Use port $PORT"
+PORT=8000; while ss -tlnH "sport = :$PORT" | grep -q .; do PORT=$((PORT+1)); done; echo "Use port $PORT"
 ```
 
 Start server on the free port, not the default.
