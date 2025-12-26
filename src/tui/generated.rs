@@ -76,7 +76,7 @@ fn prompt_for_model(initial: Option<&str>) -> Result<Option<String>> {
         .with_prompt("Select model (type to filter)")
         .items(&options)
         .default(default_idx)
-        .max_length(15)
+        .max_length(5)
         .interact()?;
 
     if idx == 0 {

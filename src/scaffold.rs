@@ -4,6 +4,7 @@ use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
 
+use crate::communication::CommunicationChannel;
 use crate::db;
 
 /// Embedded default app spec template
@@ -113,6 +114,11 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     fs::write(&config_path, USER_CONFIG_TEMPLATE)
         .with_context(|| format!("Failed to write config.toml: {}", config_path.display()))?;
     println!("   ⚙️  Created .autocode/config.toml");
+
+    // Initialize communication channel
+    let comm_channel = CommunicationChannel::new(&autocode_dir.join("COMMUNICATION.md"));
+    comm_channel.init()?;
+    println!("   💬 Created .autocode/COMMUNICATION.md");
 
     // Write opencode.json at project root (required by OpenCode)
     let opencode_json_path = output_dir.join("opencode.json");
