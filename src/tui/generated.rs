@@ -110,9 +110,7 @@ fn prompt_for_idea() -> Result<String> {
     let _ = std::io::stdout().flush();
 
     let stdin = io::stdin();
-    let idea = stdin.lock().lines().next()
-        .transpose()?
-        .unwrap_or_default();
+    let idea = stdin.lock().lines().next().transpose()?.unwrap_or_default();
 
     if idea.trim().is_empty() {
         println!("{}", style("No idea provided.").red());
