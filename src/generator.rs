@@ -6,11 +6,15 @@
 use anyhow::{bail, Context, Result};
 use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
+use std::time::Instant;
 
 use crate::config::Config;
 
-/// Embedded prompt template for spec generation
+/// Embedded prompt template for spec generation (legacy single-pass)
 const GENERATOR_PROMPT: &str = include_str!("../templates/generator_prompt.md");
+
+/// Embedded prompt template for subagent-based parallel generation
+const SUBAGENT_PROMPT: &str = include_str!("../templates/generator/subagent_prompt.md");
 
 /// Embedded prompt template for spec refinement
 const REFINE_PROMPT: &str = include_str!("../templates/refine_prompt.md");
@@ -39,17 +43,35 @@ where
     // Load config
     let config = Config::load(None).unwrap_or_default();
 
-    // Build the prompt with the user's idea
-    let prompt = build_generation_prompt(idea);
+    // Build the prompt with the user's idea (use subagents if enabled)
+    let prompt = if config.generation.enable_subagents {
+        build_subagent_prompt(idea)
+    } else {
+        build_generation_prompt(idea)
+    };
 
     // Check if opencode is available
     let opencode_path = which_opencode(&config)?;
 
     let model_to_use = model.unwrap_or(&config.models.default);
-    on_output(&format!(
-        "🔍 Researching your idea with OpenCode (model: {})...\n",
-        model_to_use
-    ));
+    
+    // Performance timing
+    let start_time = Instant::now();
+    if config.generation.enable_subagents {
+        on_output(&format!(
+            "[PERF] Starting subagent spec generation at {:?}\n",
+            std::time::SystemTime::now()
+        ));
+        on_output(&format!(
+            "🚀 Generating spec with parallel subagents (model: {})...\n",
+            model_to_use
+        ));
+    } else {
+        on_output(&format!(
+            "🔍 Researching your idea with OpenCode (model: {})...\n",
+            model_to_use
+        ));
+    }
     on_output("   (This may take a minute as the AI researches best practices)\n\n");
 
     // Run opencode with the prompt
@@ -94,6 +116,13 @@ where
 
     // Extract the XML specification from the output
     let spec = extract_spec_from_output(&full_output)?;
+
+    // Log performance timing
+    let elapsed = start_time.elapsed();
+    on_output(&format!(
+        "[PERF] Spec generation completed in {:.2}s\n",
+        elapsed.as_secs_f64()
+    ));
 
     Ok(spec)
 }
@@ -182,6 +211,11 @@ where
 /// Build the generation prompt by inserting the user's idea into the template.
 fn build_generation_prompt(idea: &str) -> String {
     GENERATOR_PROMPT.replace("{{IDEA}}", idea)
+}
+
+/// Build the subagent-based generation prompt by inserting the user's idea.
+fn build_subagent_prompt(idea: &str) -> String {
+    SUBAGENT_PROMPT.replace("{{IDEA}}", idea)
 }
 
 /// Build the refinement prompt by inserting the current spec and refinement instructions.
