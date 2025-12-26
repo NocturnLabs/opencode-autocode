@@ -119,8 +119,8 @@ use_sequential_thinking = true  # Enable multi-step reasoning protocol
 required_tools = ["chrome-devtools", "sqlite-mcp"]
 
 [security]
-enforce_allowlist = true        # Use scripts/security-allowlist.json
-allowlist_file = "scripts/security-allowlist.json"
+enforce_allowlist = true        # Use .autocode/security-allowlist.json
+allowlist_file = ".autocode/security-allowlist.json"
 blocked_patterns = ["rm -rf /", "sudo"] # Absolute constraints
 
 [development]
@@ -144,7 +144,7 @@ When you run `vibe`, the engine determines the next action using a phased approa
 2.  **Phase 2: Context** → (If Conductor enabled) Runs `auto-context` to define product goals and tech stack.
 3.  **Phase 3: Work** → Runs `auto-continue` to implement the next task in the active `plan.md`.
 4.  **Phase 4: Verify** → Checks database for progress and marks features passing based on session results.
-5.  **Phase 5: Plan** → (If no active track) Runs `auto-plan` to create a new track/plan for the next failing feature.
+5.  **Phase 5: Work** → (If no active track) Runs `auto-continue` to pick and implement the next failing feature.
 
 ## Template Architecture: Progressive Discovery
 
@@ -162,9 +162,9 @@ templates/
 │   ├── rust.md          # CLI/Rust patterns
 │   ├── testing.md       # Playwright, E2E protocols
 │   └── recovery.md      # Stuck protocol
-└── commands/
-    ├── auto-init.md     # Lean entry point (~100 lines)
-    └── auto-continue.md # Lean entry point (~80 lines)
+├── commands/
+│   ├── auto-init-v2.md     # Lean entry point (~100 lines)
+│   └── auto-continue-v2.md # Lean entry point (~80 lines)
 ```
 
 The agent reads specialized modules only when needed, reducing context window consumption by ~80%.
