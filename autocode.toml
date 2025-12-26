@@ -158,22 +158,6 @@ prefer_osgrep = false
 use_sequential_thinking = true
 
 # ─────────────────────────────────────────────────────────────────────────────
-# DEVELOPMENT - Dev server and verification settings
-# ─────────────────────────────────────────────────────────────────────────────
-[development]
-# Default port for development servers
-default_port = 8000
-
-# Port range to try if default is occupied (start, end)
-port_range_start = 8000
-port_range_end = 8099
-
-# Verification checks to run before marking features as passing
-check_module_imports = true    # Check for import/export mismatches in JS/TS files
-check_console_errors = true    # Check browser console for errors (requires chrome-devtools MCP)
-check_port_availability = true # Check for port conflicts before starting servers
-
-# ─────────────────────────────────────────────────────────────────────────────
 # FEATURES - Feature list and testing configuration
 # ─────────────────────────────────────────────────────────────────────────────
 [features]

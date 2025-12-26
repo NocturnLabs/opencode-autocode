@@ -126,16 +126,8 @@ enforce_allowlist = true        # Use .autocode/security-allowlist.json
 allowlist_file = ".autocode/security-allowlist.json"
 blocked_patterns = ["rm -rf /", "sudo"] # Absolute constraints
 
-[development]
-default_port = 8000             # Default port for dev servers
-port_range_start = 8000         # Fallback port range start
-port_range_end = 8099           # Fallback port range end
-check_module_imports = true     # Verify import/export consistency (JS/TS)
-check_console_errors = true     # Check browser console for errors
-check_port_availability = true  # Check ports before starting servers
-
 [notifications]
-webhook_enabled = true
+webhook_enabled = false
 webhook_url = "https://discord.com/api/webhooks/..."
 ```
 
