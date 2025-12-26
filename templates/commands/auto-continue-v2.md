@@ -39,7 +39,25 @@ Write code → Test → Fix → Verify end-to-end.
 
 ---
 
-### 5. Verify
+### 5. Start Server (Web Projects - MANDATORY)
+
+**Before starting ANY server, check ports:**
+
+```bash
+lsof -i :8000 -t 2>/dev/null && echo "8000 IN USE" || echo "8000 free"
+```
+
+If port in use, find a free one:
+
+```bash
+PORT=8000; while lsof -i :$PORT -t >/dev/null 2>&1; do PORT=$((PORT+1)); done; echo "Use port $PORT"
+```
+
+Start server on the free port, not the default.
+
+---
+
+### 6. Verify
 
 Test like a real user. Check console for errors.
 
@@ -47,7 +65,7 @@ Test like a real user. Check console for errors.
 
 ---
 
-### 6. Update & Commit
+### 7. Update & Commit
 
 ```bash
 opencode-autocode db mark-pass X
@@ -56,7 +74,7 @@ git add . && git commit -m "Implement [feature]"
 
 ---
 
-### 7. Signal
+### 8. Signal
 
 ```bash
 echo "CONTINUE" > .opencode-signal
