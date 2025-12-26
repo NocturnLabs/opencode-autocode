@@ -1,6 +1,7 @@
 # Autonomous Initialization Session
 
-{{INCLUDE core/base.md}}
+{{INCLUDE core/identity.md}}
+{{INCLUDE core/security.md}}
 
 ---
 
@@ -66,6 +67,7 @@ Create a setup script for future sessions.
 ### STEP 5: Create .gitignore
 
 Standard patterns for your tech stack (node_modules, target, **pycache**, etc.)
+Be sure to include `osgrep/lancedb` in the ignore list.
 
 ---
 

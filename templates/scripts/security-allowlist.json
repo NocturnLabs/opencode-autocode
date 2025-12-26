@@ -71,6 +71,7 @@
     "process_management": [
       "ps",
       "lsof",
+      "ss",
       "sleep",
       "pkill",
       "kill"

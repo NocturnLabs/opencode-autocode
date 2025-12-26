@@ -91,3 +91,36 @@ fn test_scaffold_generates_valid_config() {
         "Config should have [autonomous] section"
     );
 }
+
+/// Test that opencode.json is valid JSON (not JSONC with comments)
+#[test]
+fn test_scaffold_generates_valid_opencode_json() {
+    let temp_dir = TempDir::new().expect("Failed to create temp dir");
+    let output_path = temp_dir.path();
+
+    opencode_autocode::scaffold::scaffold_default(output_path).expect("Scaffold should succeed");
+
+    // Read and parse opencode.json
+    let json_path = output_path.join("opencode.json");
+    let content = fs::read_to_string(&json_path).expect("Failed to read opencode.json");
+
+    // This will fail if there are comments or invalid JSON
+    let parsed: Result<serde_json::Value, _> = serde_json::from_str(&content);
+    assert!(
+        parsed.is_ok(),
+        "opencode.json must be valid JSON, not JSONC: {:?}",
+        parsed.err()
+    );
+
+    // Verify expected structure
+    let json = parsed.unwrap();
+    assert!(json.get("$schema").is_some(), "Should have $schema field");
+    assert!(
+        json.get("instructions").is_some(),
+        "Should have instructions field"
+    );
+    assert!(
+        json.get("permission").is_some(),
+        "Should have permission field"
+    );
+}
