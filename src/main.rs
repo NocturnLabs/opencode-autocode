@@ -234,5 +234,91 @@ fn handle_db_command(action: &DbAction) -> Result<()> {
 
             Ok(())
         }
+        DbAction::Query { sql } => {
+            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
+            if !db_path.exists() {
+                anyhow::bail!(
+                    "Database not found: {}. Run 'db init' first.",
+                    db_path.display()
+                );
+            }
+            let db = db::Database::open(&db_path)?;
+            let output = db.read_query(sql)?;
+            print!("{}", output);
+            Ok(())
+        }
+        DbAction::Exec { sql } => {
+            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
+            if !db_path.exists() {
+                anyhow::bail!(
+                    "Database not found: {}. Run 'db init' first.",
+                    db_path.display()
+                );
+            }
+            let db = db::Database::open(&db_path)?;
+            let affected = db.write_query(sql)?;
+            println!("{} row(s) affected", affected);
+            Ok(())
+        }
+        DbAction::Tables => {
+            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
+            if !db_path.exists() {
+                anyhow::bail!(
+                    "Database not found: {}. Run 'db init' first.",
+                    db_path.display()
+                );
+            }
+            let db = db::Database::open(&db_path)?;
+            let tables = db.list_tables()?;
+            for table in tables {
+                println!("{}", table);
+            }
+            Ok(())
+        }
+        DbAction::Schema { table } => {
+            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
+            if !db_path.exists() {
+                anyhow::bail!(
+                    "Database not found: {}. Run 'db init' first.",
+                    db_path.display()
+                );
+            }
+            let db = db::Database::open(&db_path)?;
+            let schema = db.describe_table(table)?;
+            print!("{}", schema);
+            Ok(())
+        }
+        DbAction::NextFeature => {
+            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
+            if !db_path.exists() {
+                anyhow::bail!(
+                    "Database not found: {}. Run 'db init' first.",
+                    db_path.display()
+                );
+            }
+            let db = db::Database::open(&db_path)?;
+            let next =
+                db.read_query("SELECT id, description FROM features WHERE passes = 0 LIMIT 1")?;
+            print!("{}", next);
+            Ok(())
+        }
+        DbAction::MarkPass { id } => {
+            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
+            if !db_path.exists() {
+                anyhow::bail!(
+                    "Database not found: {}. Run 'db init' first.",
+                    db_path.display()
+                );
+            }
+            let db = db::Database::open(&db_path)?;
+            let affected =
+                db.write_query(&format!("UPDATE features SET passes = 1 WHERE id = {}", id))?;
+            if affected > 0 {
+                println!("Feature {} marked as passing", id);
+            } else {
+                println!("No feature found with id {}", id);
+            }
+            Ok(())
+        }
     }
 }
