@@ -222,16 +222,7 @@ fn generate_opencode_json() -> String {
   // MCP server configurations
   // Enable/disable MCP tools based on your installed servers
   // See: https://opencode.ai/docs/mcp-servers
-  "mcp": {
-    // SQLite database for feature tracking (REQUIRED for autonomous mode)
-    // Provides: read_query, write_query, list_tables, describe_table
-    // Use this to query and update feature status in .autocode/progress.db
-    "sqlite": {
-      "type": "local",
-      "command": ["npx", "-y", "@anthropic-ai/mcp-server-sqlite", ".autocode/progress.db"],
-      "enabled": true
-    },
-    
+  \"mcp\": {
     // Semantic code search - faster than grep for large codebases
     // Install: https://github.com/Ryandonofrio3/osgrep
     "osgrep": {
