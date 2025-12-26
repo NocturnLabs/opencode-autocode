@@ -176,11 +176,48 @@ Create a script called `init.sh` that future agents can use to quickly
 set up and run the development environment. The script should:
 
 1. Install any required dependencies
-2. Start any necessary servers or services
-3. Print helpful information about how to access the running application
+2. **Check for port availability before starting servers**
+3. Start any necessary servers or services
+4. Print helpful information about how to access the running application
 
 Base the script on the technology stack specified in `app_spec.md`.
 Make the script as portable and robust as possible.
+
+**CRITICAL: Port Conflict Prevention**
+
+The init.sh script MUST include port availability checks:
+
+```bash
+#!/bin/bash
+# init.sh with port conflict prevention
+
+# Port configuration
+DEFAULT_PORT=8000
+PORT=$DEFAULT_PORT
+
+# Find an available port
+find_free_port() {
+    local port=$1
+    while lsof -i :$port -t >/dev/null 2>&1; do
+        echo "Port $port is in use, trying $((port + 1))..."
+        port=$((port + 1))
+    done
+    echo $port
+}
+
+PORT=$(find_free_port $DEFAULT_PORT)
+echo "Starting server on port $PORT"
+
+# Export for Playwright config or other tools
+export PORT
+
+# Start the server (adjust based on tech stack)
+python3 -m http.server $PORT &
+# Or: npm run dev -- --port $PORT
+# Or: npx vite --port $PORT
+
+echo "Server running at http://localhost:$PORT"
+```
 
 ---
 

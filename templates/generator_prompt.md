@@ -54,6 +54,12 @@ The specification MUST include:
 - Testing strategy (unit, integration, e2e)
 - CI/CD and deployment considerations
 
+**For JavaScript/TypeScript projects:**
+
+- ES6 module system (import/export) requirements
+- Module bundling approach (Vite, esbuild, webpack)
+- Entry point file structure and dependency tree
+
 ## Output Format
 
 **CRITICAL XML ESCAPING RULES:**
@@ -215,6 +221,12 @@ Output ONLY the specification in this XML structure. Fill every section with sub
  - Check browser console for errors after each feature implementation
  - This is in ADDITION to automated E2E tests
 </interactive_verification>
+<module_verification>
+ - All ES6 imports resolve correctly (no ReferenceErrors)
+ - Named exports match import statements
+ - Relative paths use correct file extensions (.js for browser)
+ - No circular dependency issues
+</module_verification>
 </testing_strategy>
 
 <implementation_steps>

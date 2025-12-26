@@ -34,6 +34,8 @@ opencode-autocode vibe --developer
 - 🧪 **Regression Testing**: CLI command to verify all previously completed features directly from the database.
 - 🔔 **Webhooks**: Real-time integration with Discord/Slack for feature completion alerts.
 - 🛠️ **MCP Native**: First-class support for Model Context Protocol tools like `osgrep`, `chrome-devtools`, and `sqlite-mcp`.
+- 🔌 **Port Conflict Prevention**: Automatic detection and resolution of port conflicts before starting servers or tests.
+- 📦 **Module Verification**: Validates ES6 import/export consistency to prevent ReferenceErrors at runtime.
 
 ## CLI Reference
 
@@ -115,6 +117,14 @@ required_tools = ["chrome-devtools", "sqlite-mcp"]
 enforce_allowlist = true        # Use scripts/security-allowlist.json
 allowlist_file = "scripts/security-allowlist.json"
 blocked_patterns = ["rm -rf /", "sudo"] # Absolute constraints
+
+[development]
+default_port = 8000             # Default port for dev servers
+port_range_start = 8000         # Fallback port range start
+port_range_end = 8099           # Fallback port range end
+check_module_imports = true     # Verify import/export consistency (JS/TS)
+check_console_errors = true     # Check browser console for errors
+check_port_availability = true  # Check ports before starting servers
 
 [notifications]
 webhook_enabled = true
