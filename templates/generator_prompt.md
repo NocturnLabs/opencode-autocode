@@ -208,7 +208,7 @@ Output ONLY the specification in this XML structure. Fill every section with sub
  - Critical flows to cover
  - Browser/device matrix
  - **MANDATORY**: Every core feature MUST have a scriptable E2E test (Playwright/Cypress)
- - verification_command in feature_list.json MUST invoke E2E tests, NOT unit tests
+ - verification_command in the database MUST invoke E2E tests, NOT unit tests
 </e2e_tests>
 <interactive_verification>
  - For web projects: Agent MUST use chrome-devtools MCP for manual verification
