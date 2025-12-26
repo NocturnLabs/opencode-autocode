@@ -44,22 +44,20 @@ the project specification is always `app_spec.md`.
 
 ---
 
-### CRITICAL FIRST TASK: Populate Features in SQLite Database
+### CRITICAL FIRST TASK: Populate Features in Database
 
-Based on `.autocode/app_spec.md`, insert features into the SQLite database using the SQLite MCP.
+Based on `.autocode/app_spec.md`, insert features into the database using the CLI.
 
-**Use the SQLite MCP `write_query` tool to insert features:**
+**Use the CLI to insert features:**
 
-```sql
-INSERT INTO features (category, description, passes, verification_command)
-VALUES ('functional', 'Brief description of what this test verifies', 0, 'npm test -- --grep "feature-name"');
+```bash
+opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Brief description of what this test verifies', 0, 'npm test -- --grep \"feature-name\"')"
 ```
 
 **Also insert the steps for each feature:**
 
-```sql
-INSERT INTO feature_steps (feature_id, step_order, step_text)
-VALUES (1, 1, 'Step 1: Navigate to relevant page or run command');
+```bash
+opencode-autocode db exec "INSERT INTO feature_steps (feature_id, step_order, step_text) VALUES (1, 1, 'Step 1: Navigate to relevant page or run command')"
 ```
 
 **Database Schema (already created in `.autocode/progress.db`):**

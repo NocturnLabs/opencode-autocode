@@ -32,7 +32,7 @@ Start by orienting yourself. Examine the project structure:
 
 1. **List files** to understand project structure
 2. **Read app_spec.md** to understand what you're building
-3. **Query the SQLite database via MCP** to see all work and current progress
+3. **Query the database** to see all work and current progress
 4. **Check .autocode/session.log** for notes from previous sessions
 5. **Review git history** to see what's been done recently
 6. **Count remaining work** - how many tests are still failing?
@@ -92,8 +92,8 @@ Check if all tests are passing. Use code search for efficient searching:
 ```
 
 ```bash
-Use SQLite MCP: SELECT COUNT(*) FROM features WHERE passes = 1
-Use SQLite MCP: SELECT COUNT(*) FROM features WHERE passes = 0
+opencode-autocode db query "SELECT COUNT(*) FROM features WHERE passes = 1"
+opencode-autocode db query "SELECT COUNT(*) FROM features WHERE passes = 0"
 ```
 
 **If ALL tests pass (0 remaining):**
@@ -129,7 +129,7 @@ new, you MUST verify that ALL existing passing features still work.
 1. **Get the count of passing features:**
 
    ```bash
-   Use SQLite MCP: SELECT COUNT(*) FROM features WHERE passes = 1
+   opencode-autocode db query "SELECT COUNT(*) FROM features WHERE passes = 1"
    ```
 
 2. **Run verification for EVERY feature marked as passing:**
@@ -273,7 +273,7 @@ projects stay stable throughout development.
 1. **Get the list of all currently passing features:**
 
    ```bash
-   Use SQLite MCP: SELECT COUNT(*) FROM features WHERE passes = 1
+   opencode-autocode db query "SELECT COUNT(*) FROM features WHERE passes = 1"
    ```
 
 2. **Run verification for EACH passing feature:**
@@ -307,10 +307,16 @@ Catching regressions immediately is cheaper than debugging cascading failures la
 
 **YOU CAN ONLY CHANGE THE `passes` FIELD**
 
-After thorough verification, use the SQLite MCP to update the feature:
+After thorough verification, use the CLI to update the feature:
 
-```sql
-UPDATE features SET passes = 1 WHERE id = X;
+```bash
+opencode-autocode db mark-pass X
+```
+
+Or use raw SQL:
+
+```bash
+opencode-autocode db exec "UPDATE features SET passes = 1 WHERE id = X"
 ```
 
 (Replace X with the actual feature ID from your SELECT query in Step 5)
