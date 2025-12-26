@@ -183,6 +183,13 @@ fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
     Ok(())
 }
 
+/// Determines the next action in the 5-phase autonomous loop:
+///
+/// 1. **Init**: Scaffold project structure and DB.
+/// 2. **Context**: Setup project-wide requirements.
+/// 3. **Continue (Active)**: Work on existing plans in tracks/.
+/// 4. **Done Check**: Stop if all features pass.
+/// 5. **Continue (Failing)**: Start new plan for remaining failing features.
 fn determine_command(db_path: &Path, config: &Config) -> Result<Option<&'static str>> {
     let logger = debug_logger::get();
 
