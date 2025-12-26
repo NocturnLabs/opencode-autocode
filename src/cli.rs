@@ -116,6 +116,30 @@ pub enum DbAction {
     },
     /// Show database statistics
     Stats,
+    /// Execute a SELECT query (read-only)
+    Query {
+        /// SQL SELECT query string
+        sql: String,
+    },
+    /// Execute a write query (INSERT, UPDATE, DELETE, CREATE)
+    Exec {
+        /// SQL modification query string
+        sql: String,
+    },
+    /// List all tables in the database
+    Tables,
+    /// Show schema for a table
+    Schema {
+        /// Table name to describe
+        table: String,
+    },
+    /// Get the next incomplete feature
+    NextFeature,
+    /// Mark a feature as passing
+    MarkPass {
+        /// Feature ID to mark as passing
+        id: i32,
+    },
 }
 
 /// The mode of operation
