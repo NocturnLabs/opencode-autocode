@@ -8,12 +8,20 @@ use crate::communication::CommunicationChannel;
 use crate::db;
 
 /// Embedded default app spec template
-const DEFAULT_APP_SPEC: &str = include_str!("../default_app_spec.md");
+const DEFAULT_APP_SPEC: &str = include_str!("../docs/examples/default_app_spec.md");
 
-/// Embedded command templates
-const AUTO_INIT_TEMPLATE: &str = include_str!("../templates/commands/auto-init.md");
-const AUTO_CONTINUE_TEMPLATE: &str = include_str!("../templates/commands/auto-continue.md");
+/// Embedded command templates (v2 modular versions)
+const AUTO_INIT_TEMPLATE: &str = include_str!("../templates/commands/auto-init-v2.md");
+const AUTO_CONTINUE_TEMPLATE: &str = include_str!("../templates/commands/auto-continue-v2.md");
 const AUTO_ENHANCE_TEMPLATE: &str = include_str!("../templates/commands/auto-enhance.md");
+
+/// Core modules for include directive resolution
+const CORE_IDENTITY: &str = include_str!("../templates/core/identity.md");
+const CORE_SECURITY: &str = include_str!("../templates/core/security.md");
+const CORE_SIGNALING: &str = include_str!("../templates/core/signaling.md");
+const CORE_DATABASE: &str = include_str!("../templates/core/database.md");
+const CORE_COMMUNICATION: &str = include_str!("../templates/core/communication.md");
+const CORE_MCP_GUIDE: &str = include_str!("../templates/core/mcp_guide.md");
 
 /// Embedded security allowlist
 const SECURITY_ALLOWLIST: &str = include_str!("../templates/scripts/security-allowlist.json");
@@ -26,6 +34,29 @@ const SPEC_PRODUCT_AGENT: &str = include_str!("../templates/scaffold/agents/spec
 const SPEC_ARCHITECTURE_AGENT: &str =
     include_str!("../templates/scaffold/agents/spec-architecture.md");
 const SPEC_QUALITY_AGENT: &str = include_str!("../templates/scaffold/agents/spec-quality.md");
+
+/// Resolve {{INCLUDE path}} directives in templates
+/// Replaces include directives with the actual content of the referenced modules
+fn resolve_includes(template: &str) -> String {
+    let mut result = template.to_string();
+    
+    // Map of include paths to their embedded content
+    let includes: &[(&str, &str)] = &[
+        ("core/identity.md", CORE_IDENTITY),
+        ("core/security.md", CORE_SECURITY),
+        ("core/signaling.md", CORE_SIGNALING),
+        ("core/database.md", CORE_DATABASE),
+        ("core/communication.md", CORE_COMMUNICATION),
+        ("core/mcp_guide.md", CORE_MCP_GUIDE),
+    ];
+    
+    for (path, content) in includes {
+        let directive = format!("{{{{INCLUDE {}}}}}", path);
+        result = result.replace(&directive, content);
+    }
+    
+    result
+}
 
 /// Scaffold with the default embedded app spec
 pub fn scaffold_default(output_dir: &Path) -> Result<()> {
@@ -81,13 +112,16 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     println!("   📄 Created .autocode/app_spec.md");
 
     // Write command files (these stay in .opencode/ for OpenCode compatibility)
+    // Templates are processed to resolve {{INCLUDE}} directives
     let auto_init_path = command_dir.join("auto-init.md");
-    fs::write(&auto_init_path, AUTO_INIT_TEMPLATE)
+    let auto_init_content = resolve_includes(AUTO_INIT_TEMPLATE);
+    fs::write(&auto_init_path, auto_init_content)
         .with_context(|| format!("Failed to write auto-init.md: {}", auto_init_path.display()))?;
     println!("   📄 Created .opencode/command/auto-init.md");
 
     let auto_continue_path = command_dir.join("auto-continue.md");
-    fs::write(&auto_continue_path, AUTO_CONTINUE_TEMPLATE).with_context(|| {
+    let auto_continue_content = resolve_includes(AUTO_CONTINUE_TEMPLATE);
+    fs::write(&auto_continue_path, auto_continue_content).with_context(|| {
         format!(
             "Failed to write auto-continue.md: {}",
             auto_continue_path.display()

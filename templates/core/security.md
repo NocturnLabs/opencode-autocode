@@ -1,0 +1,16 @@
+# Security Constraints
+
+**Before executing ANY commands, you MUST:**
+
+1. Read `.autocode/security-allowlist.json` if it exists
+2. Check the `blocked_patterns` array for commands you must NEVER run
+3. Only use commands listed in `allowed_commands` categories
+
+**BLOCKED PATTERNS ARE ABSOLUTE:**
+
+- If a command matches ANY pattern in `blocked_patterns`, DO NOT RUN IT
+- No exceptions, even if it seems necessary for the task
+- If you need a blocked command, document the blocker and move on
+
+Example: If `"cargo build"` is in blocked_patterns, you may NOT run `cargo build`,
+`cargo build --release`, or any variation. Find an alternative approach.

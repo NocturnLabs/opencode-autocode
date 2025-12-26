@@ -1,5 +1,8 @@
 /target
 .osgrep
+.opencode.db*
+*.db
+*.sqlite
 .vscode/launch.json
 .vscode/settings.json
 .vscode/tasks.json
