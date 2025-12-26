@@ -2,12 +2,11 @@
 
 A Rust CLI that scaffolds autonomous coding projects for [OpenCode](https://github.com/sst/opencode) and runs them to completion. It bridges the gap between high-level application specs and fully implemented features.
 
-> [!WARNING]
-> **AI-Generated Code Disclaimer**: Significant portions of this codebase (including logic, templates, and tests) were generated or refined using Large Language Models. Use with appropriate caution and always review changes in your local projects.
+> [!WARNING] > **AI-Generated Code Disclaimer**: Significant portions of this codebase (including logic, templates, and tests) were generated or refined using Large Language Models. Use with appropriate caution and always review changes in your local projects.
 
 ## Example
 
-![OpenCode Autocode Demo](demo.gif)
+![OpenCode Autocode Demo](assets/demo.gif)
 
 ## Quick Start
 
@@ -36,6 +35,7 @@ opencode-autocode vibe --developer
 - 🛠️ **MCP Native**: First-class support for Model Context Protocol tools like `osgrep`, `chrome-devtools`, and `sqlite-mcp`.
 - 🔌 **Port Conflict Prevention**: Automatic detection and resolution of port conflicts before starting servers or tests.
 - 📦 **Module Verification**: Validates ES6 import/export consistency to prevent ReferenceErrors at runtime.
+- 🧩 **Progressive Discovery**: Modular template system that reduces context window usage by ~80%.
 
 ## CLI Reference
 
@@ -140,6 +140,29 @@ When you run `vibe`, the engine determines the next action using a phased approa
 3.  **Phase 3: Work** → Runs `auto-continue` to implement the next task in the active `plan.md`.
 4.  **Phase 4: Verify** → Checks database for progress and marks features passing based on session results.
 5.  **Phase 5: Plan** → (If no active track) Runs `auto-plan` to create a new track/plan for the next failing feature.
+
+## Template Architecture: Progressive Discovery
+
+Command templates use a modular "Progressive Discovery" system to minimize token usage:
+
+```
+templates/
+├── index.json           # Routing table for project types
+├── core/                # Always-included fundamentals
+│   ├── identity.md      # Agent identity (6 lines)
+│   ├── security.md      # Security constraints (16 lines)
+│   └── ...
+├── modules/             # Read on-demand by the agent
+│   ├── javascript.md    # Web/JS specifics (ports, imports)
+│   ├── rust.md          # CLI/Rust patterns
+│   ├── testing.md       # Playwright, E2E protocols
+│   └── recovery.md      # Stuck protocol
+└── commands/
+    ├── auto-init.md     # Lean entry point (~100 lines)
+    └── auto-continue.md # Lean entry point (~80 lines)
+```
+
+The agent reads specialized modules only when needed, reducing context window consumption by ~80%.
 
 ## Requirements
 

@@ -1,0 +1,93 @@
+# Rust/CLI Module
+
+Read this module when working on Rust CLI projects.
+
+---
+
+## Cargo Commands
+
+```bash
+# Build
+cargo build
+cargo build --release
+
+# Run
+cargo run -- [args]
+
+# Test
+cargo test
+cargo test -- --nocapture  # See output
+
+# Check without building
+cargo check
+
+# Format
+cargo fmt
+
+# Lint
+cargo clippy
+```
+
+---
+
+## Common Patterns
+
+### Error Handling
+
+```rust
+use anyhow::{Context, Result};
+
+fn main() -> Result<()> {
+    let config = load_config()
+        .context("Failed to load configuration")?;
+    Ok(())
+}
+```
+
+### CLI Arguments (clap)
+
+```rust
+use clap::Parser;
+
+#[derive(Parser)]
+struct Args {
+    #[arg(short, long)]
+    config: Option<PathBuf>,
+
+    #[arg(short, long, default_value = "info")]
+    log_level: String,
+}
+```
+
+---
+
+## init.sh for Rust Projects
+
+```bash
+#!/bin/bash
+# Build and run the project
+cargo build --release
+./target/release/project-name --help
+```
+
+---
+
+## Testing
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_feature() {
+        assert_eq!(function(), expected);
+    }
+}
+```
+
+Run specific test:
+
+```bash
+cargo test test_name
+```

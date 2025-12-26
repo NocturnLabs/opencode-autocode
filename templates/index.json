@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "description": "Template routing index for Progressive Discovery",
+  
+  "core": {
+    "always_include": [
+      "core/identity.md",
+      "core/security.md"
+    ],
+    "on_demand": {
+      "signaling": "core/signaling.md",
+      "database": "core/database.md",
+      "communication": "core/communication.md",
+      "mcp": "core/mcp_guide.md"
+    }
+  },
+  
+  "project_types": {
+    "web": {
+      "modules": ["modules/javascript.md", "modules/testing.md"],
+      "detection": ["React", "Vue", "HTML", "HTMX", "frontend", "web app", "PWA", "SPA", "Vite"]
+    },
+    "cli": {
+      "modules": ["modules/rust.md"],
+      "detection": ["CLI", "command-line", "terminal", "Rust", "clap"]
+    },
+    "api": {
+      "modules": ["modules/testing.md"],
+      "detection": ["REST", "API", "backend", "Express", "FastAPI", "Flask"]
+    }
+  },
+  
+  "states": {
+    "initialization": {
+      "entry_point": "commands/auto-init.md"
+    },
+    "development": {
+      "entry_point": "commands/auto-continue.md"
+    },
+    "stuck": {
+      "modules": ["modules/recovery.md"],
+      "trigger": "3+ failed attempts on same feature"
+    }
+  }
+}
