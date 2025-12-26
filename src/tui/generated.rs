@@ -99,15 +99,12 @@ fn prompt_for_model(initial: Option<&str>) -> Result<Option<String>> {
 fn prompt_for_idea() -> Result<String> {
     let idea: String = Input::new()
         .with_prompt("Describe your project idea")
-        .interact()?;
+        .interact_text()?;
 
     if idea.trim().is_empty() {
         println!("{}", style("No idea provided.").red());
         return Ok(String::new());
     }
-
-    // Print the idea once since .interact() doesn't echo
-    println!("{}: {}", style("Describe your project idea").green(), idea);
 
     Ok(idea)
 }
