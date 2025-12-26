@@ -3,7 +3,7 @@ members = ["tests/regression"]
 
 [package]
 name = "opencode-autocode"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 description = "Scaffold autonomous coding plugin for OpenCode"
 authors = ["CodingInCarhartts"]
