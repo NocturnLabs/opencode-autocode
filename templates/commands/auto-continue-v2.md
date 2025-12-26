@@ -7,7 +7,15 @@
 
 ## Workflow
 
-### 1. Orient
+### 1. Initialize Environment
+
+**FIRST: Run init.sh if it exists:**
+
+```bash
+[ -f ./init.sh ] && chmod +x ./init.sh && ./init.sh
+```
+
+Then orient:
 
 - List files, read `app_spec.md`, detect project type
 - Query: `opencode-autocode db query "SELECT COUNT(*) FROM features WHERE passes = 0"`
@@ -23,11 +31,15 @@ Verify existing features still pass before new work.
 
 ---
 
-### 3. Pick One Feature
+### 3. Pick ONE Feature
+
+**CRITICAL: Work on ONE feature only. Do not batch-complete multiple features.**
 
 ```sql
-SELECT id, description FROM features WHERE passes = 0 ORDER BY id LIMIT 1
+SELECT id, description, verification_command FROM features WHERE passes = 0 ORDER BY id LIMIT 1
 ```
+
+Note the `verification_command` - you MUST run it before marking as passing.
 
 ---
 
@@ -57,15 +69,36 @@ Start server on the free port, not the default.
 
 ---
 
-### 6. Verify
+### 6. Verify (MANDATORY)
 
-Test like a real user. Check console for errors.
+**You MUST run the feature's verification_command before marking as passing:**
 
-> **Web:** Use `chrome-devtools` MCP. See `templates/modules/javascript.md`
+1. Get the verification command:
+
+   ```sql
+   SELECT verification_command FROM features WHERE id = X
+   ```
+
+2. Run the exact command (e.g., `npx playwright test --grep "feature"`):
+
+   ```bash
+   # Run the verification_command from the database
+   ```
+
+3. Confirm the test PASSES (not just runs).
+
+> **Web:** Also use `chrome-devtools` MCP to check console for errors.
+> **NO SHORTCUT:** Do not mark as passing based on visual inspection alone.
 
 ---
 
 ### 7. Update & Commit
+
+**Before running mark-pass, confirm:**
+
+- [ ] Ran the feature's `verification_command`
+- [ ] Verification test PASSED (not just "ran")
+- [ ] Checked browser console for errors (web projects)
 
 ```bash
 opencode-autocode db mark-pass X
