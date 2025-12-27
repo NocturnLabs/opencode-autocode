@@ -12,6 +12,7 @@ mod conductor;
 mod config;
 mod config_tui;
 mod db;
+mod docs;
 mod generator;
 mod regression;
 mod scaffold;
@@ -332,169 +333,45 @@ fn handle_example_command(topic: &ExampleTopic) -> Result<()> {
                 println!("# Database examples (use --insert or --query for specific details)");
                 println!("opencode-autocode example db --insert");
                 println!("opencode-autocode example db --query");
+                return Ok(());
             }
 
             if *insert {
-                println!("# Example: Properly granular feature INSERTs\n");
-                println!("# DON'T: One vague feature");
-                println!(r#"opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Implement the game', 0, 'cargo build')""#);
-                println!("\n# DO: Separate testable features (5-15 minimum)\n");
-                println!(r#"opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Hero entity spawns and renders', 0, 'cargo test test_hero_spawn')""#);
-                println!(r#"opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Hero moves upward automatically', 0, 'cargo test test_hero_movement')""#);
-                println!(r#"opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Weapon fires projectiles', 0, 'cargo test test_weapon_firing')""#);
-                println!(r#"opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Enemies spawn and move', 0, 'cargo test test_enemy_spawn')""#);
-                println!(r#"opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Collision detection works', 0, 'cargo test test_collision')""#);
-                println!(r#"opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Database persists scores', 0, 'cargo test test_persistence')""#);
-                println!(r#"opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('style', 'UI displays score', 0, 'cargo test test_ui')""#);
-                println!("\n# Rules:");
-                println!("# - Each feature = ONE testable behavior");
-                println!("# - Use real test commands (not just 'cargo build')");
-                println!("# - Mix 'functional' and 'style' categories");
+                if let Some(doc) = docs::get_doc("db_insert") {
+                    println!("{}", doc);
+                }
             }
 
             if *query {
                 if *insert {
                     println!("\n---\n");
                 }
-                println!("# Example: SQL queries for feature inspection\n");
-                println!("# List all features:");
-                println!(r#"opencode-autocode db query "SELECT id, description, passes FROM features""#);
-                println!();
-                println!("# Count passing/failing:");
-                println!(r#"opencode-autocode db query "SELECT passes, COUNT(*) FROM features GROUP BY passes""#);
-                println!();
-                println!("# Get next feature to work on:");
-                println!(r#"opencode-autocode db query "SELECT id, description FROM features WHERE passes = 0 LIMIT 1""#);
-                println!();
-                println!("# Features with weak verification:");
-                println!(r#"opencode-autocode db query "SELECT id, description FROM features WHERE verification_command LIKE '%cargo build%'""#);
+                if let Some(doc) = docs::get_doc("db_query") {
+                    println!("{}", doc);
+                }
             }
             Ok(())
         }
-        ExampleTopic::Verify => {
-                println!("# Example: Verification commands by project type\n");
-                println!("# Rust projects:");
-                println!("cargo test test_feature_name");
-                println!("cargo test --test integration_tests");
-                println!();
-                println!("# Web projects (Playwright):");
-                println!("npx playwright test --grep \"feature description\"");
-                println!("npx playwright test tests/e2e/login.spec.ts");
-                println!();
-                println!("# Node.js projects:");
-                println!("npm test -- --grep \"feature\"");
-                println!("npx vitest run --grep \"feature\"");
-                println!();
-                println!("# Python projects:");
-                println!("pytest -k \"test_feature\"");
-                println!("python -m pytest tests/test_module.py::test_feature");
-                println!();
-                println!("# Rules:");
-                println!("# - NEVER use 'cargo build' or 'npm run dev' as verification");
-                println!("# - Each command should test ONE specific behavior");
-                println!("# - Commands must exit 0 on success, non-zero on failure");
-                Ok(())
-            }
-            ExampleTopic::Config => {
-                println!("# Example: autocode.toml configuration sections\n");
-                println!("[models]");
-                println!(r#"default = "anthropic/claude-sonnet-4"      # spec generation"#);
-                println!(r#"autonomous = "anthropic/claude-sonnet-4"   # coding (@coder)"#);
-                println!(r#"reasoning = "anthropic/claude-3.5-sonnet"  # planning/review"#);
-                println!();
-                println!("[autonomous]");
-                println!("delay_between_sessions = 5");
-                println!("max_iterations = 0        # 0 = unlimited");
-                println!("session_timeout_minutes = 60");
-                println!("auto_commit = true");
-                println!();
-                println!("[mcp]");
-                println!("prefer_osgrep = true");
-                println!("use_sequential_thinking = true");
-                println!(r#"required_tools = ["chrome-devtools"]"#);
-                println!();
-                println!("[notifications]");
-                println!("webhook_enabled = true");
-                println!(r#"webhook_url = "https://discord.com/api/webhooks/...""#);
-                Ok(())
-            }
-            ExampleTopic::Conductor => {
-                println!("# Example: Conductor context files\n");
-                println!("# .conductor/product.md:");
-                println!("```markdown");
-                println!("# Product Context");
-                println!();
-                println!("## What We're Building");
-                println!("A fast-paced vertical scrolling game...");
-                println!();
-                println!("## Core Value Proposition");
-                println!("Simple controls, high replayability...");
-                println!();
-                println!("## Target Users");
-                println!("Casual gamers who enjoy arcade-style games...");
-                println!("```\n");
-                println!("# .conductor/tech_stack.md:");
-                println!("```markdown");
-                println!("# Technical Stack");
-                println!();
-                println!("## Languages & Frameworks");
-                println!("- Rust 1.70+");
-                println!("- Bevy 0.12 (game engine)");
-                println!("- SQLite (local persistence)");
-                println!();
-                println!("## Key Patterns");
-                println!("- ECS architecture");
-                println!("- Component-based design");
-                println!("```");
-                Ok(())
-            }
-            ExampleTopic::Workflow => {
-                println!("# Example: Vibe loop workflow phases\n");
-                println!("Phase 1: auto-init");
-                println!("  └─ Runs if database is empty");
-                println!("  └─ Populates features, creates conductor context");
-                println!();
-                println!("Phase 2: auto-context");
-                println!("  └─ Runs if .conductor/ doesn't exist");
-                println!("  └─ Creates product.md, tech_stack.md");
-                println!();
-                println!("Phase 3: auto-continue (active track)");
-                println!("  └─ Runs if tracks/<name>/plan.md has incomplete tasks");
-                println!("  └─ Works on next task in the plan");
-                println!();
-                println!("Phase 4: completion check");
-                println!("  └─ If all features pass → DONE!");
-                println!();
-                println!("Phase 5: auto-continue (new feature)");
-                println!("  └─ Picks next failing feature from database");
-                println!("  └─ Implements using @coder subagent");
-                Ok(())
-            }
-            ExampleTopic::Spec => {
-                println!("# Example: App spec structure\n");
-                println!("<project_specification>");
-                println!("  <project_name>My App</project_name>");
-                println!("  <overview>Brief description...</overview>");
-                println!("  <technology_stack>");
-                println!("    - Frontend: React, TypeScript");
-                println!("    - Backend: Node.js, Express");
-                println!("    - Database: PostgreSQL");
-                println!("  </technology_stack>");
-                println!("  <core_features>");
-                println!("    - User authentication with JWT");
-                println!("    - CRUD operations for resources");
-                println!("    - Real-time notifications");
-                println!("  </core_features>");
-                println!("  <database_schema>");
-                println!("    - users: id, email, password_hash");
-                println!("    - resources: id, name, user_id");
-                println!("  </database_schema>");
-                println!("  <success_criteria>");
-                println!("    - All E2E tests pass");
-                println!("    - <100ms API response time");
-                println!("  </success_criteria>");
-                println!("</project_specification>");
-                Ok(())
-            }
-        }
+        ExampleTopic::Verify => show_doc("verify"),
+        ExampleTopic::Config => show_doc("config"),
+        ExampleTopic::Conductor => show_doc("conductor"),
+        ExampleTopic::Workflow => show_doc("workflow"),
+        ExampleTopic::Spec => show_doc("spec"),
+        ExampleTopic::Identity => show_doc("identity"),
+        ExampleTopic::Security => show_doc("security"),
+        ExampleTopic::Mcp => show_doc("mcp"),
+        ExampleTopic::Arch => show_doc("arch"),
+        ExampleTopic::Rust => show_doc("rust"),
+        ExampleTopic::Js => show_doc("js"),
+        ExampleTopic::Testing => show_doc("testing"),
+        ExampleTopic::Recovery => show_doc("recovery"),
     }
+}
+
+fn show_doc(name: &str) -> Result<()> {
+    match docs::get_doc(name) {
+        Some(doc) => println!("{}", doc),
+        None => println!("Documentation topic '{}' not found.", name),
+    }
+    Ok(())
+}

@@ -177,6 +177,22 @@ pub enum ExampleTopic {
     Workflow,
     /// Show app spec structure and sections
     Spec,
+    /// Show agent identity and core values
+    Identity,
+    /// Show security constraints and allowlist usage
+    Security,
+    /// Show Model Context Protocol (MCP) tool guide
+    Mcp,
+    /// Show project architecture overview
+    Arch,
+    /// Show Rust development guide
+    Rust,
+    /// Show JavaScript/TypeScript development guide
+    Js,
+    /// Show testing strategies and E2E guide
+    Testing,
+    /// Show autonomous recovery protocols
+    Recovery,
 }
 
 /// The mode of operation
