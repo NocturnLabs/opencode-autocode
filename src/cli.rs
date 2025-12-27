@@ -87,6 +87,11 @@ pub enum Commands {
         #[command(subcommand)]
         action: DbAction,
     },
+    /// Show example documentation for various topics
+    Example {
+        #[command(subcommand)]
+        topic: ExampleTopic,
+    },
 }
 
 /// Template subcommand actions
@@ -148,6 +153,30 @@ pub enum DbAction {
         /// Feature ID to mark as passing
         id: i32,
     },
+}
+
+/// Example topics for progressive discovery
+#[derive(Subcommand, Debug)]
+pub enum ExampleTopic {
+    /// Show database-related examples
+    Db {
+        /// Show example feature INSERT statements
+        #[arg(long)]
+        insert: bool,
+        /// Show example SQL queries for feature inspection
+        #[arg(long)]
+        query: bool,
+    },
+    /// Show example verification commands by project type
+    Verify,
+    /// Show example autocode.toml configuration sections
+    Config,
+    /// Show example conductor files (product.md, tech_stack.md)
+    Conductor,
+    /// Show the vibe loop workflow phases
+    Workflow,
+    /// Show app spec structure and sections
+    Spec,
 }
 
 /// The mode of operation

@@ -41,19 +41,18 @@ pub fn fetch_available_models() -> Result<Vec<String>> {
 pub fn prompt_model_selection(prompt: &str, models: &[String], current: &str) -> Result<String> {
     let mut options: Vec<&str> = models.iter().map(|s| s.as_str()).collect();
 
-    // Ensure current model is in the list
+    // Put current model at top if not in list
     let current_in_list = options.contains(&current);
     if !current_in_list && !current.is_empty() {
         options.insert(0, current);
     }
     options.push("(enter custom)");
 
-    let default_idx = options.iter().position(|&s| s == current).unwrap_or(0);
-
+    // Always start at top of list for consistent UX
     let selection = FuzzySelect::new()
         .with_prompt(prompt)
         .items(&options)
-        .default(default_idx)
+        .default(0)
         .max_length(5)
         .interact()?;
 

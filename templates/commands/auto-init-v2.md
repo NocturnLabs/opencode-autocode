@@ -1,11 +1,12 @@
-# Autonomous Initialization Session
+# COMMAND: auto-init
 
 {{INCLUDE core/identity.md}}
 {{INCLUDE core/security.md}}
 
 ---
 
-## Initialization Workflow
+> [!IMPORTANT] > **DO NOT modify the configuration file (`autocode.toml` or `.autocode/config.toml`).**
+> Your task is to set up the project structure and database, NOT to reconfigure the agent models or settings.
 
 This is the FIRST session. Set up the foundation for all future sessions.
 
@@ -24,22 +25,46 @@ Read `app_spec.md` in your working directory. Understand:
 
 ### STEP 2: Populate Features Database
 
+**CRITICAL: Break down spec into 5-15 SEPARATE features.** Each feature = one testable unit.
+
 Based on `app_spec.md`, insert features using the CLI:
 
 ```bash
 opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Feature description', 0, 'npm test -- --grep \"feature\"')"
 ```
 
-**Requirements:**
+#### Example: Game Project with 9 Core Features
 
-- Cover ALL requirements from the spec exhaustively
-- Mix "functional" and "style" categories
-- ALL features start with `passes = 0`
-- Add `verification_command` for automated regression testing
-- **NEVER delete or edit feature descriptions in future sessions**
+```bash
+# DON'T: One vague feature
+opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Implement the game', 0, 'cargo build')"
 
-> **For web projects:** E2E tests (Playwright) are MANDATORY.
-> See `templates/modules/testing.md` for setup.
+# DO: Separate testable features
+opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Hero entity spawns and renders as red square', 0, 'cargo test test_hero_spawn')"
+opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Hero moves upward automatically at constant speed', 0, 'cargo test test_hero_movement')"
+opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Weapon system fires projectiles automatically', 0, 'cargo test test_weapon_firing')"
+opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Zombie enemies spawn and move toward hero', 0, 'cargo test test_zombie_spawn')"
+opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Collision detection between projectiles and zombies', 0, 'cargo test test_collision')"
+opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Gate entities modify weapon properties on contact', 0, 'cargo test test_gate_effects')"
+opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'SQLite database persists high scores', 0, 'cargo test test_score_persistence')"
+opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'UI displays current score and weapon stats', 0, 'cargo test test_ui_display')"
+opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'Audio plays on weapon fire and gate contact', 0, 'cargo test test_audio')"
+```
+
+#### Requirements
+
+| Rule             | Description                                                    |
+| ---------------- | -------------------------------------------------------------- |
+| **Granularity**  | Each feature = ONE testable behavior. Not "implement the app". |
+| **Count**        | Insert 5-15 features minimum. More is better.                  |
+| **Categories**   | Mix `functional` (logic) and `style` (UI/UX)                   |
+| **Passes**       | ALL start with `passes = 0`                                    |
+| **Verification** | Real test commands, not just `cargo build` or `npm run dev`    |
+
+> **NEVER** combine multiple behaviors into one feature.
+> **NEVER** use generic verification like `cargo build` — use actual test commands.
+> **For web projects:** E2E tests (Playwright) are MANDATORY. See `templates/modules/testing.md`.
+> **Need examples?** Run `opencode-autocode example db --insert` or `example db --query`.
 
 ---
 
