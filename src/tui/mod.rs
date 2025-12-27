@@ -30,13 +30,53 @@ enum InteractiveMode {
 pub fn run_interactive(output_dir: &Path, use_subagents: bool) -> Result<()> {
     display_header();
 
+    // Load config BEFORE spec generation
+    let config = load_or_configure_config(output_dir)?;
+
     match select_mode()? {
         InteractiveMode::Generated => {
-            generated::run_generated_mode(output_dir, None, use_subagents)
+            generated::run_generated_mode(output_dir, &config, use_subagents)
         }
         InteractiveMode::Manual => manual::run_manual_mode(output_dir),
         InteractiveMode::FromSpecFile => run_from_spec_file_mode(output_dir),
         InteractiveMode::Default => run_default_mode(output_dir),
+    }
+}
+
+/// Load existing config or prompt user to configure/use defaults
+fn load_or_configure_config(output_dir: &Path) -> Result<crate::config::Config> {
+    use crate::config::Config;
+    use crate::config_tui::run_config_tui;
+
+    let config_path = output_dir.join(".autocode/config.toml");
+
+    if config_path.exists() {
+        // Existing config found
+        if Confirm::new()
+            .with_prompt("Found existing config. Reconfigure?")
+            .default(false)
+            .interact()?
+        {
+            run_config_tui()?;
+        }
+        Ok(Config::load(Some(output_dir)).unwrap_or_default())
+    } else {
+        // No config: quick start or configure
+        let choice = Select::new()
+            .with_prompt("Setup mode")
+            .items([
+                "⚡ Quick start (use defaults)",
+                "⚙️  Configure settings first",
+            ])
+            .default(0)
+            .interact()?;
+
+        if choice == 1 {
+            run_config_tui()?;
+            Ok(Config::load(Some(output_dir)).unwrap_or_default())
+        } else {
+            Ok(Config::default())
+        }
     }
 }
 

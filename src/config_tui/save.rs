@@ -8,8 +8,14 @@ use crate::config::Config;
 
 /// Save config to autocode.toml with formatted comments
 pub fn save_autocode_toml(config: &Config, path: &Path) -> Result<()> {
+    // Ensure parent directory exists (e.g., .autocode/)
+    if let Some(parent) = path.parent() {
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent).context("Failed to create config directory")?;
+        }
+    }
     let content = format_autocode_toml(config);
-    fs::write(path, content).context("Failed to write autocode.toml")?;
+    fs::write(path, content).context("Failed to write config.toml")?;
     Ok(())
 }
 
@@ -211,12 +217,12 @@ fn format_opencode_json(config: &Config) -> String {
     }},
     "sequential-thinking": {{
       "type": "local",
-      "command": ["docker", "run", "--rm", "-i", "mcp/sequentialthinking"],
+      "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
       "enabled": {}
     }},
     "chrome-devtools": {{
       "type": "local",
-      "command": ["npx", "-y", "chrome-devtools-mcp@latest", "--headless=true"],
+      "command": ["npx", "-y", "chrome-devtools-mcp@latest"],
       "enabled": {}
     }}
   }},

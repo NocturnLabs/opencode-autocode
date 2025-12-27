@@ -14,9 +14,6 @@ use std::path::Path;
 
 use crate::config::Config;
 
-// Re-export for external use
-pub use models::fetch_available_models;
-
 /// Run the configuration TUI
 pub fn run_config_tui() -> Result<()> {
     helpers::display_header();
