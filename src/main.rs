@@ -38,7 +38,8 @@ fn main() -> Result<()> {
                 limit,
                 config_file,
                 developer,
-            } => autonomous::run(*limit, config_file.as_deref(), *developer),
+                single_model,
+            } => autonomous::run(*limit, config_file.as_deref(), *developer, *single_model),
             Commands::Templates { action } => match action {
                 TemplateAction::List => {
                     templates::list_templates();

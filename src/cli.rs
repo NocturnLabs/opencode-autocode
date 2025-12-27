@@ -72,6 +72,10 @@ pub enum Commands {
         /// Enable developer mode with comprehensive debug logging
         #[arg(long)]
         developer: bool,
+
+        /// Use single model for all tasks (disables dual-model reasoning/coding split)
+        #[arg(long)]
+        single_model: bool,
     },
     /// Manage project templates
     Templates {

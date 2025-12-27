@@ -35,6 +35,9 @@ const SPEC_ARCHITECTURE_AGENT: &str =
     include_str!("../templates/scaffold/agents/spec-architecture.md");
 const SPEC_QUALITY_AGENT: &str = include_str!("../templates/scaffold/agents/spec-quality.md");
 
+/// Embedded coder subagent for dual-model architecture
+const CODER_AGENT: &str = include_str!("../templates/scaffold/agents/coder.md");
+
 /// Resolve {{INCLUDE path}} directives in templates
 /// Replaces include directives with the actual content of the referenced modules
 /// Resolve {{INCLUDE path}} directives in templates.
@@ -192,6 +195,12 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
         )
     })?;
     println!("   🤖 Created .opencode/agent/spec-quality.md");
+
+    // Write coder subagent for dual-model architecture
+    let coder_path = agent_dir.join("coder.md");
+    fs::write(&coder_path, CODER_AGENT)
+        .with_context(|| format!("Failed to write coder.md: {}", coder_path.display()))?;
+    println!("   🤖 Created .opencode/agent/coder.md");
 
     // Initialize communication channel
     let comm_channel = CommunicationChannel::new(&autocode_dir.join("COMMUNICATION.md"));

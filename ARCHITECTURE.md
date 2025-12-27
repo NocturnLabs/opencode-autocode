@@ -54,9 +54,33 @@ To keep AI context windows lean, we use a modular system:
 - **Modules**: On-demand domain expertise (e.g., `javascript`, `testing`).
 - **Commands**: Entry points (`auto-init`, `auto-continue`) that `{{INCLUDE}}` core logic.
 
+## Dual-Model Architecture
+
+The system uses two models with distinct roles:
+
+```
+┌─────────────────────────────────────┐
+│         REASONING MODEL             │
+│  models.reasoning                   │
+│  Plans • Reviews • Architects       │
+│  Never writes code                  │
+└─────────────────────────────────────┘
+            │ delegates via @coder
+            ▼
+┌─────────────────────────────────────┐
+│         CODING SUBAGENT             │
+│  models.autonomous                  │
+│  Implements exactly as specified    │
+│  No opinions, no questions          │
+└─────────────────────────────────────┘
+```
+
+The `@coder` subagent is defined in `.opencode/agent/coder.md` and scaffolded automatically. Use `--single-model` to disable this split.
+
 ## Key Directories
 
 - `.autocode/`: Stores `config.toml`, `progress.db`, and `app_spec.md`.
 - `.opencode/command/`: Stores target-specific command templates for OpenCode.
+- `.opencode/agent/`: Stores subagent definitions (including `coder.md`).
 - `.conductor/`: Stores product and technical context.
 - `tracks/`: Stores per-feature specifications and execution plans.

@@ -43,15 +43,43 @@ Note the `verification_command` - you MUST run it before marking as passing.
 
 ---
 
-### 4. Implement
+### 4. Implement Using @coder
 
-Write code → Test → Fix → Verify end-to-end.
+**Delegate implementation to the coding subagent:**
+
+1. Plan the implementation (files, functions, structure)
+2. Delegate with detailed spec:
+
+   ```
+   @coder Create src/components/Button.tsx that exports a Button component with:
+   - Props: label (string), onClick (function), variant ('primary' | 'secondary')
+   - Uses Tailwind classes for styling
+   - Includes hover and focus states
+   ```
+
+3. Review the output
+4. If issues, provide specific fix instructions:
+   ```
+   @coder Fix Button.tsx: add aria-label prop for accessibility
+   ```
+
+> **Note:** @coder only implements. All design decisions stay with you.
+
+---
+
+### 5. Verify @coder Output
+
+After @coder completes:
+
+- Review the generated code
+- Run tests to verify correctness
+- If @coder fails twice, implement directly and note the issue
 
 > **Stuck 3+ times?** Read `templates/modules/recovery.md`
 
 ---
 
-### 5. Start Server (Web Projects - MANDATORY)
+### 6. Start Server (Web Projects - MANDATORY)
 
 **Before starting ANY server, check ports:**
 
@@ -69,7 +97,7 @@ Start server on the free port, not the default.
 
 ---
 
-### 6. Verify (MANDATORY)
+### 7. Verify (MANDATORY)
 
 **You MUST run the feature's verification_command before marking as passing:**
 
@@ -92,7 +120,7 @@ Start server on the free port, not the default.
 
 ---
 
-### 7. Update & Commit
+### 8. Update & Commit
 
 **Before running mark-pass, confirm:**
 
@@ -107,7 +135,7 @@ git add . && git commit -m "Implement [feature]"
 
 ---
 
-### 8. Signal
+### 9. Signal
 
 ```bash
 echo "CONTINUE" > .opencode-signal
