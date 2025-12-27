@@ -198,6 +198,15 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     comm_channel.init()?;
     println!("   💬 Created .autocode/COMMUNICATION.md");
 
+    // Write .gitignore at project root if it doesn't exist
+    let gitignore_path = output_dir.join(".gitignore");
+    if !gitignore_path.exists() {
+        let gitignore_content = generate_gitignore();
+        fs::write(&gitignore_path, gitignore_content)
+            .with_context(|| format!("Failed to write .gitignore: {}", gitignore_path.display()))?;
+        println!("   📝 Created .gitignore");
+    }
+
     // Write opencode.json at project root (required by OpenCode)
     let opencode_json_path = output_dir.join("opencode.json");
     let opencode_json_content = generate_opencode_json();
@@ -298,6 +307,15 @@ fn generate_opencode_json() -> String {
     "edit": "allow"
   }
 }
+"#
+    .to_string()
+}
+
+/// Generate .gitignore content for scaffolded projects
+/// Only includes essential tool-related entries - AI generates the rest based on project type
+fn generate_gitignore() -> String {
+    r#"# MCP & Tool caches (do not commit)
+.osgrep/
 "#
     .to_string()
 }

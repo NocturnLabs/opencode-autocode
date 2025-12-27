@@ -67,7 +67,7 @@ Create a setup script for future sessions.
 ### STEP 5: Create .gitignore
 
 Standard patterns for your tech stack (node_modules, target, **pycache**, etc.)
-Be sure to include `osgrep/lancedb` in the ignore list.
+Be sure to include `.osgrep/` in the ignore list.
 
 ---
 
