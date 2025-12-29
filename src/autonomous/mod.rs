@@ -24,7 +24,12 @@ use features::FeatureProgress;
 use settings::{handle_session_result, LoopAction, LoopSettings};
 
 /// Run the autonomous agent loop
-pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: bool) -> Result<()> {
+pub fn run(
+    limit: Option<usize>,
+    config_path: Option<&Path>,
+    developer_mode: bool,
+    single_model: bool,
+) -> Result<()> {
     // Initialize debug logger
     debug_logger::init(developer_mode);
     let logger = debug_logger::get();
@@ -42,6 +47,14 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: boo
             .unwrap_or_default()
     ));
     logger.info(&format!("Model: {}", settings.model));
+    logger.info(&format!(
+        "Dual-model: {}",
+        if single_model {
+            "disabled (--single-model)"
+        } else {
+            "enabled (reasoning + @coder)"
+        }
+    ));
     logger.info(&format!(
         "Max iterations: {}",
         if settings.max_iterations == usize::MAX {

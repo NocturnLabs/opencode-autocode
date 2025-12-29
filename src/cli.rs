@@ -72,6 +72,10 @@ pub enum Commands {
         /// Enable developer mode with comprehensive debug logging
         #[arg(long)]
         developer: bool,
+
+        /// Use single model for all tasks (disables dual-model reasoning/coding split)
+        #[arg(long)]
+        single_model: bool,
     },
     /// Manage project templates
     Templates {
@@ -82,6 +86,11 @@ pub enum Commands {
     Db {
         #[command(subcommand)]
         action: DbAction,
+    },
+    /// Show example documentation for various topics
+    Example {
+        #[command(subcommand)]
+        topic: ExampleTopic,
     },
 }
 
@@ -144,6 +153,46 @@ pub enum DbAction {
         /// Feature ID to mark as passing
         id: i32,
     },
+}
+
+/// Example topics for progressive discovery
+#[derive(Subcommand, Debug)]
+pub enum ExampleTopic {
+    /// Show database-related examples
+    Db {
+        /// Show example feature INSERT statements
+        #[arg(long)]
+        insert: bool,
+        /// Show example SQL queries for feature inspection
+        #[arg(long)]
+        query: bool,
+    },
+    /// Show example verification commands by project type
+    Verify,
+    /// Show example autocode.toml configuration sections
+    Config,
+    /// Show example conductor files (product.md, tech_stack.md)
+    Conductor,
+    /// Show the vibe loop workflow phases
+    Workflow,
+    /// Show app spec structure and sections
+    Spec,
+    /// Show agent identity and core values
+    Identity,
+    /// Show security constraints and allowlist usage
+    Security,
+    /// Show Model Context Protocol (MCP) tool guide
+    Mcp,
+    /// Show project architecture overview
+    Arch,
+    /// Show Rust development guide
+    Rust,
+    /// Show JavaScript/TypeScript development guide
+    Js,
+    /// Show testing strategies and E2E guide
+    Testing,
+    /// Show autonomous recovery protocols
+    Recovery,
 }
 
 /// The mode of operation

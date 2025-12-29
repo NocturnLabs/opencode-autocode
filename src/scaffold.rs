@@ -35,6 +35,9 @@ const SPEC_ARCHITECTURE_AGENT: &str =
     include_str!("../templates/scaffold/agents/spec-architecture.md");
 const SPEC_QUALITY_AGENT: &str = include_str!("../templates/scaffold/agents/spec-quality.md");
 
+/// Embedded coder subagent for dual-model architecture
+const CODER_AGENT: &str = include_str!("../templates/scaffold/agents/coder.md");
+
 /// Resolve {{INCLUDE path}} directives in templates
 /// Replaces include directives with the actual content of the referenced modules
 /// Resolve {{INCLUDE path}} directives in templates.
@@ -159,11 +162,15 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
         .with_context(|| format!("Failed to initialize database: {}", db_path.display()))?;
     println!("   🗃️  Created .autocode/progress.db");
 
-    // Write user configuration file inside .autocode/
+    // Write user configuration file inside .autocode/ (if not already configured)
     let config_path = autocode_dir.join("config.toml");
-    fs::write(&config_path, USER_CONFIG_TEMPLATE)
-        .with_context(|| format!("Failed to write config.toml: {}", config_path.display()))?;
-    println!("   ⚙️  Created .autocode/config.toml");
+    if !config_path.exists() {
+        fs::write(&config_path, USER_CONFIG_TEMPLATE)
+            .with_context(|| format!("Failed to write config.toml: {}", config_path.display()))?;
+        println!("   ⚙️  Created .autocode/config.toml");
+    } else {
+        println!("   ⚙️  Using existing .autocode/config.toml");
+    }
 
     // Write subagent definitions for parallel spec generation
     let spec_product_path = agent_dir.join("spec-product.md");
@@ -192,6 +199,12 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
         )
     })?;
     println!("   🤖 Created .opencode/agent/spec-quality.md");
+
+    // Write coder subagent for dual-model architecture
+    let coder_path = agent_dir.join("coder.md");
+    fs::write(&coder_path, CODER_AGENT)
+        .with_context(|| format!("Failed to write coder.md: {}", coder_path.display()))?;
+    println!("   🤖 Created .opencode/agent/coder.md");
 
     // Initialize communication channel
     let comm_channel = CommunicationChannel::new(&autocode_dir.join("COMMUNICATION.md"));

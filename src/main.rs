@@ -12,6 +12,7 @@ mod conductor;
 mod config;
 mod config_tui;
 mod db;
+mod docs;
 mod generator;
 mod regression;
 mod scaffold;
@@ -22,7 +23,7 @@ mod validation;
 
 use anyhow::Result;
 use clap::Parser;
-use cli::{Cli, Commands, DbAction, Mode, TemplateAction};
+use cli::{Cli, Commands, DbAction, ExampleTopic, Mode, TemplateAction};
 use std::path::PathBuf;
 
 fn main() -> Result<()> {
@@ -38,7 +39,8 @@ fn main() -> Result<()> {
                 limit,
                 config_file,
                 developer,
-            } => autonomous::run(*limit, config_file.as_deref(), *developer),
+                single_model,
+            } => autonomous::run(*limit, config_file.as_deref(), *developer, *single_model),
             Commands::Templates { action } => match action {
                 TemplateAction::List => {
                     templates::list_templates();
@@ -47,6 +49,7 @@ fn main() -> Result<()> {
                 TemplateAction::Use { name } => templates::use_template(name, &output_dir),
             },
             Commands::Db { action } => handle_db_command(action),
+            Commands::Example { topic } => handle_example_command(topic),
         };
     }
 
@@ -321,4 +324,54 @@ fn handle_db_command(action: &DbAction) -> Result<()> {
             Ok(())
         }
     }
+}
+
+fn handle_example_command(topic: &ExampleTopic) -> Result<()> {
+    match topic {
+        ExampleTopic::Db { insert, query } => {
+            if !insert && !query {
+                println!("# Database examples (use --insert or --query for specific details)");
+                println!("opencode-autocode example db --insert");
+                println!("opencode-autocode example db --query");
+                return Ok(());
+            }
+
+            if *insert {
+                if let Some(doc) = docs::get_doc("db_insert") {
+                    println!("{}", doc);
+                }
+            }
+
+            if *query {
+                if *insert {
+                    println!("\n---\n");
+                }
+                if let Some(doc) = docs::get_doc("db_query") {
+                    println!("{}", doc);
+                }
+            }
+            Ok(())
+        }
+        ExampleTopic::Verify => show_doc("verify"),
+        ExampleTopic::Config => show_doc("config"),
+        ExampleTopic::Conductor => show_doc("conductor"),
+        ExampleTopic::Workflow => show_doc("workflow"),
+        ExampleTopic::Spec => show_doc("spec"),
+        ExampleTopic::Identity => show_doc("identity"),
+        ExampleTopic::Security => show_doc("security"),
+        ExampleTopic::Mcp => show_doc("mcp"),
+        ExampleTopic::Arch => show_doc("arch"),
+        ExampleTopic::Rust => show_doc("rust"),
+        ExampleTopic::Js => show_doc("js"),
+        ExampleTopic::Testing => show_doc("testing"),
+        ExampleTopic::Recovery => show_doc("recovery"),
+    }
+}
+
+fn show_doc(name: &str) -> Result<()> {
+    match docs::get_doc(name) {
+        Some(doc) => println!("{}", doc),
+        None => println!("Documentation topic '{}' not found.", name),
+    }
+    Ok(())
 }

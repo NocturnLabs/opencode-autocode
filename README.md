@@ -41,6 +41,7 @@ opencode-autocode vibe --developer
 - 🔌 **Port Conflict Prevention**: Automatic detection and resolution of port conflicts before starting servers or tests.
 - 📦 **Module Verification**: Validates ES6 import/export consistency to prevent ReferenceErrors at runtime.
 - 🧩 **Progressive Discovery**: Modular template system that reduces context window usage by ~80%.
+- 🧠 **Dual-Model Architecture**: Reasoning model plans, `@coder` subagent implements — cleaner separation of concerns.
 - 💬 **Agent-User Communication**: Polling-based Q&A channel via `.autocode/COMMUNICATION.md` for async collaboration.
 - ✅ **Spec Validation**: Validates generated specifications for structural correctness before scaffolding.
 
@@ -61,6 +62,7 @@ opencode-autocode vibe --developer
   - `--developer`: Enable verbose debug logging to file.
   - `--limit <N>`: Stop the loop after N iterations.
   - `--config-file <FILE>`: Load a custom TOML configuration.
+  - `--single-model`: Disable dual-model (use one model for both reasoning and coding).
 
 ### Database Operations
 
@@ -182,6 +184,27 @@ templates/
 ```
 
 The agent reads specialized modules only when needed, reducing context window consumption by ~80%.
+
+## Dual-Model Architecture
+
+The vibe loop uses two models with distinct roles:
+
+| Model | Config Key | Role |
+|-------|------------|------|
+| **Reasoning** | `models.reasoning` | Plans, reviews, architects — never writes code |
+| **Coding** | `models.autonomous` | Implements exactly what it's told via `@coder` subagent |
+
+### How It Works
+
+1. The reasoning model analyzes the feature and plans the implementation
+2. It delegates code writing to `@coder`:
+   ```
+   @coder Create src/auth/login.ts that exports a login(email, password) function...
+   ```
+3. The reasoning model reviews the output and runs tests
+4. If issues arise, it provides fix instructions to `@coder`
+
+Use `--single-model` to disable this and use one model for everything.
 
 ## Requirements
 

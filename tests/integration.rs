@@ -124,3 +124,27 @@ fn test_scaffold_generates_valid_opencode_json() {
         "Should have permission field"
     );
 }
+
+/// Test that scaffold preserves existing config.toml
+#[test]
+fn test_scaffold_preserves_existing_config() {
+    let temp_dir = TempDir::new().expect("Failed to create temp dir");
+    let output_path = temp_dir.path();
+
+    // Pre-create config with custom value
+    let autocode_dir = output_path.join(".autocode");
+    fs::create_dir_all(&autocode_dir).unwrap();
+    let config_path = autocode_dir.join("config.toml");
+    fs::write(&config_path, "[models]\ndefault = \"custom/model\"\n").unwrap();
+
+    // Scaffold - should NOT overwrite
+    opencode_autocode::scaffold::scaffold_default(output_path).expect("Scaffold should succeed");
+
+    // Verify custom value preserved
+    let content = fs::read_to_string(&config_path).expect("Failed to read config");
+    assert!(
+        content.contains("custom/model"),
+        "Config should preserve existing values, got: {}",
+        content
+    );
+}
