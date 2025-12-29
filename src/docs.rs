@@ -1,7 +1,7 @@
 //! Documentation module for opencode-autocode
 //! Provides access to embedded documentation and examples.
 
-/// Embedded documentation and examples
+// Embedded documentation and examples
 // Registration of embedded files
 
 // Existing examples (previously hardcoded in main.rs)
