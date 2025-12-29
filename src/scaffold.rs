@@ -162,11 +162,15 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
         .with_context(|| format!("Failed to initialize database: {}", db_path.display()))?;
     println!("   🗃️  Created .autocode/progress.db");
 
-    // Write user configuration file inside .autocode/
+    // Write user configuration file inside .autocode/ (if not already configured)
     let config_path = autocode_dir.join("config.toml");
-    fs::write(&config_path, USER_CONFIG_TEMPLATE)
-        .with_context(|| format!("Failed to write config.toml: {}", config_path.display()))?;
-    println!("   ⚙️  Created .autocode/config.toml");
+    if !config_path.exists() {
+        fs::write(&config_path, USER_CONFIG_TEMPLATE)
+            .with_context(|| format!("Failed to write config.toml: {}", config_path.display()))?;
+        println!("   ⚙️  Created .autocode/config.toml");
+    } else {
+        println!("   ⚙️  Using existing .autocode/config.toml");
+    }
 
     // Write subagent definitions for parallel spec generation
     let spec_product_path = agent_dir.join("spec-product.md");
