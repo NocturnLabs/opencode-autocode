@@ -7,16 +7,16 @@
 #![allow(dead_code)]
 
 pub mod features;
+pub mod knowledge;
+pub mod meta;
 mod schema;
 mod sessions;
-pub mod meta;
-pub mod knowledge;
 
 // Re-export types used by main.rs
 pub use features::FeatureRepository;
-pub use sessions::SessionRepository;
-pub use meta::MetaRepository;
 pub use knowledge::KnowledgeRepository;
+pub use meta::MetaRepository;
+pub use sessions::SessionRepository;
 
 use anyhow::{Context, Result};
 use rusqlite::Connection;

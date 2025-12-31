@@ -20,7 +20,7 @@ impl MetaRepository {
     pub fn get(&self, key: &str) -> Result<Option<String>> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare("SELECT value FROM meta WHERE key = ?1")?;
-        
+
         let mut rows = stmt.query(params![key])?;
         if let Some(row) = rows.next()? {
             let value: String = row.get(0)?;
@@ -36,7 +36,8 @@ impl MetaRepository {
         conn.execute(
             "INSERT OR REPLACE INTO meta (key, value, updated_at) VALUES (?1, ?2, datetime('now'))",
             params![key, value],
-        ).context("Failed to set metadata")?;
+        )
+        .context("Failed to set metadata")?;
         Ok(())
     }
 

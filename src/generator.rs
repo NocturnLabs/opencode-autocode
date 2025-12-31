@@ -215,10 +215,13 @@ where
 /// Build the generation prompt by inserting the user's idea into the template.
 fn build_generation_prompt(idea: &str, testing_preference: Option<&str>) -> String {
     let pref_text = match testing_preference {
-        Some(pref) if !pref.trim().is_empty() => format!("\n## User Preferences\n\nTesting & QA Framework Preference: {}\n", pref),
+        Some(pref) if !pref.trim().is_empty() => format!(
+            "\n## User Preferences\n\nTesting & QA Framework Preference: {}\n",
+            pref
+        ),
         _ => String::new(),
     };
-    
+
     GENERATOR_PROMPT
         .replace("{{IDEA}}", idea)
         .replace("{{TESTING_PREFERENCE}}", &pref_text)
@@ -227,7 +230,10 @@ fn build_generation_prompt(idea: &str, testing_preference: Option<&str>) -> Stri
 /// Build the subagent-based generation prompt by inserting the user's idea.
 fn build_subagent_prompt(idea: &str, testing_preference: Option<&str>) -> String {
     let pref_text = match testing_preference {
-        Some(pref) if !pref.trim().is_empty() => format!("\n**User Preference:** QA/Testing framework should be: {}\n", pref),
+        Some(pref) if !pref.trim().is_empty() => format!(
+            "\n**User Preference:** QA/Testing framework should be: {}\n",
+            pref
+        ),
         _ => String::new(),
     };
 

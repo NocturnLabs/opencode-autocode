@@ -140,7 +140,7 @@ fn run_supervisor_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
 
         // 1. Determine Action (Supervisor Logic)
         let action = determine_action(db_path, config)?;
-        
+
         let command_name = match action {
             SupervisorAction::Stop => {
                 logger.info("Supervisor: Stop signal received.");
@@ -151,10 +151,13 @@ fn run_supervisor_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
                 cmd.to_string()
             }
             SupervisorAction::Fix { feature, error } => {
-                logger.info(&format!("Supervisor: REGRESSION DETECTED in '{}'", feature.description));
+                logger.info(&format!(
+                    "Supervisor: REGRESSION DETECTED in '{}'",
+                    feature.description
+                ));
                 println!("🚨 REGRESSION DETECTED: {}", feature.description);
                 println!("→ Switching to auto-fix mode...");
-                
+
                 // Generate dynamic auto-fix template
                 generate_fix_template(&feature, &error, db_path)?;
                 "auto-fix-active".to_string()
@@ -166,7 +169,7 @@ fn run_supervisor_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
 
         // 2. Run Session
         let before_passing = features::get_passing_feature_descriptions(db_path)?;
-        
+
         // Execute the session
         let result = session::execute_opencode_session(
             &command_name,
@@ -181,11 +184,14 @@ fn run_supervisor_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
         let after_passing = features::get_passing_feature_descriptions(db_path)?;
         // Detect what the agent CLAIMED to complete
         let claimed_new = features::detect_newly_completed(&before_passing, &after_passing);
-        
+
         if !claimed_new.is_empty() {
-            println!("🔍 Supervisor: Verifying {} feature(s)...", claimed_new.len());
+            println!(
+                "🔍 Supervisor: Verifying {} feature(s)...",
+                claimed_new.len()
+            );
             for feature_desc in &claimed_new {
-                 verify_and_commit(feature_desc, db_path, config, settings, iteration)?;
+                verify_and_commit(feature_desc, db_path, config, settings, iteration)?;
             }
         }
 
@@ -216,21 +222,24 @@ fn determine_action(db_path: &Path, config: &Config) -> Result<SupervisorAction>
     if FeatureProgress::has_features(db_path) {
         let db = crate::db::Database::open(db_path)?;
         let features = db.features().list_all()?;
-        
+
         // Run check on ALL features (not just passing ones to be safe, but regression checks usually imply passing ones)
         // actually regression check only checks passing ones.
         // We want to verify that previously passing features are STILL passing.
         let summary = regression::run_regression_check(&features, None, false)?;
-        
+
         if summary.automated_failed > 0 {
             // Find the first failing feature to fix
             for result in summary.results {
                 if !result.passed && result.was_automated {
-                    if let Some(feature) = features.iter().find(|f| f.description == result.description) {
-                         return Ok(SupervisorAction::Fix {
-                             feature: feature.clone(),
-                             error: result.error_message.unwrap_or_default(),
-                         });
+                    if let Some(feature) = features
+                        .iter()
+                        .find(|f| f.description == result.description)
+                    {
+                        return Ok(SupervisorAction::Fix {
+                            feature: feature.clone(),
+                            error: result.error_message.unwrap_or_default(),
+                        });
                     }
                 }
             }
@@ -259,7 +268,10 @@ fn determine_action(db_path: &Path, config: &Config) -> Result<SupervisorAction>
 
     // Phase 4: DB Progress
     let progress = FeatureProgress::load_from_db(db_path)?;
-    println!("→ Progress: {} passing, {} remaining", progress.passing, progress.remaining);
+    println!(
+        "→ Progress: {} passing, {} remaining",
+        progress.passing, progress.remaining
+    );
 
     if progress.all_passing() {
         return Ok(SupervisorAction::Stop);
@@ -272,7 +284,7 @@ fn determine_action(db_path: &Path, config: &Config) -> Result<SupervisorAction>
 fn generate_fix_template(
     feature: &crate::db::features::Feature,
     error: &str,
-    _db_path: &Path
+    _db_path: &Path,
 ) -> Result<()> {
     // Read template
     let template_path = Path::new("templates/commands/auto-fix.md");
@@ -282,14 +294,17 @@ fn generate_fix_template(
         // Fallback
         "# Regression Fix\nFix {{failing_feature}}\nError: {{error_message}}".to_string()
     };
-    
+
     // Replace variables
     let content = template
         .replace("{{failing_feature}}", &feature.description)
         .replace("{{error_message}}", error)
         .replace("{{current_feature}}", "latest changes")
-        .replace("{{verification_command}}", feature.verification_command.as_deref().unwrap_or("unknown"));
-        
+        .replace(
+            "{{verification_command}}",
+            feature.verification_command.as_deref().unwrap_or("unknown"),
+        );
+
     // Write to active command file
     let target = Path::new(".opencode/command/auto-fix-active.md");
     if let Some(parent) = target.parent() {
@@ -304,26 +319,28 @@ fn verify_and_commit(
     db_path: &Path,
     config: &Config,
     settings: &LoopSettings,
-    session_num: usize
+    session_num: usize,
 ) -> Result<()> {
     let db = crate::db::Database::open(db_path)?;
     let features = db.features().list_all()?;
-    let feature = features.iter().find(|f| f.description == feature_desc)
+    let feature = features
+        .iter()
+        .find(|f| f.description == feature_desc)
         .context("Feature not found in DB")?;
 
     // 1. Run Verification
     println!("  • Verifying '{}'...", feature.description);
-     if let Some(cmd) = &feature.verification_command {
+    if let Some(cmd) = &feature.verification_command {
         let output = std::process::Command::new("sh")
             .arg("-c")
             .arg(cmd)
             .output()?;
-            
+
         if !output.status.success() {
             println!("  ❌ Verification FAILED!");
             println!("     Command: {}", cmd);
             println!("     Code: {}", output.status.code().unwrap_or(-1));
-            
+
             // ROLLBACK STATUS
             db.features().mark_failing(&feature.description)?;
             println!("  ↺ Rolled back status to 'failing'");
@@ -338,7 +355,7 @@ fn verify_and_commit(
     if settings.auto_commit {
         let _ = git::commit_completed_feature(&feature.description, settings.verbose);
     }
-    
+
     // 3. Notify
     let progress = FeatureProgress::load_from_db(db_path)?;
     let _ = webhook::notify_feature_complete(

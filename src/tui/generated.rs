@@ -39,10 +39,11 @@ pub fn run_generated_mode(
 
     let testing_pref = prompt_for_testing_preference()?;
 
-    let mut spec_text = match generate_initial_spec(&idea, testing_pref.as_deref(), model, use_subagents) {
-        Ok(spec) => spec,
-        Err(e) => return handle_generation_error(e, output_dir),
-    };
+    let mut spec_text =
+        match generate_initial_spec(&idea, testing_pref.as_deref(), model, use_subagents) {
+            Ok(spec) => spec,
+            Err(e) => return handle_generation_error(e, output_dir),
+        };
 
     run_validation_loop(
         output_dir,
@@ -72,7 +73,10 @@ fn prompt_for_testing_preference() -> Result<Option<String>> {
     use std::io::{self, BufRead};
 
     println!();
-    print!("{}: ", style("Testing framework preference (optional, press Enter to let AI decide)").blue());
+    print!(
+        "{}: ",
+        style("Testing framework preference (optional, press Enter to let AI decide)").blue()
+    );
     let _ = std::io::stdout().flush();
 
     let stdin = io::stdin();
@@ -85,7 +89,12 @@ fn prompt_for_testing_preference() -> Result<Option<String>> {
     }
 }
 
-fn generate_initial_spec(idea: &str, testing_pref: Option<&str>, model: Option<&str>, use_subagents: bool) -> Result<String> {
+fn generate_initial_spec(
+    idea: &str,
+    testing_pref: Option<&str>,
+    model: Option<&str>,
+    use_subagents: bool,
+) -> Result<String> {
     print!("\x1B[2K\r");
     let _ = std::io::stdout().flush();
 

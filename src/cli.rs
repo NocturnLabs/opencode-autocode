@@ -174,9 +174,7 @@ pub enum KnowledgeAction {
         description: Option<String>,
     },
     /// Get a fact by key
-    Get {
-        key: String,
-    },
+    Get { key: String },
     /// List all facts
     List {
         /// Filter by category
@@ -184,9 +182,7 @@ pub enum KnowledgeAction {
         category: Option<String>,
     },
     /// Delete a fact
-    Delete {
-        key: String,
-    },
+    Delete { key: String },
 }
 
 /// Example topics for progressive discovery

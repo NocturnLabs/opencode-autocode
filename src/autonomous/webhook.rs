@@ -97,10 +97,7 @@ fn notify_with_sender<S: WebhookSender>(
         None => return Ok(()),
     };
 
-    println!(
-        "→ Updating webhook dashboard for: {}",
-        feature.description
-    );
+    println!("→ Updating webhook dashboard for: {}", feature.description);
 
     // Try to load existing message ID
     let db_path = Path::new(db_path_str);
@@ -140,7 +137,7 @@ fn create_new_message<S: WebhookSender>(
     db_path_str: &str,
 ) -> Result<()> {
     let response = sender.send_with_response(url, payload, "POST")?;
-    
+
     if let Some(id) = extract_json_id(&response) {
         let db_path = Path::new(db_path_str);
         // We need to ensure DB exists in test context, but typically it should
@@ -170,21 +167,17 @@ fn build_webhook_payload(
     } else {
         0
     };
-    
+
     // Visual progress bar
     let bar_len = 20;
     // Clippy fix: progress_percent is already usize (u64 cast to usize elsewhere or implied) - checking context
-    // Actually progress_percent comes from earlier calculation. Let's see. 
-    // Wait, the error said `progress_percent as usize` is unnecessary. 
+    // Actually progress_percent comes from earlier calculation. Let's see.
+    // Wait, the error said `progress_percent as usize` is unnecessary.
     // And `render_template` takes `&str` and we passed `&template_content` where `template_content` is `&str` (from include_str!).
-    
+
     let filled = (progress_percent * bar_len) / 100;
     let empty = bar_len - filled;
-    let progress_bar = format!(
-        "{}{}",
-        "█".repeat(filled),
-        "░".repeat(empty)
-    );
+    let progress_bar = format!("{}{}", "█".repeat(filled), "░".repeat(empty));
 
     // Prepare template data
     let mut data = std::collections::HashMap::new();
@@ -194,14 +187,17 @@ fn build_webhook_payload(
     data.insert("timestamp", timestamp);
     data.insert("session_number", session_number.to_string());
     data.insert("progress_current", current_passing.to_string());
-    data.insert("progress_remaining", (total_features - current_passing).to_string());
+    data.insert(
+        "progress_remaining",
+        (total_features - current_passing).to_string(),
+    );
     data.insert("progress_total", total_features.to_string());
     data.insert("progress_percent", progress_percent.to_string());
     data.insert("progress_bar", progress_bar);
 
     // Render template
     let handlebars = handlebars::Handlebars::new();
-    
+
     // Embed the template directly into the binary
     let template_content = include_str!("../../templates/notifications/webhook.json");
     // Fallback logic is no longer needed since inclusion is verified at compile time
@@ -270,7 +266,8 @@ mod tests {
         // Setup Config
         let mut config = Config::default();
         config.notifications.webhook_enabled = true;
-        config.notifications.webhook_url = Some("http://discord.com/api/webhooks/123/token".to_string());
+        config.notifications.webhook_url =
+            Some("http://discord.com/api/webhooks/123/token".to_string());
 
         // Setup Feature
         let feature = Feature {

@@ -252,7 +252,10 @@ fn handle_db_command(action: &DbAction) -> Result<()> {
             let db = db::Database::open(&db_path)?;
             let features = db.features().list_all()?;
 
-            println!("🔍 Running regression check on {} feature(s)...", features.len());
+            println!(
+                "🔍 Running regression check on {} feature(s)...",
+                features.len()
+            );
 
             let summary = regression::run_regression_check(&features, None, false)?;
             regression::report_results(&summary);
