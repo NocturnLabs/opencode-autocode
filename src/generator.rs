@@ -324,7 +324,7 @@ mod tests {
     #[test]
     fn test_build_generation_prompt() {
         let idea = "A todo app with tags";
-        let prompt = build_generation_prompt(idea);
+        let prompt = build_generation_prompt(idea, None);
 
         assert!(prompt.contains("A todo app with tags"));
         assert!(prompt.contains("<project_specification>"));
