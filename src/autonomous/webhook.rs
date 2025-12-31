@@ -173,7 +173,12 @@ fn build_webhook_payload(
     
     // Visual progress bar
     let bar_len = 20;
-    let filled = (progress_percent as usize * bar_len) / 100;
+    // Clippy fix: progress_percent is already usize (u64 cast to usize elsewhere or implied) - checking context
+    // Actually progress_percent comes from earlier calculation. Let's see. 
+    // Wait, the error said `progress_percent as usize` is unnecessary. 
+    // And `render_template` takes `&str` and we passed `&template_content` where `template_content` is `&str` (from include_str!).
+    
+    let filled = (progress_percent * bar_len) / 100;
     let empty = bar_len - filled;
     let progress_bar = format!(
         "{}{}",
@@ -202,7 +207,7 @@ fn build_webhook_payload(
     // Fallback logic is no longer needed since inclusion is verified at compile time
 
     handlebars
-        .render_template(&template_content, &data)
+        .render_template(template_content, &data) // Clippy fix: remove &
         .context("Failed to render webhook template")
 }
 
@@ -211,9 +216,10 @@ fn extract_json_id(json: &str) -> Option<String> {
     if let Some(start_idx) = json.find(id_key) {
         let rest = &json[start_idx + id_key.len()..];
         let rest = rest.trim_start();
-        if rest.starts_with('"') {
-            if let Some(end_idx) = rest[1..].find('"') {
-                return Some(rest[1..=end_idx].to_string());
+        // Clippy fix: usage of strip_prefix
+        if let Some(stripped) = rest.strip_prefix('"') {
+            if let Some(end_idx) = stripped.find('"') {
+                return Some(stripped[..end_idx].to_string());
             }
         }
     }
