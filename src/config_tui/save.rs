@@ -108,7 +108,6 @@ allowlist_file = "{}"
 # Paths - File locations
 # ─────────────────────────────────────────────────────────────────────────────
 [paths]
-feature_list_file = "{}"
 database_file = "{}"
 log_dir = "{}"
 
@@ -176,7 +175,6 @@ spec_preview_lines = {}
         config.security.enforce_allowlist,
         config.security.allowlist_file,
         // Paths
-        config.paths.feature_list_file,
         config.paths.database_file,
         config.paths.log_dir,
         // Notifications

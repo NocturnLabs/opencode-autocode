@@ -30,13 +30,17 @@ opencode-autocode vibe --developer
 
 - 🚀 **Zero-Config Scaffolding**: Build complex app specs using a rich interactive TUI, now stored in `.autocode/`.
 - 🗃️ **SQLite Persistence**: Industrial-grade progress tracking with a relational database (`.autocode/progress.db`).
+- 🧠 **Persistent Agent Knowledge**: Agents can save discovered facts (ports, paths, keys) to a persistent Key-Value store (`db knowledge`).
 - 🔄 **Vibe Loop**: Automated session management with intelligent continuation and exponential backoff retry logic.
+- ⚡ **Bun First**: Enforces `bun` usage for JS/TS projects (install, scripts, tests) for maximum speed.
+- 🎯 **Single-Feature Isolation**: Enforces a strict one-feature-per-session rule to minimize context bloat and regressions.
 - 🧠 **Conductor Workflow**: Context-driven planning that creates persistent `.conductor/` and `tracks/` directories to maintain project state.
 - 📝 **Developer Mode**: Detailed output captured in `opencode-debug.log` for debugging autonomous sessions.
 - ✅ **Auto-Commit**: Automatically commits each completed feature to Git with AI-generated messages.
 - 🔁 **Stuck Recovery**: Automatically generates alternative implementation paths when progress stalls.
 - 🧪 **Regression Testing**: CLI command to verify all previously completed features directly from the database.
-- 🔔 **Webhooks**: Real-time integration with Discord/Slack for feature completion alerts.
+- 🚀 **Dashboard Webhooks**: Real-time Discord/Slack dashboard that updates a single message with project status and progress bars.
+  ![Discord Dashboard](assets/discord-dashboard.png)
 - 🛠️ **MCP Native**: First-class support for Model Context Protocol tools like `osgrep`, `chrome-devtools`, and `sequential-thinking`.
 - 🔌 **Port Conflict Prevention**: Automatic detection and resolution of port conflicts before starting servers or tests.
 - 📦 **Module Verification**: Validates ES6 import/export consistency to prevent ReferenceErrors at runtime.
@@ -76,6 +80,9 @@ opencode-autocode vibe --developer
 - `db schema <table>`: Show the schema for a specific table.
 - `db next-feature`: Get the next incomplete feature.
 - `db mark-pass <id>`: Mark a feature as passing.
+- `db knowledge set <key> <value>`: Save a persistent fact (flags: `--category`, `--description`).
+- `db knowledge get <key>`: Recall a saved fact.
+- `db knowledge list`: List all saved facts.
 
 ### Utility Commands
 
@@ -90,10 +97,10 @@ Settings are stored in `.autocode/config.toml`. You can either use `opencode-aut
 
 ```toml
 [models]
-default = "opencode/big-pickle"    # Used for spec generation
-autonomous = "opencode/grok-code" # Used for code implementation
-reasoning = "opencode/grok-code"  # Used for planning and logic
-enhancement = "opencode/big-pickle" # Used for discover_improvements
+default = "opencode/glm-4.7-free"       # Used for spec generation
+autonomous = "opencode/minimax-m2.1-free" # Used for code implementation
+reasoning = "opencode/glm-4.7-free"     # Used for planning and logic
+enhancement = "opencode/glm-4.7-free"   # Used for discover_improvements
 
 [paths]
 database_file = ".autocode/progress.db"
@@ -148,7 +155,7 @@ include_testing_strategy = true
 
 [ui]
 colored_output = true
-verbose = false
+verbose = true
 show_progress = true
 ```
 

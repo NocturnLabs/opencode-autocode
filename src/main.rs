@@ -56,29 +56,6 @@ fn main() -> Result<()> {
     // Handle flag-based modes
     match cli.mode()? {
         Mode::Config => config_tui::run_config_tui(),
-        Mode::RegressionCheck => {
-            let feature_path = cli
-                .feature_list
-                .clone()
-                .unwrap_or_else(|| PathBuf::from("feature_list.json"));
-
-            if !feature_path.exists() {
-                anyhow::bail!("Feature list not found: {}", feature_path.display());
-            }
-
-            println!(
-                "🔍 Running regression check on {}...",
-                feature_path.display()
-            );
-
-            let summary = regression::run_regression_check(&feature_path, None, cli.verbose)?;
-            regression::report_results(&summary);
-
-            if summary.automated_failed > 0 {
-                std::process::exit(1);
-            }
-            Ok(())
-        }
         Mode::Default => {
             if cli.dry_run {
                 println!("🔍 Dry run mode - no files will be created");
@@ -119,7 +96,8 @@ fn print_next_steps(output_dir: &std::path::Path) {
     println!("\n📋 Next steps:");
     println!("   1. cd {}", output_dir.display());
     println!("   2. opencode-autocode --config  # Configure settings");
-    println!("   3. opencode-autocode vibe      # Start autonomous loop");
+    println!("   3. opencode-autocode example   # See agent-centric examples and guides");
+    println!("   4. opencode-autocode vibe      # Start autonomous loop");
 }
 
 /// Handle database subcommands
@@ -263,6 +241,27 @@ fn handle_db_command(action: &DbAction) -> Result<()> {
             println!("{} row(s) affected", affected);
             Ok(())
         }
+        DbAction::Check { path: _ } => {
+            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
+            if !db_path.exists() {
+                anyhow::bail!(
+                    "Database not found: {}. Run 'db init' first.",
+                    db_path.display()
+                );
+            }
+            let db = db::Database::open(&db_path)?;
+            let features = db.features().list_all()?;
+
+            println!("🔍 Running regression check on {} feature(s)...", features.len());
+
+            let summary = regression::run_regression_check(&features, None, false)?;
+            regression::report_results(&summary);
+
+            if summary.automated_failed > 0 {
+                std::process::exit(1);
+            }
+            Ok(())
+        }
         DbAction::Tables => {
             let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
             if !db_path.exists() {
@@ -323,6 +322,48 @@ fn handle_db_command(action: &DbAction) -> Result<()> {
             }
             Ok(())
         }
+        DbAction::Knowledge { action } => {
+            let db = db::Database::open_default()?;
+            let repo = db.knowledge();
+
+            match action {
+                cli::KnowledgeAction::Set {
+                    key,
+                    value,
+                    category,
+                    description,
+                } => {
+                    let cat = category.as_deref().unwrap_or("general");
+                    repo.set(key, value, cat, description.as_deref())?;
+                    println!("✅ Fact saved: {} = {}", key, value);
+                }
+                cli::KnowledgeAction::Get { key } => {
+                    if let Some(fact) = repo.get(key)? {
+                        println!("{}={}", fact.key, fact.value);
+                        if let Some(desc) = fact.description {
+                            println!("# {}", desc);
+                        }
+                    } else {
+                        println!("Fact '{}' not found.", key);
+                    }
+                }
+                cli::KnowledgeAction::List { category } => {
+                    let facts = repo.list(category.as_deref())?;
+                    if facts.is_empty() {
+                        println!("No facts found.");
+                    } else {
+                        for fact in facts {
+                            println!("[{}] {} = {}", fact.category, fact.key, fact.value);
+                        }
+                    }
+                }
+                cli::KnowledgeAction::Delete { key } => {
+                    repo.delete(key)?;
+                    println!("🗑️ Fact '{}' deleted.", key);
+                }
+            }
+            Ok(())
+        }
     }
 }
 
@@ -365,6 +406,10 @@ fn handle_example_command(topic: &ExampleTopic) -> Result<()> {
         ExampleTopic::Js => show_doc("js"),
         ExampleTopic::Testing => show_doc("testing"),
         ExampleTopic::Recovery => show_doc("recovery"),
+        ExampleTopic::Vibe => show_doc("vibe"),
+        ExampleTopic::Tracks => show_doc("tracks"),
+        ExampleTopic::Interactive => show_doc("interactive"),
+        ExampleTopic::TemplatesGuide => show_doc("templates-guide"),
     }
 }
 

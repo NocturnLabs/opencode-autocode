@@ -37,7 +37,9 @@ pub fn run_generated_mode(
         return Ok(());
     }
 
-    let mut spec_text = match generate_initial_spec(&idea, model, use_subagents) {
+    let testing_pref = prompt_for_testing_preference()?;
+
+    let mut spec_text = match generate_initial_spec(&idea, testing_pref.as_deref(), model, use_subagents) {
         Ok(spec) => spec,
         Err(e) => return handle_generation_error(e, output_dir),
     };
@@ -66,7 +68,24 @@ fn prompt_for_idea() -> Result<String> {
     Ok(idea)
 }
 
-fn generate_initial_spec(idea: &str, model: Option<&str>, use_subagents: bool) -> Result<String> {
+fn prompt_for_testing_preference() -> Result<Option<String>> {
+    use std::io::{self, BufRead};
+
+    println!();
+    print!("{}: ", style("Testing framework preference (optional, press Enter to let AI decide)").blue());
+    let _ = std::io::stdout().flush();
+
+    let stdin = io::stdin();
+    let pref = stdin.lock().lines().next().transpose()?.unwrap_or_default();
+
+    if pref.trim().is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(pref))
+    }
+}
+
+fn generate_initial_spec(idea: &str, testing_pref: Option<&str>, model: Option<&str>, use_subagents: bool) -> Result<String> {
     print!("\x1B[2K\r");
     let _ = std::io::stdout().flush();
 
@@ -75,7 +94,7 @@ fn generate_initial_spec(idea: &str, model: Option<&str>, use_subagents: bool) -
         style("─────────────────────────────────────────────").dim()
     );
 
-    generate_spec_from_idea(idea, model, use_subagents, |msg| {
+    generate_spec_from_idea(idea, testing_pref, model, use_subagents, |msg| {
         print!("{}", msg);
         let _ = std::io::stdout().flush();
     })

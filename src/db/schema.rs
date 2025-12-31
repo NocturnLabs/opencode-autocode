@@ -56,4 +56,29 @@ CREATE TRIGGER IF NOT EXISTS update_feature_timestamp
 BEGIN
     UPDATE features SET updated_at = datetime('now') WHERE id = NEW.id;
 END;
+
+-- Key-Value metadata storage (e.g. for discord_message_id)
+CREATE TABLE IF NOT EXISTS meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+-- Agent Knowledge Base (Persistent Facts)
+CREATE TABLE IF NOT EXISTS knowledge (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    category TEXT DEFAULT 'general',
+    description TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+-- Trigger to update updated_at on knowledge changes
+CREATE TRIGGER IF NOT EXISTS update_knowledge_timestamp
+    AFTER UPDATE ON knowledge
+    FOR EACH ROW
+BEGIN
+    UPDATE knowledge SET updated_at = datetime('now') WHERE key = NEW.key;
+END;
 "#;

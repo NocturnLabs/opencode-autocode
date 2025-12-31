@@ -2,6 +2,15 @@
 
 Read this module when working on web projects with JavaScript or TypeScript.
 
+## Toolchain: Use Bun
+
+**Always use `bun` instead of npm, pnpm, or yarn.**
+
+- Install deps: `bun install`
+- Run scripts: `bun run dev`
+- Tests: `bun test`
+- Init: `bun init`
+
 ---
 
 ## Port Conflict Prevention
@@ -78,8 +87,8 @@ echo "Starting server on port $PORT"
 export PORT
 
 # Start the server (adjust based on tech stack)
-npm run dev -- --port $PORT &
-# Or: npx vite --port $PORT
+bun run dev --port $PORT &
+# Or: bun start --port $PORT
 # Or: python3 -m http.server $PORT
 
 echo "Server running at http://localhost:$PORT"

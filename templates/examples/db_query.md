@@ -1,17 +1,49 @@
-# Example: SQL queries for feature inspection
+# Example: SQL Queries for Feature Inspection
 
-# List all features:
+Use these queries to understand the current state of the project.
 
-opencode-autocode db query "SELECT id, description, passes FROM features"
+## 1. Feature Progress
 
-# Count passing/failing:
+```bash
+# Get summary stats
+opencode-autocode db stats
 
-opencode-autocode db query "SELECT passes, COUNT(\*) FROM features GROUP BY passes"
+# Count by category
+opencode-autocode db query "SELECT category, count(*) FROM features GROUP BY category"
 
-# Get next feature to work on:
+# List failing features
+opencode-autocode db query "SELECT id, description FROM features WHERE passes = 0"
 
-opencode-autocode db query "SELECT id, description FROM features WHERE passes = 0 LIMIT 1"
+# Get next feature for implementation
+opencode-autocode db next-feature
+```
 
-# Features with weak verification:
+## 2. Table Discovery
 
-opencode-autocode db query "SELECT id, description FROM features WHERE verification_command LIKE '%cargo build%'"
+```bash
+# List all tables
+opencode-autocode db tables
+
+# Show schema for features table
+opencode-autocode db schema features
+```
+
+## 3. Manual Overrides
+
+```bash
+# Mark a specific feature as passing
+opencode-autocode db mark-pass 5
+
+# Reset a feature (mark as failing)
+opencode-autocode db exec "UPDATE features SET passes = 0 WHERE id = 12"
+```
+
+## 4. Complex Filtering
+
+```bash
+# Search for features by keyword
+opencode-autocode db query "SELECT * FROM features WHERE description LIKE '%auth%'"
+
+# View features with verification commands
+opencode-autocode db query "SELECT id, description, verification_command FROM features"
+```

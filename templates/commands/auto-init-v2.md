@@ -65,6 +65,7 @@ opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'Audio play
 > **NEVER** use generic verification like `cargo build` — use actual test commands.
 > **For web projects:** E2E tests (Playwright) are MANDATORY. See `templates/modules/testing.md`.
 > **Need examples?** Run `opencode-autocode example db --insert` or `example db --query`.
+> **Stuck already?** Run `opencode-autocode example vibe` for orientation.
 
 ---
 
@@ -133,3 +134,6 @@ Output: `===SESSION_COMPLETE===`
 | Web/JavaScript project | `templates/modules/javascript.md` |
 | Testing setup          | `templates/modules/testing.md`    |
 | MCP tool usage         | `templates/core/mcp_guide.md`     |
+| Orientation            | `example vibe`                    |
+| Tracks                 | `example tracks`                  |
+| Templates              | `example templates-guide`         |

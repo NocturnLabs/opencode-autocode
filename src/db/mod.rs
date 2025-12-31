@@ -6,13 +6,17 @@
 // Allow dead code for internal APIs that will be used by autonomous loop integration
 #![allow(dead_code)]
 
-mod features;
+pub mod features;
 mod schema;
 mod sessions;
+pub mod meta;
+pub mod knowledge;
 
 // Re-export types used by main.rs
 pub use features::FeatureRepository;
 pub use sessions::SessionRepository;
+pub use meta::MetaRepository;
+pub use knowledge::KnowledgeRepository;
 
 use anyhow::{Context, Result};
 use rusqlite::Connection;
@@ -67,6 +71,16 @@ impl Database {
     /// Get session repository
     pub fn sessions(&self) -> SessionRepository {
         SessionRepository::new(self.connection())
+    }
+
+    /// Get meta repository
+    pub fn meta(&self) -> MetaRepository {
+        MetaRepository::new(self.connection())
+    }
+
+    /// Get knowledge repository
+    pub fn knowledge(&self) -> KnowledgeRepository {
+        KnowledgeRepository::new(self.connection())
     }
 
     /// Check if database exists at path

@@ -63,16 +63,15 @@ In addition to automated tests, manually verify with chrome-devtools MCP:
 
 ## Regression Testing
 
-Before marking a new feature as passing:
+Before marking a new feature as passing, you MUST verify that no existing functionality was broken.
 
-1. Get count of passing features:
+```bash
+# Run automated regression check
+opencode-autocode db check
+```
 
-   ```bash
-   opencode-autocode db query "SELECT COUNT(*) FROM features WHERE passes = 1"
-   ```
+If any regression is detected:
 
-2. Run full test suite to verify no regressions
-
-3. If any regression detected:
-   - Mark that feature as `passes = 0`
-   - Fix regression BEFORE continuing
+1. Identify the failing feature
+2. Fix the regression BEFORE continuing
+3. DO NOT mark the current feature as passing until all regressions are fixed.

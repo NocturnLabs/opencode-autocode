@@ -49,24 +49,25 @@ fn test_scaffold_no_shell_script() {
     );
 }
 
-/// Test that vibe command correctly detects feature_list.json
+/// Test that vibe command correctly detects database
 #[test]
-fn test_vibe_detects_feature_list() {
+fn test_vibe_detects_database() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let output_path = temp_dir.path();
 
-    // Without feature_list.json, vibe should run auto-init
-    let feature_list_path = output_path.join("feature_list.json");
-    assert!(!feature_list_path.exists());
+    // Directory for database
+    let autocode_dir = output_path.join(".autocode");
+    fs::create_dir_all(&autocode_dir).expect("Failed to create .autocode dir");
 
-    // Create fake feature_list.json
-    let feature_list_content = r#"[
-        {"description": "Test feature", "passes": false}
-    ]"#;
-    fs::write(&feature_list_path, feature_list_content).expect("Failed to write feature list");
+    // Without database, vibe should run auto-init
+    let db_path = autocode_dir.join("progress.db");
+    assert!(!db_path.exists());
+
+    // Create database (simulated)
+    opencode_autocode::db::Database::open(&db_path).expect("Failed to create database");
 
     // Now it should exist
-    assert!(feature_list_path.exists());
+    assert!(db_path.exists());
 }
 
 /// Test config file generation

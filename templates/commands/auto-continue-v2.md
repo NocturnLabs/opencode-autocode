@@ -18,7 +18,8 @@
 Then orient:
 
 - List files, read `app_spec.md`, detect project type
-- Query: `opencode-autocode db query "SELECT COUNT(*) FROM features WHERE passes = 0"`
+- **Orient**: `opencode-autocode example vibe`
+- Query: `opencode-autocode db stats`
 - Check `.autocode/session.log` for prior notes
 
 > **Need guidance?** Read `templates/modules/[javascript|rust|testing].md`
@@ -27,7 +28,14 @@ Then orient:
 
 ### 2. Regression Check
 
-Verify existing features still pass before new work.
+Verify existing features still pass before new work:
+
+4.  **Memory Check**:
+
+    - Run `auto db knowledge list` to recall saved facts (ports, env vars, etc.).
+    - If you discover new facts, SAVE THEM with `auto db knowledge set`.
+
+5.  **Run `db check`**:
 
 ---
 
@@ -127,11 +135,14 @@ Start server on the free port, not the default.
 - [ ] Ran the feature's `verification_command`
 - [ ] Verification test PASSED (not just "ran")
 - [ ] Checked browser console for errors (web projects)
+- [ ] Checked/Updated Memory (`auto db knowledge list/set`)
 
 ```bash
 opencode-autocode db mark-pass X
 git add . && git commit -m "Implement [feature]"
 ```
+
+**CRITICAL: STOP HERE.** Do not start the next feature. Signal completion to reset context.
 
 ---
 
@@ -156,3 +167,5 @@ echo "CONTINUE" > .opencode-signal
 | MCP usage   | `core/mcp_guide.md`     |
 | DB ops      | `core/database.md`      |
 | Async comms | `core/communication.md` |
+| Orientation | `example vibe`          |
+| Tracks      | `example tracks`        |

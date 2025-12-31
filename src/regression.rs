@@ -4,29 +4,9 @@
 //! regression checks on features marked as passing.
 
 use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
-use std::path::Path;
 use std::process::Command;
 
-/// Represents a single feature in feature_list.json
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Feature {
-    /// Feature category (functional, style, integration, performance)
-    pub category: String,
-
-    /// Human-readable description of the feature
-    pub description: String,
-
-    /// Verification steps for manual testing
-    pub steps: Vec<String>,
-
-    /// Whether this feature currently passes all tests
-    pub passes: bool,
-
-    /// Optional shell command for automated verification
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub verification_command: Option<String>,
-}
+use crate::db::features::Feature;
 
 /// Result of a single feature check
 #[derive(Debug, Clone)]
@@ -48,25 +28,12 @@ pub struct RegressionSummary {
     pub results: Vec<CheckResult>,
 }
 
-/// Parse feature_list.json from the given path
-pub fn parse_feature_list(path: &Path) -> Result<Vec<Feature>> {
-    let content = std::fs::read_to_string(path)
-        .with_context(|| format!("Failed to read feature list: {}", path.display()))?;
-
-    let features: Vec<Feature> = serde_json::from_str(&content)
-        .with_context(|| format!("Failed to parse feature list: {}", path.display()))?;
-
-    Ok(features)
-}
-
 /// Run regression checks on all passing features
 pub fn run_regression_check(
-    path: &Path,
+    features: &[Feature],
     category_filter: Option<&str>,
     verbose: bool,
 ) -> Result<RegressionSummary> {
-    let features = parse_feature_list(path)?;
-
     let total_features = features.len();
     let passing_features: Vec<_> = features
         .iter()
@@ -194,45 +161,32 @@ pub fn report_results(summary: &RegressionSummary) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Write;
-    use tempfile::NamedTempFile;
 
-    fn create_test_feature_list() -> NamedTempFile {
-        let mut file = NamedTempFile::new().unwrap();
-        let content = r#"[
-            {
-                "category": "functional",
-                "description": "Test feature 1",
-                "steps": ["Step 1", "Step 2"],
-                "passes": true,
-                "verification_command": "echo test"
+    fn create_test_features() -> Vec<Feature> {
+        vec![
+            Feature {
+                id: Some(1),
+                category: "functional".to_string(),
+                description: "Test feature 1".to_string(),
+                steps: vec!["Step 1".to_string(), "Step 2".to_string()],
+                passes: true,
+                verification_command: Some("echo test".to_string()),
             },
-            {
-                "category": "functional",
-                "description": "Test feature 2",
-                "steps": ["Step 1"],
-                "passes": false
-            }
-        ]"#;
-        file.write_all(content.as_bytes()).unwrap();
-        file
-    }
-
-    #[test]
-    fn test_parse_feature_list() {
-        let file = create_test_feature_list();
-        let features = parse_feature_list(file.path()).unwrap();
-
-        assert_eq!(features.len(), 2);
-        assert_eq!(features[0].description, "Test feature 1");
-        assert!(features[0].passes);
-        assert!(features[0].verification_command.is_some());
+            Feature {
+                id: Some(2),
+                category: "functional".to_string(),
+                description: "Test feature 2".to_string(),
+                steps: vec!["Step 1".to_string()],
+                passes: false,
+                verification_command: None,
+            },
+        ]
     }
 
     #[test]
     fn test_run_regression_check() {
-        let file = create_test_feature_list();
-        let summary = run_regression_check(file.path(), None, false).unwrap();
+        let features = create_test_features();
+        let summary = run_regression_check(&features, None, false).unwrap();
 
         assert_eq!(summary.total_features, 2);
         assert_eq!(summary.passing_features, 1);

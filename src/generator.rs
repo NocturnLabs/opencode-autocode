@@ -27,6 +27,7 @@ const REFINE_PROMPT: &str = include_str!("../templates/refine_prompt.md");
 ///
 /// # Arguments
 /// * `idea` - The user's project idea description
+/// * `testing_preference` - Optional testing framework preference
 /// * `model` - Optional model to use (defaults to configured or big-pickle)
 /// * `use_subagents` - Whether to use parallel subagent generation
 /// * `on_output` - Callback for streaming output lines to the user
@@ -35,6 +36,7 @@ const REFINE_PROMPT: &str = include_str!("../templates/refine_prompt.md");
 /// The generated specification text (XML format)
 pub fn generate_spec_from_idea<F>(
     idea: &str,
+    testing_preference: Option<&str>,
     model: Option<&str>,
     use_subagents: bool,
     mut on_output: F,
@@ -47,9 +49,9 @@ where
 
     // Build the prompt with the user's idea (use subagents if enabled via CLI flag)
     let prompt = if use_subagents {
-        build_subagent_prompt(idea)
+        build_subagent_prompt(idea, testing_preference)
     } else {
-        build_generation_prompt(idea)
+        build_generation_prompt(idea, testing_preference)
     };
 
     // Check if opencode is available
@@ -211,13 +213,27 @@ where
 }
 
 /// Build the generation prompt by inserting the user's idea into the template.
-fn build_generation_prompt(idea: &str) -> String {
-    GENERATOR_PROMPT.replace("{{IDEA}}", idea)
+fn build_generation_prompt(idea: &str, testing_preference: Option<&str>) -> String {
+    let pref_text = match testing_preference {
+        Some(pref) if !pref.trim().is_empty() => format!("\n## User Preferences\n\nTesting & QA Framework Preference: {}\n", pref),
+        _ => String::new(),
+    };
+    
+    GENERATOR_PROMPT
+        .replace("{{IDEA}}", idea)
+        .replace("{{TESTING_PREFERENCE}}", &pref_text)
 }
 
 /// Build the subagent-based generation prompt by inserting the user's idea.
-fn build_subagent_prompt(idea: &str) -> String {
-    SUBAGENT_PROMPT.replace("{{IDEA}}", idea)
+fn build_subagent_prompt(idea: &str, testing_preference: Option<&str>) -> String {
+    let pref_text = match testing_preference {
+        Some(pref) if !pref.trim().is_empty() => format!("\n**User Preference:** QA/Testing framework should be: {}\n", pref),
+        _ => String::new(),
+    };
+
+    SUBAGENT_PROMPT
+        .replace("{{IDEA}}", idea)
+        .replace("{{TESTING_PREFERENCE}}", &pref_text)
 }
 
 /// Build the refinement prompt by inserting the current spec and refinement instructions.

@@ -276,6 +276,8 @@ Output ONLY the specification in this XML structure. Fill every section with sub
 
 {{IDEA}}
 
+{{TESTING_PREFERENCE}}
+
 ---
 
 Generate the complete specification now. Output ONLY the XML—no preamble, no commentary.

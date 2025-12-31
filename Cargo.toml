@@ -3,11 +3,16 @@ members = ["tests/regression"]
 
 [package]
 name = "opencode-autocode"
-version = "0.3.2"
+version = "0.4.0"
 edition = "2021"
 description = "Scaffold autonomous coding plugin for OpenCode"
 authors = ["CodingInCarhartts"]
 license = "MIT"
+
+
+[[bin]]
+name = "opencode-autocode"
+path = "src/main.rs"
 
 [dependencies]
 # CLI - v4.5.53 (Nov 2025, no CVEs)

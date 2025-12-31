@@ -31,10 +31,6 @@ pub struct Cli {
     #[arg(long)]
     pub config: bool,
 
-    /// Run regression checks on feature_list.json
-    #[arg(long)]
-    pub regression_check: bool,
-
     /// Output directory for scaffolded files
     #[arg(short, long, value_name = "DIR")]
     pub output: Option<PathBuf>,
@@ -46,10 +42,6 @@ pub struct Cli {
     /// Disable parallel subagent spec generation (use legacy single-pass)
     #[arg(long)]
     pub no_subagents: bool,
-
-    /// Path to feature_list.json (for --regression-check)
-    #[arg(long, value_name = "FILE")]
-    pub feature_list: Option<PathBuf>,
 
     /// Verbose output
     #[arg(short, long)]
@@ -139,6 +131,12 @@ pub enum DbAction {
         /// SQL modification query string
         sql: String,
     },
+    /// Run regression checks on current project features
+    Check {
+        /// Path to custom feature database or JSON (legacy)
+        #[arg(long, value_name = "FILE")]
+        path: Option<PathBuf>,
+    },
     /// List all tables in the database
     Tables,
     /// Show schema for a table
@@ -152,6 +150,42 @@ pub enum DbAction {
     MarkPass {
         /// Feature ID to mark as passing
         id: i32,
+    },
+    /// Manage persistent agent knowledge
+    Knowledge {
+        #[command(subcommand)]
+        action: KnowledgeAction,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum KnowledgeAction {
+    /// Save a fact (key=value)
+    Set {
+        /// Unique key (e.g. dev_port)
+        key: String,
+        /// Value to store
+        value: String,
+        /// Category (default: general)
+        #[arg(short, long)]
+        category: Option<String>,
+        /// Optional description
+        #[arg(short, long)]
+        description: Option<String>,
+    },
+    /// Get a fact by key
+    Get {
+        key: String,
+    },
+    /// List all facts
+    List {
+        /// Filter by category
+        #[arg(short, long)]
+        category: Option<String>,
+    },
+    /// Delete a fact
+    Delete {
+        key: String,
     },
 }
 
@@ -193,6 +227,14 @@ pub enum ExampleTopic {
     Testing,
     /// Show autonomous recovery protocols
     Recovery,
+    /// Show high-speed orientation guide for autonomous agents
+    Vibe,
+    /// Show Conductor tracks and planning system guide
+    Tracks,
+    /// Show Interactive TUI spec generation workflow
+    Interactive,
+    /// Show Guide for project templates
+    TemplatesGuide,
 }
 
 /// The mode of operation
@@ -205,8 +247,6 @@ pub enum Mode {
     Interactive,
     /// Configure settings
     Config,
-    /// Run regression checks
-    RegressionCheck,
 }
 
 impl Cli {
@@ -215,9 +255,6 @@ impl Cli {
         // Check exclusive flags
         if self.config {
             return Ok(Mode::Config);
-        }
-        if self.regression_check {
-            return Ok(Mode::RegressionCheck);
         }
         if self.default {
             return Ok(Mode::Default);
@@ -247,11 +284,9 @@ mod tests {
             default: false,
             spec: None,
             config: false,
-            regression_check: false,
             output: None,
             dry_run: false,
             no_subagents: false,
-            feature_list: None,
             verbose: false,
         }
     }
@@ -275,12 +310,5 @@ mod tests {
         let mut cli = default_cli();
         cli.config = true;
         assert!(matches!(cli.mode().unwrap(), Mode::Config));
-    }
-
-    #[test]
-    fn test_regression_check_mode() {
-        let mut cli = default_cli();
-        cli.regression_check = true;
-        assert!(matches!(cli.mode().unwrap(), Mode::RegressionCheck));
     }
 }

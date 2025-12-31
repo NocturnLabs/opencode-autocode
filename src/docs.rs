@@ -24,6 +24,11 @@ const RUST_DOC: &str = include_str!("../templates/modules/rust.md");
 const JS_DOC: &str = include_str!("../templates/modules/javascript.md");
 const TESTING_DOC: &str = include_str!("../templates/modules/testing.md");
 const RECOVERY_DOC: &str = include_str!("../templates/modules/recovery.md");
+const VIBE_DOC: &str = include_str!("../templates/examples/vibe.md");
+const TRACKS_DOC: &str = include_str!("../templates/examples/tracks.md");
+const INTERACTIVE_DOC: &str = include_str!("../templates/examples/interactive.md");
+const TEMPLATES_GUIDE_DOC: &str = include_str!("../templates/examples/templates_guide.md");
+const MEMORY_DOC: &str = include_str!("../templates/modules/memory.md");
 
 /// Get a doc by name
 pub fn get_doc(name: &str) -> Option<&'static str> {
@@ -43,6 +48,11 @@ pub fn get_doc(name: &str) -> Option<&'static str> {
         "js" => Some(JS_DOC),
         "testing" => Some(TESTING_DOC),
         "recovery" => Some(RECOVERY_DOC),
+        "vibe" => Some(VIBE_DOC),
+        "tracks" => Some(TRACKS_DOC),
+        "interactive" => Some(INTERACTIVE_DOC),
+        "templates-guide" => Some(TEMPLATES_GUIDE_DOC),
+        "memory" => Some(MEMORY_DOC),
         _ => None,
     }
 }

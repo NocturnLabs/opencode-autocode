@@ -70,6 +70,8 @@ Output ONLY the complete XML specification:
 
 {{IDEA}}
 
+{{TESTING_PREFERENCE}}
+
 ---
 
 Generate the blueprint now, then invoke subagents to complete the specification.
