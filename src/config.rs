@@ -639,8 +639,8 @@ mod tests {
     #[test]
     fn test_default_config() {
         let config = Config::default();
-        assert_eq!(config.models.default, "opencode/big-pickle");
-        assert_eq!(config.models.autonomous, "opencode/grok-code");
+        assert_eq!(config.models.default, "opencode/glm-4.7-free");
+        assert_eq!(config.models.autonomous, "opencode/minimax-m2.1-free");
         assert_eq!(config.autonomous.delay_between_sessions, 5);
         assert_eq!(config.agent.max_retry_attempts, 3);
         assert!(config.alternative_approaches.enabled);
@@ -650,7 +650,7 @@ mod tests {
     #[test]
     fn test_load_missing_file_returns_default() {
         let config = Config::load(Some(Path::new("/nonexistent/path"))).unwrap();
-        assert_eq!(config.models.default, "opencode/big-pickle");
+        assert_eq!(config.models.default, "opencode/glm-4.7-free");
     }
 
     #[test]
