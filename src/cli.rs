@@ -69,6 +69,24 @@ pub enum Commands {
         #[arg(long)]
         single_model: bool,
     },
+    /// Start the autonomous enhancement loop (infinite refine)
+    Enhance {
+        /// Maximum number of iterations (default: unlimited)
+        #[arg(short, long)]
+        limit: Option<usize>,
+
+        /// Path to custom config file (default: autocode.toml)
+        #[arg(long, value_name = "FILE")]
+        config_file: Option<PathBuf>,
+
+        /// Enable developer mode with comprehensive debug logging
+        #[arg(long)]
+        developer: bool,
+
+        /// Use single model for all tasks (disables dual-model reasoning/coding split)
+        #[arg(long)]
+        single_model: bool,
+    },
     /// Manage project templates
     Templates {
         #[command(subcommand)]

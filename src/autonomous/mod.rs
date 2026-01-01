@@ -12,6 +12,7 @@ mod settings;
 mod webhook;
 
 use anyhow::{Context, Result};
+use std::io::{self, BufRead, Write};
 use std::path::Path;
 use std::thread;
 use std::time::Duration;
@@ -42,6 +43,7 @@ pub fn run(
     config_path: Option<&Path>,
     developer_mode: bool,
     single_model: bool,
+    enhancement_mode: bool,
 ) -> Result<()> {
     // Initialize debug logger
     debug_logger::init(developer_mode);
@@ -89,7 +91,7 @@ pub fn run(
         developer_mode,
     );
 
-    run_supervisor_loop(&config, &settings)?;
+    run_supervisor_loop(&config, &settings, enhancement_mode)?;
 
     // Final status display
     let db_path = Path::new(&settings.database_file);
@@ -119,7 +121,7 @@ fn load_config(config_path: Option<&Path>) -> Result<Config> {
     }
 }
 
-fn run_supervisor_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
+fn run_supervisor_loop(config: &Config, settings: &LoopSettings, enhancement_mode: bool) -> Result<()> {
     let db_path = Path::new(&settings.database_file);
     let mut iteration = 0usize;
     let mut consecutive_errors = 0u32;
@@ -143,8 +145,21 @@ fn run_supervisor_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
 
         let command_name = match action {
             SupervisorAction::Stop => {
-                logger.info("Supervisor: Stop signal received.");
-                break;
+                if enhancement_mode {
+                    match handle_enhancement_phase(db_path, config, settings, iteration) {
+                        Ok(LoopAction::Continue) => {
+                            iteration += 1;
+                            "auto-enhance-active".to_string()
+                        }
+                        _ => {
+                            logger.info("Supervisor: Stop signal received or enhancement exited.");
+                            break;
+                        }
+                    }
+                } else {
+                    logger.info("Supervisor: Stop signal received.");
+                    break;
+                }
             }
             SupervisorAction::Command(cmd) => {
                 logger.info(&format!("Supervisor: Selected command '{}'", cmd));
@@ -367,4 +382,44 @@ fn verify_and_commit(
     );
 
     Ok(())
+}
+
+fn handle_enhancement_phase(
+    _db_path: &Path,
+    _config: &Config,
+    _settings: &LoopSettings,
+    _iteration: usize,
+) -> Result<LoopAction> {
+    println!("\n✨ All features complete! The autonomous loop is now in enhancement mode.");
+    println!("What would you like to enhance? (or type 'exit' to finish)");
+    print!("> ");
+    io::stdout().flush()?;
+
+    let stdin = io::stdin();
+    let mut reader = stdin.lock();
+    let mut enhancement_request = String::new();
+    reader.read_line(&mut enhancement_request)?;
+
+    let enhancement_request = enhancement_request.trim();
+
+    if enhancement_request.is_empty() || enhancement_request.to_lowercase() == "exit" {
+        return Ok(LoopAction::Break);
+    }
+
+    // Generate dynamic enhancement template
+    let template = r#"# Enhancement Request
+{{enhancement_request}}
+
+Please implement this enhancement for the current project.
+"#;
+    let content = template.replace("{{enhancement_request}}", enhancement_request);
+
+    // Write to active command file
+    let target = Path::new(".opencode/command/auto-enhance-active.md");
+    if let Some(parent) = target.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    std::fs::write(target, content)?;
+
+    Ok(LoopAction::Continue)
 }

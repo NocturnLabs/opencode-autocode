@@ -158,14 +158,12 @@ echo "CONTINUE" > .opencode-signal
 
 ## Help Index
 
-| Situation   | Module                  |
-| ----------- | ----------------------- |
-| Web/JS      | `modules/javascript.md` |
-| Rust/CLI    | `modules/rust.md`       |
-| Testing     | `modules/testing.md`    |
-| Stuck       | `modules/recovery.md`   |
-| MCP usage   | `core/mcp_guide.md`     |
-| DB ops      | `core/database.md`      |
-| Async comms | `core/communication.md` |
-| Orientation | `example vibe`          |
-| Tracks      | `example tracks`        |
+- **Web/JS Development**: `modules/javascript.md`
+- **Rust/CLI Development**: `modules/rust.md`
+- **Testing Strategy**: `modules/testing.md`
+- **Stuck Recovery**: `modules/recovery.md`
+- **MCP Usage Guide**: `core/mcp_guide.md`
+- **Database Operations**: `core/database.md`
+- **Async Communication**: `core/communication.md`
+- **Quick Orientation**: `example vibe`
+- **Conductor Tracks**: `example tracks`

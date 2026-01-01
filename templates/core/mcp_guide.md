@@ -31,11 +31,16 @@ Look up official documentation for libraries and frameworks.
 
 Search for solutions, patterns, and best practices when local knowledge is insufficient.
 
-## 5. Sequential Thinking
+## 6. Tool Calling Protocol
 
-Use for complex reasoning tasks:
+**CRITICAL**: All tool calls MUST use standard markdown code blocks. DO NOT use pipes (`|`) or other custom syntaxes.
 
-- Breaking down difficult problems
-- Planning refactors
-- Debugging complex issues
-- Making architectural decisions
+**Correct Format:**
+
+```bash
+# Example: Check port status
+ss -tulpn | grep :3000
+```
+
+**Incorrect Format:**
+| Bash ss -tulpn | grep :3000
