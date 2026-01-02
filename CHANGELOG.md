@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.4] - 2026-01-02
+
+### Fixed
+
+- **Self-Update**: Added explicit `bin_path_in_archive` configuration to correctly locate the binary inside the tar.gz archive.
+
 ## [0.4.3] - 2026-01-02
 
 ### Fixed

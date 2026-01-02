@@ -40,6 +40,7 @@ pub fn update() -> Result<()> {
         .repo_owner("NocturnLabs")
         .repo_name("opencode-autocode")
         .bin_name("opencode-autocode")
+        .bin_path_in_archive("opencode-autocode")
         .show_download_progress(true)
         .current_version(current_version)
         .build()
