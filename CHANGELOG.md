@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.3] - 2026-01-02
+
+### Fixed
+
+- **Self-Update**: Fixed archive extraction failure by enabling correct gzip decompression (`compression-flate2` instead of `compression-zip-deflate`).
+
 ## [0.4.2] - 2026-01-01
 
 ### Fixed

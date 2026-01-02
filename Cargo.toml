@@ -3,7 +3,7 @@ members = ["tests/regression"]
 
 [package]
 name = "opencode-autocode"
-version = "0.4.2"
+version = "0.4.3"
 edition = "2021"
 description = "Scaffold autonomous coding plugin for OpenCode"
 authors = ["CodingInCarhartts"]
@@ -52,7 +52,7 @@ similar = "2.6"
 rusqlite = { version = "0.32", features = ["bundled"] }
 
 # Self-update capability
-self_update = { version = "0.39", features = ["archive-tar", "compression-zip-deflate"] }
+self_update = { version = "0.39", features = ["archive-tar", "compression-flate2"] }
 
 [dev-dependencies]
 # Temporary files for testing
