@@ -27,6 +27,7 @@ Generate the `<security>`, `<testing_strategy>`, `<implementation_steps>`, `<suc
 - Unit tests (coverage targets)
 - Integration tests (API, database)
 - E2E tests (MANDATORY for all features)
+- **Entry-Point Verification**: For server/CLI apps, include checks that the main entry point correctly wires and exposes all implemented logic. Unit tests alone are insufficient.
 - Interactive verification notes
 
 ### Implementation Steps (8+ phases)
@@ -36,7 +37,7 @@ Each step includes:
 - Title and estimated effort
 - Specific tasks
 - Deliverables
-- Verification criteria
+- Verification criteria (MUST include entry-point wiring checks for backend projects)
 
 ### Success Criteria
 

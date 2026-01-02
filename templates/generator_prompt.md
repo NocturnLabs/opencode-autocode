@@ -227,6 +227,12 @@ Output ONLY the specification in this XML structure. Fill every section with sub
  - Relative paths use correct file extensions (.js for browser)
  - No circular dependency issues
 </module_verification>
+<entry_point_verification>
+ - For CLI/Server projects: The main entry point (cmd/main.go, index.js, main.rs) MUST be wired to call all implemented handlers/commands.
+ - verification_command MUST include a check that the application RUNS, not just that individual components pass unit tests.
+ - Example for Go: `go run ./cmd/server & sleep 2; curl -sf http://localhost:8080/health; kill $!`
+ - If the entry point is a placeholder stub, the feature is NOT complete.
+</entry_point_verification>
 </testing_strategy>
 
 <implementation_steps>

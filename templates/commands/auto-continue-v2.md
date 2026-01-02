@@ -136,6 +136,7 @@ Start server on the free port, not the default.
 
 - [ ] Ran the feature's `verification_command`
 - [ ] Verification test PASSED (not just "ran")
+- [ ] **Entry-Point Audit**: For server/CLI apps, verified that `main.go`/`index.js`/`main.rs` correctly imports and wires the new logic. If it's a placeholder, the feature is NOT complete.
 - [ ] Checked browser console for errors (web projects)
 - [ ] Checked/Updated Memory (`auto db knowledge list/set`)
 
@@ -161,6 +162,7 @@ echo "CONTINUE" > .opencode-signal
 ## Help Index
 
 - **Web/JS Development**: `modules/javascript.md`
+- **Go Development**: `modules/go.md`
 - **Rust/CLI Development**: `modules/rust.md`
 - **Testing Strategy**: `modules/testing.md`
 - **Stuck Recovery**: `modules/recovery.md`
