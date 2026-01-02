@@ -338,6 +338,18 @@ mod tests {
     }
 
     #[test]
+    fn test_build_generation_prompt_contains_open_ended_minimums() {
+        let idea = "A complex ERP";
+        let prompt = build_generation_prompt(idea, None);
+
+        assert!(prompt.contains("Core Features        | 15+"));
+        assert!(prompt.contains("Database Tables      | 10+"));
+        assert!(prompt.contains("API Endpoints        | 30+"));
+        assert!(prompt.contains("Implementation Steps | 8+"));
+        assert!(prompt.contains("<!-- 15+ feature blocks -->"));
+    }
+
+    #[test]
     fn test_extract_spec_from_output() {
         let output = r#"
 Some preamble text...
