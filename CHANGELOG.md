@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.5] - 2026-01-02
+
+### Added
+
+- **TUI Visual Improvements**: New theming module with 256-color palette, Unicode box drawing (╭╮╰╯), and styled symbols (✔✗→●).
+- Consistent styling across autonomous runner, config TUI, and interactive setup.
+
 ## [0.4.4] - 2026-01-02
 
 ### Fixed

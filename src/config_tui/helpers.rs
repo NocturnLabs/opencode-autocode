@@ -1,36 +1,54 @@
 //! Shared UI helpers for config TUI sections
 
-use console::style;
+use crate::theming::{boxes, highlight, muted, primary, symbols};
 
 /// Display the config TUI header banner
 pub fn display_header() {
+    let width = 55;
+    println!();
     println!(
-        "\n{}",
-        style("═══════════════════════════════════════════════════")
-            .cyan()
-            .bold()
+        "{}{}{}",
+        primary(boxes::TOP_LEFT),
+        primary(boxes::line(width - 2)),
+        primary(boxes::TOP_RIGHT)
     );
     println!(
-        "{}",
-        style("  OpenCode Autocode - Configuration").cyan().bold()
+        "{} {} OpenCode Autocode - Configuration {}{}",
+        primary(boxes::VERTICAL),
+        symbols::SPARKLE,
+        " ".repeat(width - 42),
+        primary(boxes::VERTICAL)
     );
     println!(
-        "{}\n",
-        style("═══════════════════════════════════════════════════")
-            .cyan()
-            .bold()
+        "{}{}{}",
+        primary(boxes::BOTTOM_LEFT),
+        primary(boxes::line(width - 2)),
+        primary(boxes::BOTTOM_RIGHT)
     );
+    println!();
 }
 
 /// Display a section header with title and description
 pub fn display_section(title: &str, description: &str) {
-    println!("\n{}", style("═".repeat(55)).dim());
-    println!("  {}", style(title).cyan().bold());
-    println!("  {}", style(description).dim());
-    println!("{}\n", style("═".repeat(55)).dim());
+    println!();
+    println!(
+        "{}{}{}",
+        muted(boxes::TOP_LEFT),
+        muted(boxes::line(53)),
+        muted(boxes::TOP_RIGHT)
+    );
+    println!("  {}", highlight(title));
+    println!("  {}", muted(description));
+    println!(
+        "{}{}{}",
+        muted(boxes::BOTTOM_LEFT),
+        muted(boxes::line(53)),
+        muted(boxes::BOTTOM_RIGHT)
+    );
+    println!();
 }
 
 /// Display a description hint before an input prompt
 pub fn display_hint(description: &str) {
-    println!("  {} {}", style("ℹ").blue(), style(description).dim());
+    println!("  {} {}", primary(symbols::INFO), muted(description));
 }

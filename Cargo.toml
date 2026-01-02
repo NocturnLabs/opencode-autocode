@@ -3,7 +3,7 @@ members = ["tests/regression"]
 
 [package]
 name = "opencode-autocode"
-version = "0.4.4"
+version = "0.4.5"
 edition = "2021"
 description = "Scaffold autonomous coding plugin for OpenCode"
 authors = ["CodingInCarhartts"]
@@ -16,45 +16,47 @@ path = "src/main.rs"
 
 [dependencies]
 # CLI - v4.5.53 (Nov 2025, no CVEs)
-clap = { version = "4.5", features = ["derive"] }
+clap = { version = "4.5.53", features = ["derive"] }
 
-# TUI - v0.29.0 (stable, no CVEs)
-ratatui = "0.29"
+# TUI - v0.30.0 (stable, no CVEs)
+ratatui = "0.30.0"
 crossterm = "0.29"
 
 # Serialization - stable, no CVEs
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-toml = "0.9"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.148"
+toml = "0.9.10+spec-1.1.0"
 
-# Templating - v6.3.2 (latest stable, no CVEs)
-handlebars = "6.3"
+# Templating - v6.4.0 (latest stable, no CVEs)
+handlebars = "6.4.0"
 
 # Interactive prompts - v0.12.0 (2025, no CVEs)
 dialoguer = { version = "0.12", features = ["fuzzy-select", "editor"] }
-console = "0.16"
+console = "0.16.2"
 
 # Filesystem utilities
-walkdir = "2"
+walkdir = "2.5.0"
 
 # Error handling
-anyhow = "1"
-thiserror = "2"
+anyhow = "1.0.100"
+thiserror = "2.0.17"
 
 # Date/time for autonomous runner
-chrono = "0.4"
+chrono = "0.4.42"
 
 # XML parsing and diff generation (for spec validation)
-quick-xml = "0.38"
-similar = "2.6"
+quick-xml = "0.38.4"
+similar = "2.7.0"
 
 # SQLite database for progress tracking
-rusqlite = { version = "0.32", features = ["bundled"] }
+rusqlite = { version = "0.38.0", features = ["bundled"] }
 
 # Self-update capability
-self_update = { version = "0.39", features = ["archive-tar", "compression-flate2"] }
+self_update = { version = "0.42.0", features = [
+    "archive-tar",
+    "compression-flate2",
+] }
 
 [dev-dependencies]
 # Temporary files for testing
-tempfile = "3"
-
+tempfile = "3.24.0"

@@ -18,6 +18,7 @@ mod regression;
 mod scaffold;
 mod spec;
 mod templates;
+mod theming;
 mod tui;
 mod updater;
 mod validation;

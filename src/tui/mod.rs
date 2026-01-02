@@ -13,7 +13,8 @@ mod manual;
 mod validation;
 
 use anyhow::Result;
-use console::style;
+
+use crate::theming::{boxes, error, highlight, muted, primary, success, symbols, warning};
 use dialoguer::{Confirm, Input, Select};
 use std::path::Path;
 
@@ -82,20 +83,27 @@ fn load_or_configure_config(output_dir: &Path) -> Result<crate::config::Config> 
 }
 
 fn display_header() {
+    let width = 55;
+    println!();
     println!(
-        "\n{}",
-        style("═══════════════════════════════════════════════════").cyan()
+        "{}{}{}",
+        primary(boxes::TOP_LEFT),
+        primary(boxes::line(width - 2)),
+        primary(boxes::TOP_RIGHT)
     );
     println!(
-        "{}",
-        style("  OpenCode Autonomous Plugin - Interactive Setup")
-            .cyan()
-            .bold()
+        "{} {} OpenCode Autonomous Plugin - Interactive Setup {}",
+        primary(boxes::VERTICAL),
+        symbols::SPARKLE,
+        primary(boxes::VERTICAL)
     );
     println!(
-        "{}\n",
-        style("═══════════════════════════════════════════════════").cyan()
+        "{}{}{}",
+        primary(boxes::BOTTOM_LEFT),
+        primary(boxes::line(width - 2)),
+        primary(boxes::BOTTOM_RIGHT)
     );
+    println!();
 }
 
 fn select_mode() -> Result<InteractiveMode> {
@@ -119,7 +127,11 @@ fn select_mode() -> Result<InteractiveMode> {
 }
 
 fn run_from_spec_file_mode(output_dir: &Path) -> Result<()> {
-    println!("\n{}", style("─── Spec File Mode ───").yellow().bold());
+    println!(
+        "\n  {} {}",
+        warning(symbols::ARROW),
+        highlight("Spec File Mode")
+    );
 
     let spec_path: String = Input::new()
         .with_prompt("Path to spec file")
@@ -128,26 +140,30 @@ fn run_from_spec_file_mode(output_dir: &Path) -> Result<()> {
 
     let spec_path = std::path::PathBuf::from(&spec_path);
     if !spec_path.exists() {
-        println!("{} Spec file not found.", style("Error:").red().bold());
+        println!(
+            "  {} {} Spec file not found.",
+            error(symbols::FAILURE),
+            error("Error:")
+        );
         return Ok(());
     }
 
     scaffold_custom(output_dir, &spec_path)?;
     println!(
-        "\n{}",
-        style("✅ Project scaffolded from spec file!")
-            .green()
-            .bold()
+        "\n  {} {}",
+        success(symbols::SUCCESS),
+        success("Project scaffolded from spec file!")
     );
     Ok(())
 }
 
 fn run_default_mode(output_dir: &Path) -> Result<()> {
-    println!("\n{}", style("─── Default Mode ───").yellow().bold());
     println!(
-        "{}",
-        style("Using the built-in default specification.").dim()
+        "\n  {} {}",
+        warning(symbols::ARROW),
+        highlight("Default Mode")
     );
+    println!("  {}", muted("Using the built-in default specification."));
 
     if Confirm::new()
         .with_prompt("Scaffold project with default spec?")
@@ -156,13 +172,12 @@ fn run_default_mode(output_dir: &Path) -> Result<()> {
     {
         scaffold_default(output_dir)?;
         println!(
-            "\n{}",
-            style("✅ Project scaffolded with default spec!")
-                .green()
-                .bold()
+            "\n  {} {}",
+            success(symbols::SUCCESS),
+            success("Project scaffolded with default spec!")
         );
     } else {
-        println!("{}", style("Cancelled.").red());
+        println!("  {} {}", error(symbols::FAILURE), error("Cancelled."));
     }
     Ok(())
 }
