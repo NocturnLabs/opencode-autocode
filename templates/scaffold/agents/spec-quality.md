@@ -56,7 +56,12 @@ Output ONLY valid XML fragments.
 
 ```xml
 <security>...</security>
-<testing_strategy>...</testing_strategy>
+<testing_strategy>
+  <unit_tests>...</unit_tests>
+  <integration_tests>...</integration_tests>
+  <e2e_tests>...</e2e_tests>
+  <entry_point_verification>...</entry_point_verification>
+</testing_strategy>
 <implementation_steps>
   <step number="1">
     <title>Phase Title</title>

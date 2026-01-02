@@ -59,7 +59,12 @@ Output ONLY the complete XML specification:
 
   <!-- From @spec-quality -->
   <security>...</security>
-  <testing_strategy>...</testing_strategy>
+  <testing_strategy>
+    <unit_tests>...</unit_tests>
+    <integration_tests>...</integration_tests>
+    <e2e_tests>...</e2e_tests>
+    <entry_point_verification>...</entry_point_verification>
+  </testing_strategy>
   <implementation_steps>...</implementation_steps>
   <success_criteria>...</success_criteria>
   <future_enhancements>...</future_enhancements>
