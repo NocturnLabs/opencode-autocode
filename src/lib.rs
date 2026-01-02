@@ -15,4 +15,5 @@ pub mod scaffold;
 pub mod spec;
 pub mod templates;
 pub mod tui;
+pub mod updater;
 pub mod validation;

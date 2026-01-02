@@ -102,6 +102,8 @@ pub enum Commands {
         #[command(subcommand)]
         topic: ExampleTopic,
     },
+    /// Update opencode-autocode to the latest version
+    Update,
 }
 
 /// Template subcommand actions

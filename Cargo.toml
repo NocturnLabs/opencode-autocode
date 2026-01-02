@@ -51,6 +51,10 @@ similar = "2.6"
 # SQLite database for progress tracking
 rusqlite = { version = "0.32", features = ["bundled"] }
 
+# Self-update capability
+self_update = { version = "0.39", features = ["archive-tar", "compression-zip-deflate"] }
+
 [dev-dependencies]
 # Temporary files for testing
 tempfile = "3"
+

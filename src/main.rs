@@ -19,6 +19,7 @@ mod scaffold;
 mod spec;
 mod templates;
 mod tui;
+mod updater;
 mod validation;
 
 use anyhow::Result;
@@ -68,6 +69,13 @@ fn main() -> Result<()> {
             },
             Commands::Db { action } => handle_db_command(action),
             Commands::Example { topic } => handle_example_command(topic),
+            Commands::Update => match updater::update() {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    eprintln!("{} Failed to update: {}", console::style("❌").red(), e);
+                    std::process::exit(1);
+                }
+            },
         };
     }
 
@@ -97,6 +105,18 @@ fn main() -> Result<()> {
             Ok(())
         }
         Mode::Interactive => {
+            // Check for updates in the background (mocked by just running it here before TUI)
+            // We use a non-blocking check or just a quick check with short timeout? 'updater::check_for_update' handles it.
+            // We print a banner if found.
+            if let Ok(Some(new_version)) = updater::check_for_update() {
+                println!(
+                    "\n{} A new version is available: {} (Run '{}' to upgrade)\n",
+                    console::style("🚀").green(),
+                    console::style(new_version).bold(),
+                    console::style("opencode-autocode update").yellow()
+                );
+            }
+
             if cli.dry_run {
                 println!("🔍 Dry run mode - no files will be created");
                 scaffold::preview_scaffold(&output_dir);
