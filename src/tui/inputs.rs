@@ -22,7 +22,6 @@ pub fn read_multiline(prompt: &str) -> Result<String> {
         if line.trim().is_empty() {
             consecutive_empty += 1;
             if consecutive_empty >= 1 {
-             
                 break;
             }
         } else {
@@ -32,7 +31,6 @@ pub fn read_multiline(prompt: &str) -> Result<String> {
     }
 
     let input = lines.join("\n");
-
 
     if input.trim().is_empty() {
         println!(
