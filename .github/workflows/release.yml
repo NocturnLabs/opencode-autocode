@@ -8,6 +8,9 @@ on:
 env:
   BIN_NAME: opencode-autocode
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build - ${{ matrix.platform.release_for }}
