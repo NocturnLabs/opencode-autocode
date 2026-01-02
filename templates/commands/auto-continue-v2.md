@@ -103,6 +103,8 @@ PORT=8000; while ss -tlnH "sport = :$PORT" | grep -q .; do PORT=$((PORT+1)); don
 
 Start server on the free port, not the default.
 
+> [!WARNING] > **NEVER kill a process on a port unless you are 100% sure it was started by yourself in THIS project (e.g., a leaked process from a previous task). Killing external software's ports will lead to project failure.**
+
 ---
 
 ### 7. Verify (MANDATORY)

@@ -25,8 +25,8 @@ ss -tlnH "sport = :3000" | grep -q . && echo "Port 3000 in use" || echo "Port 30
 
 **If ports are occupied:**
 
-- Kill conflicting processes if they belong to this project
-- Or choose an alternative port (8001, 8002, etc.)
+- **NEVER kill a process unless you are 100% sure it belongs to this project and was started by you.**
+- Search for a free port instead (8001, 8002, etc.)
 - Update `playwright.config.ts` or other configs:
   ```bash
   sed -i 's/localhost:[0-9]*/localhost:NEW_PORT/g' playwright.config.ts

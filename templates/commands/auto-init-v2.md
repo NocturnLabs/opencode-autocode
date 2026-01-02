@@ -85,7 +85,7 @@ Create `product.md`, `tech_stack.md`, `workflow.md` based on the spec.
 
 Create a setup script for future sessions.
 
-> **Web projects:** Include port conflict prevention.
+> **Web projects:** Include port conflict prevention. Always prefer finding a free port over killing existing ones.
 > See `templates/modules/javascript.md` for template.
 
 ---
