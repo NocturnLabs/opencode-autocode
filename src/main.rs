@@ -40,13 +40,25 @@ fn main() -> Result<()> {
                 config_file,
                 developer,
                 single_model,
-            } => autonomous::run(*limit, config_file.as_deref(), *developer, *single_model, false),
+            } => autonomous::run(
+                *limit,
+                config_file.as_deref(),
+                *developer,
+                *single_model,
+                false,
+            ),
             Commands::Enhance {
                 limit,
                 config_file,
                 developer,
                 single_model,
-            } => autonomous::run(*limit, config_file.as_deref(), *developer, *single_model, true),
+            } => autonomous::run(
+                *limit,
+                config_file.as_deref(),
+                *developer,
+                *single_model,
+                true,
+            ),
             Commands::Templates { action } => match action {
                 TemplateAction::List => {
                     templates::list_templates();

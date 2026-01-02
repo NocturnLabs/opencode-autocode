@@ -40,7 +40,7 @@ pub fn fetch_available_models() -> Result<Vec<String>> {
 
 /// Prompt user to select a model from available options or enter custom
 pub fn prompt_model_selection(prompt: &str, models: &[String], current: &str) -> Result<String> {
-    let mut options: Vec<String> = models.iter().map(|s| s.clone()).collect();
+    let mut options: Vec<String> = models.to_vec();
 
     // Ensure current model is in the list and at the top
     if !current.is_empty() {

@@ -7,6 +7,7 @@ use std::path::Path;
 
 use crate::generator::generate_spec_from_idea;
 
+use super::inputs::read_multiline;
 use super::manual::run_manual_mode;
 use super::validation::run_validation_loop;
 
@@ -53,20 +54,7 @@ pub fn run_generated_mode(
 }
 
 fn prompt_for_idea() -> Result<String> {
-    use std::io::{self, BufRead};
-
-    print!("{}: ", style("Describe your project idea").green());
-    let _ = std::io::stdout().flush();
-
-    let stdin = io::stdin();
-    let idea = stdin.lock().lines().next().transpose()?.unwrap_or_default();
-
-    if idea.trim().is_empty() {
-        println!("{}", style("No idea provided.").red());
-        return Ok(String::new());
-    }
-
-    Ok(idea)
+    read_multiline("Describe your project idea")
 }
 
 fn prompt_for_testing_preference() -> Result<Option<String>> {

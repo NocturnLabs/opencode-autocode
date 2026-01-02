@@ -31,7 +31,7 @@ toml = "0.9"
 handlebars = "6.3"
 
 # Interactive prompts - v0.12.0 (2025, no CVEs)
-dialoguer = { version = "0.12", features = ["fuzzy-select"] }
+dialoguer = { version = "0.12", features = ["fuzzy-select", "editor"] }
 console = "0.16"
 
 # Filesystem utilities

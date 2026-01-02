@@ -121,7 +121,11 @@ fn load_config(config_path: Option<&Path>) -> Result<Config> {
     }
 }
 
-fn run_supervisor_loop(config: &Config, settings: &LoopSettings, enhancement_mode: bool) -> Result<()> {
+fn run_supervisor_loop(
+    config: &Config,
+    settings: &LoopSettings,
+    enhancement_mode: bool,
+) -> Result<()> {
     let db_path = Path::new(&settings.database_file);
     let mut iteration = 0usize;
     let mut consecutive_errors = 0u32;

@@ -8,6 +8,7 @@
 
 mod actions;
 mod generated;
+mod inputs;
 mod manual;
 mod validation;
 

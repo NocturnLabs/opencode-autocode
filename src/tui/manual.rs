@@ -7,6 +7,7 @@ use std::path::Path;
 
 use crate::scaffold::scaffold_from_spec;
 use crate::spec::{AppSpec, Feature, Priority, TechStack};
+use crate::tui::inputs::read_multiline;
 
 /// Run manual step-by-step spec creation
 pub fn run_manual_mode(output_dir: &Path) -> Result<()> {
@@ -33,9 +34,7 @@ pub fn run_manual_mode(output_dir: &Path) -> Result<()> {
 
 fn collect_spec_details() -> Result<AppSpec> {
     let project_name: String = Input::new().with_prompt("Project name").interact_text()?;
-    let overview: String = Input::new()
-        .with_prompt("Brief description")
-        .interact_text()?;
+    let overview: String = read_multiline("Brief description")?;
 
     let technology = if Confirm::new()
         .with_prompt("Define technology stack?")
@@ -79,7 +78,7 @@ fn collect_features() -> Result<Vec<Feature>> {
             break;
         }
 
-        let description: String = Input::new().with_prompt("Description").interact_text()?;
+        let description: String = read_multiline("Description")?;
         let priority = select_priority()?;
 
         features.push(Feature {
