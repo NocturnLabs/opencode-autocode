@@ -11,6 +11,9 @@ use std::time::Instant;
 use crate::config::Config;
 
 /// Embedded prompt template for spec generation (legacy single-pass)
+use crate::validation;
+
+/// Embedded prompt template for spec generation (legacy single-pass)
 const GENERATOR_PROMPT: &str = include_str!("../templates/generator_prompt.md");
 
 /// Embedded prompt template for subagent-based parallel generation
@@ -18,6 +21,9 @@ const SUBAGENT_PROMPT: &str = include_str!("../templates/generator/subagent_prom
 
 /// Embedded prompt template for spec refinement
 const REFINE_PROMPT: &str = include_str!("../templates/refine_prompt.md");
+
+/// Embedded prompt template for fixing malformed XML
+const FIX_MALFORMED_PROMPT: &str = include_str!("../templates/generator/fix_malformed_xml.md");
 
 /// Generate a project specification from a user's idea using OpenCode CLI.
 ///
@@ -47,8 +53,8 @@ where
     // Load config
     let config = Config::load(None).unwrap_or_default();
 
-    // Build the prompt with the user's idea (use subagents if enabled via CLI flag)
-    let prompt = if use_subagents {
+    // Build the initial prompt
+    let mut prompt = if use_subagents {
         build_subagent_prompt(idea, testing_preference)
     } else {
         build_generation_prompt(idea, testing_preference)
@@ -56,11 +62,9 @@ where
 
     // Check if opencode is available
     let opencode_path = which_opencode(&config)?;
-
     let model_to_use = model.unwrap_or(&config.models.default);
 
-    // Performance timing
-    let start_time = Instant::now();
+    // Initial message
     if use_subagents {
         on_output(&format!(
             "[PERF] Starting subagent spec generation at {:?}\n",
@@ -78,57 +82,111 @@ where
     }
     on_output("   (This may take a minute as the AI researches best practices)\n\n");
 
-    // Run opencode with the prompt
-    let mut child = Command::new(&opencode_path)
-        .args(["run", "--model", model_to_use, &prompt])
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .with_context(|| format!("Failed to spawn opencode at: {}", opencode_path))?;
+    let max_retries = 2;
+    let mut last_error = String::new();
 
-    // Capture output
-    let stdout = child.stdout.take().expect("Failed to capture stdout");
-    let reader = BufReader::new(stdout);
+    for attempt in 0..=max_retries {
+        let is_retry = attempt > 0;
+        
+        if is_retry {
+            on_output(&format!(
+                "\n⚠️  Spec validation failed. Retrying (attempt {}/{})...\n",
+                attempt, max_retries
+            ));
+        }
 
-    let mut full_output = String::new();
-    for line in reader.lines() {
-        match line {
-            Ok(line) => {
-                full_output.push_str(&line);
-                full_output.push('\n');
-                // Stream progress to user (but don't overwhelm them)
-                if line.contains("Searching") || line.contains("Reading") || line.contains("Tool") {
-                    on_output(&format!("   {}\n", line));
+        let start_time = Instant::now();
+
+        // Run opencode with the prompt
+        let mut child = Command::new(&opencode_path)
+            .args(["run", "--model", model_to_use, &prompt])
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .with_context(|| format!("Failed to spawn opencode at: {}", opencode_path))?;
+
+        // Capture output
+        let stdout = child.stdout.take().expect("Failed to capture stdout");
+        let reader = BufReader::new(stdout);
+
+        let mut full_output = String::new();
+        for line in reader.lines() {
+            match line {
+                Ok(line) => {
+                    full_output.push_str(&line);
+                    full_output.push('\n');
+                    // Stream progress
+                    if line.contains("Searching") || line.contains("Reading") || line.contains("Tool") {
+                        on_output(&format!("   {}\n", line));
+                    }
+                }
+                Err(e) => {
+                    on_output(&format!("   Warning: Error reading output: {}\n", e));
                 }
             }
+        }
+
+        let status = child
+            .wait()
+            .context("Failed to wait for opencode process")?;
+
+        if !status.success() {
+            // Processing failure in opencode CLI itself
+             on_output(&format!(
+                "   Warning: OpenCode CLI exited with error code.\n"
+            ));
+            last_error = "OpenCode CLI process failed".to_string();
+            // We might try again?
+            if attempt == max_retries {
+                 bail!(
+                    "OpenCode exited with error. Output:\n{}",
+                    full_output.chars().take(1000).collect::<String>()
+                );
+            }
+            continue;
+        }
+
+        // Try to extract and validate matches
+        match extract_spec_from_output(&full_output) {
+            Ok(spec) => {
+                // Validate XML structure
+                match validation::validate_spec(&spec) {
+                    Ok(result) => {
+                        if result.is_valid {
+                            // Success!
+                            let elapsed = start_time.elapsed();
+                            on_output(&format!(
+                                "[PERF] Spec generation completed in {:.2}s\n",
+                                elapsed.as_secs_f64()
+                            ));
+                            return Ok(spec);
+                        } else {
+                            // Validation logic errors (malformed XML)
+                            last_error = result.errors.join("\n");
+                            // Update prompt for next attempt
+                            prompt = build_fix_prompt(idea, &last_error);
+                        }
+                    },
+                    Err(e) => {
+                        // Validator crashed?
+                        last_error = format!("Validator error: {}", e);
+                         prompt = build_fix_prompt(idea, &last_error);
+                    }
+                }
+            },
             Err(e) => {
-                on_output(&format!("   Warning: Error reading output: {}\n", e));
+                // Could not extract XML block
+                last_error = format!("Could not extract XML: {}", e);
+                prompt = build_fix_prompt(idea, "Could not locate <project_specification> block in output.");
             }
         }
     }
 
-    let status = child
-        .wait()
-        .context("Failed to wait for opencode process")?;
-
-    if !status.success() {
-        bail!(
-            "OpenCode exited with error. Output:\n{}",
-            full_output.chars().take(1000).collect::<String>()
-        );
-    }
-
-    // Extract the XML specification from the output
-    let spec = extract_spec_from_output(&full_output)?;
-
-    // Log performance timing
-    let elapsed = start_time.elapsed();
-    on_output(&format!(
-        "[PERF] Spec generation completed in {:.2}s\n",
-        elapsed.as_secs_f64()
-    ));
-
-    Ok(spec)
+    // If we get here, retries exhausted
+    bail!(
+        "Failed to generate valid specification after {} retries.\nLast error: {}", 
+        max_retries, last_error
+    );
 }
 
 /// Refine an existing specification based on user feedback using OpenCode CLI.
@@ -247,6 +305,13 @@ fn build_refine_prompt(current_spec: &str, refinement: &str) -> String {
     REFINE_PROMPT
         .replace("{{EXISTING_SPEC}}", current_spec)
         .replace("{{REFINEMENT}}", refinement)
+}
+
+/// Build the fix prompt by inserting the original idea and error message.
+fn build_fix_prompt(idea: &str, errors: &str) -> String {
+    FIX_MALFORMED_PROMPT
+        .replace("{{IDEA}}", idea)
+        .replace("{{ERRORS}}", errors)
 }
 
 /// Find the opencode executable using paths from config.
