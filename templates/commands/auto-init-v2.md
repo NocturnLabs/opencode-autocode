@@ -30,7 +30,7 @@ Read `app_spec.md` in your working directory. Understand:
 Based on `app_spec.md`, insert features using the CLI:
 
 ```bash
-opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Feature description', 0, 'npm test -- --grep \"feature\"')"
+opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Feature description', 0, 'bun test -- --grep \"feature\"')"
 ```
 
 #### Example: Game Project with 9 Core Features
@@ -59,7 +59,7 @@ opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'Audio play
 | **Count**        | Insert 5-15 features minimum. More is better.                  |
 | **Categories**   | Mix `functional` (logic) and `style` (UI/UX)                   |
 | **Passes**       | ALL start with `passes = 0`                                    |
-| **Verification** | Real test commands, not just `cargo build` or `npm run dev`    |
+| **Verification** | Real test commands, not just `cargo build` or `bun run dev`    |
 
 > **NEVER** combine multiple behaviors into one feature.
 > **NEVER** use generic verification like `cargo build` — use actual test commands.

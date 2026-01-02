@@ -115,7 +115,7 @@ Start server on the free port, not the default.
    SELECT verification_command FROM features WHERE id = X
    ```
 
-2. Run the exact command (e.g., `npx playwright test --grep "feature"`):
+2. Run the exact command (e.g., `bun x playwright test --grep "feature"`):
 
    ```bash
    # Run the verification_command from the database

@@ -11,7 +11,7 @@ For web projects, every feature MUST have a Playwright E2E test.
 ### Setup
 
 ```bash
-npm init playwright@latest
+bun create playwright
 ```
 
 ### Test Structure
@@ -30,9 +30,9 @@ test("feature description", async ({ page }) => {
 ### Running Tests
 
 ```bash
-npx playwright test
-npx playwright test --headed  # See browser
-npx playwright test --debug   # Step through
+bun x playwright test
+bun x playwright test --headed  # See browser
+bun x playwright test --debug   # Step through
 ```
 
 ---
@@ -43,7 +43,7 @@ Each feature in the database should have a `verification_command`:
 
 ```sql
 INSERT INTO features (category, description, passes, verification_command)
-VALUES ('functional', 'User can login', 0, 'npx playwright test --grep "login"');
+VALUES ('functional', 'User can login', 0, 'bun x playwright test --grep "login"');
 ```
 
 **verification_command MUST invoke E2E tests, NOT unit tests.**

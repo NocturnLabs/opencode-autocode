@@ -12,17 +12,8 @@
       "find",
       "tree"
     ],
-    "file_operations": [
-      "cp",
-      "mkdir",
-      "chmod",
-      "touch",
-      "mv"
-    ],
-    "directory": [
-      "pwd",
-      "cd"
-    ],
+    "file_operations": ["cp", "mkdir", "chmod", "touch", "mv"],
+    "directory": ["pwd", "cd"],
     "rust_toolchain": [
       "cargo",
       "rustc",
@@ -41,6 +32,11 @@
       "npx",
       "pnpm",
       "bun",
+      "bun run",
+      "bun test",
+      "bun start",
+      "bun install",
+      "bun x",
       "yarn",
       "npm run",
       "npm test",
@@ -58,31 +54,10 @@
       "ruff",
       "mypy"
     ],
-    "go_toolchain": [
-      "go",
-      "go build",
-      "go test",
-      "go run",
-      "go fmt"
-    ],
-    "version_control": [
-      "git"
-    ],
-    "process_management": [
-      "ps",
-      "lsof",
-      "ss",
-      "sleep",
-      "pkill",
-      "kill"
-    ],
-    "utilities": [
-      "echo",
-      "date",
-      "which",
-      "env",
-      "export"
-    ]
+    "go_toolchain": ["go", "go build", "go test", "go run", "go fmt"],
+    "version_control": ["git"],
+    "process_management": ["ps", "lsof", "ss", "sleep", "pkill", "kill"],
+    "utilities": ["echo", "date", "which", "env", "export"]
   },
   "blocked_patterns": [
     "rm -rf /",

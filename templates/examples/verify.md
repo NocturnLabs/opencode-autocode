@@ -7,13 +7,13 @@ cargo test --test integration_tests
 
 # Web projects (Playwright):
 
-npx playwright test --grep "feature description"
-npx playwright test tests/e2e/login.spec.ts
+bun x playwright test --grep "feature description"
+bun x playwright test tests/e2e/login.spec.ts
 
 # Node.js projects:
 
-npm test -- --grep "feature"
-npx vitest run --grep "feature"
+bun test -- --grep "feature"
+bun x vitest run --grep "feature"
 
 # Python projects:
 
@@ -22,7 +22,7 @@ python -m pytest tests/test_module.py::test_feature
 
 # Rules:
 
-# - NEVER use 'cargo build' or 'npm run dev' as verification
+# - NEVER use 'cargo build' or 'bun run dev' as verification
 
 # - Each command should test ONE specific behavior
 

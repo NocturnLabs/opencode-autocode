@@ -34,11 +34,12 @@ Features in `feature_list.json` can include an optional `verification_command`:
     "Verify redirect to dashboard"
   ],
   "passes": false,
-  "verification_command": "npm test -- --grep 'login'"
+  "verification_command": "bun test -- --grep 'login'"
 }
 ```
 
 When a `verification_command` is present:
+
 - The regression checker executes it automatically
 - Exit code 0 = pass, non-zero = fail
 - Failed tests are flagged for immediate fixing
@@ -46,11 +47,14 @@ When a `verification_command` is present:
 ## Running Regression Checks
 
 ### Automatic (during autonomous sessions)
+
 The agent runs `./scripts/run-regression-check.sh` at:
+
 - Session start (Step 4: Full Regression Test)
 - After each feature (Step 7.5: Regression Checkpoint)
 
 ### Manual
+
 ```bash
 # Run regression check on current feature_list.json
 ./scripts/run-regression-check.sh
@@ -60,6 +64,7 @@ The agent runs `./scripts/run-regression-check.sh` at:
 ```
 
 ### Via CLI
+
 ```bash
 # Using the opencode-autocode CLI
 opencode-autocode regression-check
@@ -88,8 +93,9 @@ Fixed in: Session 5, commit abc123
 2. **Keep verification commands fast** - Regression checks run frequently; slow commands slow down the whole process
 
 3. **Use specific test filters** - Instead of running the entire test suite, filter to the relevant tests:
+
    ```json
-   "verification_command": "npm test -- --grep 'cart'"
+   "verification_command": "bun test -- --grep 'cart'"
    ```
 
 4. **Check the regression log** - If you're resuming a project, review `opencode-progress.txt` for known issues

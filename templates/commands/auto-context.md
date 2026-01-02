@@ -93,7 +93,7 @@ Create `.conductor/tech_stack.md` with the following structure:
 
 ## Package Manager
 
-- [e.g., npm, pnpm, cargo, pip]
+- [e.g., bun, npm, pnpm, cargo, pip]
 ```
 
 ---
