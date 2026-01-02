@@ -25,10 +25,10 @@ The specification MUST include:
 
 | Category             | Minimum | Description                                             |
 | -------------------- | ------- | ------------------------------------------------------- |
-| Core Features        | 15-25   | Each with 5-10 sub-features, error handling, edge cases |
-| Database Tables      | 10-20   | Properly normalized with relationships and indexes      |
+| Core Features        | 15+     | Each with 5-10 sub-features, error handling, edge cases |
+| Database Tables      | 10+     | Properly normalized with relationships and indexes      |
 | API Endpoints        | 30+     | Organized by resource, with auth requirements noted     |
-| Implementation Steps | 8-15    | Each with clear deliverables                            |
+| Implementation Steps | 8+      | Each with clear deliverables                            |
 
 ## Content Guidelines
 
@@ -127,7 +127,7 @@ Output ONLY the specification in this XML structure. Fill every section with sub
   </prerequisites>
 
 <core_features>
-<!-- 15-25 feature blocks -->
+<!-- 15+ feature blocks -->
 <feature_name>
  - Sub-feature with implementation detail
  - Sub-feature with implementation detail
@@ -157,7 +157,7 @@ Output ONLY the specification in this XML structure. Fill every section with sub
 
 <database_schema>
 <tables>
-<!-- 10-20 tables -->
+<!-- 10+ tables -->
 <table_name>
  - column_name: type, constraints, purpose
  - column_name: type, constraints, purpose
@@ -230,7 +230,7 @@ Output ONLY the specification in this XML structure. Fill every section with sub
 </testing_strategy>
 
 <implementation_steps>
-<!-- 8-15 phases -->
+<!-- 8+ phases -->
 <step number="1">
 <title>Phase Title</title>
 <estimated_effort>Rough time estimate</estimated_effort>

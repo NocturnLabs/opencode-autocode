@@ -15,7 +15,7 @@ Generate the `<core_features>` and `<user_experience>` XML sections based on the
 
 ## Requirements
 
-### Core Features (15-25 features)
+### Core Features (15+ features)
 
 For each feature, include:
 

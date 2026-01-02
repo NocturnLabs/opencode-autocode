@@ -15,7 +15,7 @@ Generate the `<database_schema>` and `<api_endpoints>` XML sections based on the
 
 ## Requirements
 
-### Database Schema (10-20 tables)
+### Database Schema (10+ tables)
 
 For each table:
 

@@ -29,7 +29,7 @@ Generate the `<security>`, `<testing_strategy>`, `<implementation_steps>`, `<suc
 - E2E tests (MANDATORY for all features)
 - Interactive verification notes
 
-### Implementation Steps (8-15 phases)
+### Implementation Steps (8+ phases)
 
 Each step includes:
 
