@@ -101,6 +101,7 @@ default = "opencode/glm-4.7-free"         # Used for spec generation
 autonomous = "opencode/minimax-m2.1-free" # Used for code implementation
 reasoning = "opencode/glm-4.7-free"       # Used for planning and logic
 enhancement = "opencode/glm-4.7-free"     # Used for discover_improvements
+fixer = "opencode/grok-code"              # Used for fixing malformed specs
 
 [paths]
 database_file = ".autocode/progress.db"
@@ -186,8 +187,8 @@ templates/
 │   ├── testing.md          # Playwright, E2E protocols
 │   └── recovery.md         # Stuck protocol
 ├── commands/
-│   ├── auto-init-v2.md     # Lean entry point (~100 lines)
-│   └── auto-continue-v2.md # Lean entry point (~80 lines)
+│   ├── auto-init.md        # Lean entry point (~100 lines)
+│   └── auto-continue.md    # Lean entry point (~80 lines)
 ```
 
 The agent reads specialized modules only when needed, reducing context window consumption by ~80%.
