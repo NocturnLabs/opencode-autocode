@@ -154,7 +154,7 @@ opencode-autocode db mark-pass X
 git add . && git commit -m "Implement [feature]"
 ```
 
-> [!CAUTION] > **ISOALTION RULE: STOP NOW.** You have completed ONE feature. Do NOT look at the next feature. Do NOT run another SQL query.
+> [!CAUTION] > **ISOLATION RULE: STOP NOW.** You have completed ONE feature. Do NOT look at the next feature. Do NOT run another SQL query.
 >
 > **REASON**: Continuing multiple features in one session causes context bloat and webhook spam. The supervisor needs to reset for the next iteration.
 
