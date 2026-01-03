@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2026-01-02
+
+### Added
+
+- **Configurable Fixer Model**: A dedicated model for fixing malformed XML and spec errors, configurable via `autocode.toml` and TUI (default: `opencode/grok-code`).
+- **Doc: Template Token Costs**: New documentation (`docs/template_costs.md`) tracking token usage for all system prompts (init session: ~1,800 tokens).
+- **Test: Token Counting**: Automated tests to monitor prompt size and prevent context bloat.
+
+### Changed
+
+- **Defaults**: `prefer_osgrep` now defaults to `true` for 100x faster searches.
+- **Spec Generation**:
+  - Added "Local Software" to Role Definition.
+  - Replaced hardcoded feature minimums (e.g., "15+") with open-ended guidance scaling with project complexity.
+- **Session Discipline**:
+  - Renamed `auto-continue-v2` -> `auto-continue`.
+  - Added strict "Stop after ONE feature" enforcement to prevent context drift.
+  - **Mandatory** Knowledge Base recall at session start.
+- **Scaffolding**: `init.sh` guidelines updated to strictly require "Install + Launch" in a single command.
+
 ## [0.4.5] - 2026-01-02
 
 ### Added
