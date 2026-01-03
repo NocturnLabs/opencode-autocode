@@ -18,7 +18,7 @@ pub struct WorkerResult {
     pub success: bool,
 }
 
-/// Create a worktree for a feature
+/// Create a worktree for a feature, with shared config symlinked
 pub fn create_worktree(feature: &Feature, base_path: &Path) -> Result<(PathBuf, String)> {
     let feature_id = feature.id.unwrap_or(0);
     let slug = slugify(&feature.description);
@@ -39,6 +39,31 @@ pub fn create_worktree(feature: &Feature, base_path: &Path) -> Result<(PathBuf, 
 
     if !status.success() {
         anyhow::bail!("git worktree add failed for feature {}", feature_id);
+    }
+
+    // Symlink the database file specifically (the .autocode directory already exists
+    // from tracked files, but progress.db is gitignored so needs to be symlinked)
+    let main_db = std::env::current_dir()?.join(".autocode/progress.db");
+    let worktree_db = worktree_path.join(".autocode/progress.db");
+    
+    if main_db.exists() && !worktree_db.exists() {
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&main_db, &worktree_db)
+            .context("Failed to symlink progress.db")?;
+        
+        #[cfg(windows)]
+        std::os::windows::fs::symlink_file(&main_db, &worktree_db)
+            .context("Failed to symlink progress.db")?;
+    }
+
+    // Also symlink autocode.toml if it exists
+    let main_config = std::env::current_dir()?.join("autocode.toml");
+    let worktree_config = worktree_path.join("autocode.toml");
+    if main_config.exists() && !worktree_config.exists() {
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&main_config, &worktree_config).ok();
+        #[cfg(windows)]
+        std::os::windows::fs::symlink_file(&main_config, &worktree_config).ok();
     }
 
     Ok((worktree_path, branch_name))
