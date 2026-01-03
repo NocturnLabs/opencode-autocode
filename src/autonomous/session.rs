@@ -183,11 +183,29 @@ fn build_opencode_command(
     cmd
 }
 
+/// Patterns that indicate a feature was completed - trigger early termination
+const FEATURE_COMPLETE_PATTERNS: &[&str] = &[
+    "mark-pass",
+    "db mark-pass", 
+    "Feature marked as passing",
+    "marked as passing",
+];
+
+/// Check if a line indicates feature completion
+fn is_feature_complete_signal(line: &str) -> bool {
+    let lower = line.to_lowercase();
+    FEATURE_COMPLETE_PATTERNS.iter().any(|p| lower.contains(&p.to_lowercase()))
+}
+
 fn execute_with_timeout(
     cmd: &mut Command,
     timeout_minutes: u32,
     logger: &DebugLogger,
 ) -> Result<SessionResult> {
+    use std::sync::mpsc;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::Arc;
+
     let timeout_secs = timeout_minutes as u64 * 60;
     println!("→ Session timeout: {} minutes", timeout_minutes);
     logger.debug(&format!(
@@ -205,20 +223,33 @@ fn execute_with_timeout(
     let stdout = child.stdout.take();
     let stderr = child.stderr.take();
 
-    // Spawn threads to read output
-    let logger_enabled = logger.is_enabled();
+    // Channel for signaling feature completion
+    let (tx, rx) = mpsc::channel::<String>();
+    let feature_completed = Arc::new(AtomicBool::new(false));
+
+    // Spawn thread to read stdout with feature detection
+    let tx_stdout = tx.clone();
+    let feature_completed_stdout = Arc::clone(&feature_completed);
     let stdout_handle = stdout.map(|s| {
         thread::spawn(move || {
             let reader = BufReader::new(s);
             let mut lines = Vec::new();
             for line in reader.lines().map_while(Result::ok) {
                 println!("{}", line);
+                
+                // Check for feature completion signal
+                if is_feature_complete_signal(&line) && !feature_completed_stdout.load(Ordering::SeqCst) {
+                    feature_completed_stdout.store(true, Ordering::SeqCst);
+                    let _ = tx_stdout.send(line.clone());
+                }
+                
                 lines.push(line);
             }
             lines
         })
     });
 
+    // Spawn thread to read stderr
     let stderr_handle = stderr.map(|s| {
         thread::spawn(move || {
             let reader = BufReader::new(s);
@@ -231,13 +262,30 @@ fn execute_with_timeout(
         })
     });
 
+    // Track if we terminated early due to feature completion
+    let mut terminated_for_isolation = false;
+
     loop {
+        // Check for feature completion signal (non-blocking)
+        if let Ok(trigger_line) = rx.try_recv() {
+            println!();
+            println!("🛑 ISOLATION: Feature completed, terminating session early");
+            println!("   Trigger: {}", trigger_line);
+            logger.info(&format!("Isolation enforcement: terminating after feature completion. Trigger: {}", trigger_line));
+            
+            // Give the session a moment to finish any pending writes
+            thread::sleep(Duration::from_millis(1000));
+            terminate_child(&mut child);
+            terminated_for_isolation = true;
+            break;
+        }
+
         match child.try_wait() {
             Ok(Some(status)) => {
                 // Wait for output threads to finish
                 if let Some(handle) = stdout_handle {
                     if let Ok(lines) = handle.join() {
-                        if logger_enabled {
+                        if logger.is_enabled() {
                             for line in lines {
                                 logger.log_output("stdout", &line);
                             }
@@ -246,7 +294,7 @@ fn execute_with_timeout(
                 }
                 if let Some(handle) = stderr_handle {
                     if let Ok(lines) = handle.join() {
-                        if logger_enabled {
+                        if logger.is_enabled() {
                             for line in lines {
                                 logger.log_output("stderr", &line);
                             }
@@ -293,6 +341,11 @@ fn execute_with_timeout(
                 return Err(e).context("Failed to check process status");
             }
         }
+    }
+
+    // If we terminated for isolation, still return Continue so supervisor can verify
+    if terminated_for_isolation {
+        return Ok(SessionResult::Continue);
     }
 
     if stop_signal_exists() {
