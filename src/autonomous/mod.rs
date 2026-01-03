@@ -183,7 +183,23 @@ fn run_supervisor_loop(
             }
             SupervisorAction::Command(cmd) => {
                 logger.info(&format!("Supervisor: Selected command '{}'", cmd));
-                cmd.to_string()
+
+                // For auto-continue, inject feature context (supervisor controls what LLM works on)
+                if cmd == "auto-continue" {
+                    if let Some(feature) = features::get_first_pending_feature(db_path)? {
+                        generate_continue_template(&feature)?;
+                        println!(
+                            "📋 Feature #{}: {}",
+                            feature.id.unwrap_or(0), feature.description
+                        );
+                        "auto-continue-active".to_string()
+                    } else {
+                        // No pending features, use standard continue
+                        cmd.to_string()
+                    }
+                } else {
+                    cmd.to_string()
+                }
             }
             SupervisorAction::Fix { feature, error } => {
                 logger.info(&format!(
@@ -202,7 +218,7 @@ fn run_supervisor_loop(
         println!("→ Running: opencode run --command /{}", command_name);
         println!();
 
-        // 2. Get the feature the agent SHOULD be working on (first pending)
+        // 2. Get the feature the agent SHOULD be working on (for verification after session)
         let target_feature = features::get_first_pending_feature(db_path)?;
 
         // 3. Run Session
@@ -466,6 +482,62 @@ fn generate_fix_template(
 
     // Write to active command file
     let target = Path::new(".opencode/command/auto-fix-active.md");
+    if let Some(parent) = target.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    std::fs::write(target, content)?;
+    Ok(())
+}
+
+/// Generate a minimal continue template with feature context injected by supervisor.
+/// This removes LLM responsibility for querying the database.
+fn generate_continue_template(feature: &crate::db::features::Feature) -> Result<()> {
+    let content = format!(
+        r#"# Implement Feature
+
+## Your Task
+Implement the following feature completely:
+
+**Feature #{}: {}**
+
+## Acceptance Criteria
+{}
+
+## Verification Command
+After implementation, this command should pass (supervisor will run it):
+```bash
+{}
+```
+
+## Guidelines
+1. Implement the feature with production-quality code
+2. Write necessary tests
+3. Ensure the verification command passes
+4. Commit your changes with a descriptive message
+5. Output `===SESSION_COMPLETE===` when done
+
+Do NOT:
+- Query the database for feature information (already provided above)
+- Call `mark-pass` (supervisor handles this)
+- Work on any other features (one feature per session)
+"#,
+        feature.id.unwrap_or(0),
+        feature.description,
+        if feature.steps.is_empty() {
+            "Not specified - implement as described".to_string()
+        } else {
+            feature.steps.iter().enumerate()
+                .map(|(i, s)| format!("{}. {}", i + 1, s))
+                .collect::<Vec<_>>()
+                .join("\n")
+        },
+        feature
+            .verification_command
+            .as_deref()
+            .unwrap_or("# No verification command specified")
+    );
+
+    let target = Path::new(".opencode/command/auto-continue-active.md");
     if let Some(parent) = target.parent() {
         std::fs::create_dir_all(parent)?;
     }
