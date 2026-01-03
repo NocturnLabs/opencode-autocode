@@ -82,16 +82,23 @@ where
     }
     on_output("   (This may take a minute as the AI researches best practices)\n\n");
 
-    let max_retries = 2;
+    let max_retries = 5;
     let mut last_error = String::new();
 
     for attempt in 0..=max_retries {
         let is_retry = attempt > 0;
         
+        // Use default model for first attempt, but switch to reliable fixer for retries
+        let current_model = if is_retry {
+            &config.models.fixer
+        } else {
+            model_to_use
+        };
+
         if is_retry {
             on_output(&format!(
-                "\n⚠️  Spec validation failed. Retrying (attempt {}/{})...\n",
-                attempt, max_retries
+                "\n⚠️  Spec validation failed. Retrying with {} (attempt {}/{})...\n",
+                current_model, attempt, max_retries
             ));
         }
 
@@ -99,7 +106,7 @@ where
 
         // Run opencode with the prompt
         let mut child = Command::new(&opencode_path)
-            .args(["run", "--model", model_to_use, &prompt])
+            .args(["run", "--model", current_model, &prompt])
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
@@ -407,11 +414,9 @@ mod tests {
         let idea = "A complex ERP";
         let prompt = build_generation_prompt(idea, None);
 
-        assert!(prompt.contains("Core Features        | 15+"));
-        assert!(prompt.contains("Database Tables      | 10+"));
-        assert!(prompt.contains("API Endpoints        | 30+"));
-        assert!(prompt.contains("Implementation Steps | 8+"));
-        assert!(prompt.contains("<!-- 15+ feature blocks -->"));
+        assert!(prompt.contains("scale with the project's complexity"));
+        assert!(prompt.contains("ALL features necessary"));
+        assert!(prompt.contains("The goal is completeness, not hitting arbitrary numbers"));
     }
 
     #[test]

@@ -81,9 +81,28 @@ Create `product.md`, `tech_stack.md`, `workflow.md` based on the spec.
 
 ---
 
-### STEP 4: Create init.sh
+### STEP 4: Create init.sh (One-Click Install + Launch)
 
-Create a setup script for future sessions.
+Create a **one-click** setup script that:
+
+1. **Installs** all dependencies (npm install, cargo build, go mod download, etc.)
+2. **Launches** the application in development mode
+
+> [!IMPORTANT] > `init.sh` MUST be a single-command way to go from "clone" to "running application".
+> Users should be able to run `./init.sh` and see the application working.
+
+**Example structure:**
+
+```bash
+#!/bin/bash
+set -e
+
+# Install dependencies
+npm install # or cargo build, pip install -r requirements.txt, etc.
+
+# Launch application
+npm run dev # or cargo run, python app.py, etc.
+```
 
 > **Web projects:** Include port conflict prevention. Always prefer finding a free port over killing existing ones.
 > See `templates/modules/javascript.md` for template.

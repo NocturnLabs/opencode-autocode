@@ -10,9 +10,9 @@ use crate::db;
 /// Embedded default app spec template
 const DEFAULT_APP_SPEC: &str = include_str!("../docs/examples/default_app_spec.md");
 
-/// Embedded command templates (v2 modular versions)
-const AUTO_INIT_TEMPLATE: &str = include_str!("../templates/commands/auto-init-v2.md");
-const AUTO_CONTINUE_TEMPLATE: &str = include_str!("../templates/commands/auto-continue-v2.md");
+/// Embedded command templates
+const AUTO_INIT_TEMPLATE: &str = include_str!("../templates/commands/auto-init.md");
+const AUTO_CONTINUE_TEMPLATE: &str = include_str!("../templates/commands/auto-continue.md");
 const AUTO_ENHANCE_TEMPLATE: &str = include_str!("../templates/commands/auto-enhance.md");
 
 /// Core modules for include directive resolution

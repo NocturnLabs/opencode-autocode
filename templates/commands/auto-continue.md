@@ -26,16 +26,25 @@ Then orient:
 
 ---
 
-### 2. Regression Check
+### 2. Recall & Verify
 
-Verify existing features still pass before new work:
+> [!IMPORTANT] > **MANDATORY: Check your persistent memory before doing ANY work.**
 
-4.  **Memory Check**:
+**Step 2a - Recall Knowledge:**
 
-    - Run `auto db knowledge list` to recall saved facts (ports, env vars, etc.).
-    - If you discover new facts, SAVE THEM with `auto db knowledge set`.
+```bash
+opencode-autocode db knowledge list
+```
 
-5.  **Run `db check`**:
+Review saved facts (ports, env vars, workarounds). Use these when implementing.
+
+**Step 2b - Regression Check:**
+
+```bash
+opencode-autocode db check
+```
+
+Verify existing features still pass before new work.
 
 ---
 
@@ -145,17 +154,41 @@ opencode-autocode db mark-pass X
 git add . && git commit -m "Implement [feature]"
 ```
 
-**CRITICAL: STOP HERE.** Do not start the next feature. Signal completion to reset context.
+> [!CAUTION] > **STOP IMMEDIATELY AFTER THIS.** You have completed ONE feature. Do NOT look at the next feature. Do NOT run another `SELECT`. The session MUST end now to allow supervisor context reset.
 
 ---
 
-### 9. Signal
+### 9. Signal Completion & Exit
+
+> [!IMPORTANT] > **THIS IS THE FINAL STEP.** After outputting the session complete signal, you MUST stop all activity. Do not continue to the next feature.
 
 ```bash
 echo "CONTINUE" > .opencode-signal
 ```
 
+**Output this exact text on its own line, then end your response:**
+
 `===SESSION_COMPLETE===`
+
+---
+
+## Updating Plans (If Needed)
+
+If you discover that `.conductor/` plans are outdated or incorrect:
+
+1. **Minor updates**: Edit the plan.md directly to fix task descriptions or add missing steps.
+2. **Major restructure**: If the architecture changed significantly, regenerate the plan:
+
+   ```bash
+   # Check current track
+   ls .conductor/tracks/
+
+   # Edit the plan directly
+   vim .conductor/tracks/[track-name]/plan.md
+   ```
+
+> [!TIP]
+> Plans should evolve with the project. If you find yourself working around the plan instead of following it, update the plan.
 
 ---
 

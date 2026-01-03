@@ -52,6 +52,8 @@ pub struct ModelsConfig {
     pub reasoning: String,
     /// Model for enhancement discovery
     pub enhancement: String,
+    /// Model for fixing malformed XML during spec generation retries
+    pub fixer: String,
 }
 
 impl Default for ModelsConfig {
@@ -61,6 +63,7 @@ impl Default for ModelsConfig {
             autonomous: "opencode/minimax-m2.1-free".to_string(),
             reasoning: "opencode/glm-4.7-free".to_string(),
             enhancement: "opencode/glm-4.7-free".to_string(),
+            fixer: "opencode/grok-code".to_string(),
         }
     }
 }
@@ -288,7 +291,7 @@ impl Default for McpConfig {
             priority_order: vec![],
             // Empty by default - spec generator populates for web projects
             required_tools: vec![],
-            prefer_osgrep: false,
+            prefer_osgrep: true,
             use_sequential_thinking: true,
         }
     }
