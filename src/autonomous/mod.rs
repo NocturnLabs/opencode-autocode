@@ -283,8 +283,67 @@ fn run_supervisor_loop(
     Ok(())
 }
 
+/// Types of verification failures - determines corrective action
+#[derive(Debug, PartialEq)]
+enum VerificationFailure {
+    /// Filter/grep didn't match any tests (command is wrong, not code)
+    NoTestsMatch,
+    /// Test file doesn't exist
+    TestFileMissing,
+    /// Command itself is invalid (missing binary, syntax error)
+    CommandError,
+    /// Actual test assertion failure (real regression)
+    AssertionFailure,
+}
+
+impl VerificationFailure {
+    fn as_str(&self) -> &'static str {
+        match self {
+            Self::NoTestsMatch => "no tests matched filter",
+            Self::TestFileMissing => "test file missing",
+            Self::CommandError => "command error",
+            Self::AssertionFailure => "assertion failure",
+        }
+    }
+}
+
+/// Classify a verification failure based on error output
+fn classify_verification_failure(error: &str) -> VerificationFailure {
+    let lower = error.to_lowercase();
+
+    // Patterns that indicate the verification command is broken, not the code
+    if lower.contains("no test files")
+        || lower.contains("did not match any")
+        || lower.contains("filters did not match")
+        || lower.contains("pattern not found")
+        || lower.contains("no tests found")
+        || lower.contains("no specs found")
+    {
+        return VerificationFailure::NoTestsMatch;
+    }
+
+    if lower.contains("cannot find")
+        || lower.contains("no such file")
+        || lower.contains("file not found")
+        || lower.contains("enoent")
+    {
+        return VerificationFailure::TestFileMissing;
+    }
+
+    if lower.contains("command not found")
+        || lower.contains("not recognized")
+        || lower.contains("spawn unknown")
+        || lower.contains("permission denied")
+    {
+        return VerificationFailure::CommandError;
+    }
+
+    // Default: assume actual test failure (code issue)
+    VerificationFailure::AssertionFailure
+}
+
 fn determine_action(db_path: &Path, config: &Config) -> Result<SupervisorAction> {
-    let _logger = debug_logger::get();
+    let logger = debug_logger::get();
 
     // 0. REGRESSION CHECK (Priority #1)
     if FeatureProgress::has_features(db_path) {
@@ -304,10 +363,41 @@ fn determine_action(db_path: &Path, config: &Config) -> Result<SupervisorAction>
                         .iter()
                         .find(|f| f.description == result.description)
                     {
-                        return Ok(SupervisorAction::Fix {
-                            feature: feature.clone(),
-                            error: result.error_message.unwrap_or_default(),
-                        });
+                        let error_msg = result.error_message.unwrap_or_default();
+
+                        // SMART STUCK DETECTION: Classify the failure
+                        let failure_type = classify_verification_failure(&error_msg);
+
+                        match failure_type {
+                            VerificationFailure::NoTestsMatch
+                            | VerificationFailure::TestFileMissing
+                            | VerificationFailure::CommandError => {
+                                // The verification command is broken, not the code
+                                // Mark as failing and move on instead of looping
+                                println!("⚠️  Verification command issue (not a code regression)");
+                                println!("   Feature: {}", feature.description);
+                                println!("   Error: {}", error_msg.lines().next().unwrap_or(""));
+                                println!("   → Marking as pending for re-implementation");
+                                logger.warning(&format!(
+                                    "Verification command broken for '{}': {}",
+                                    feature.description,
+                                    failure_type.as_str()
+                                ));
+
+                                // Mark as failing so it goes back to pending queue
+                                db.features().mark_failing(&feature.description)?;
+
+                                // Don't return Fix action - continue to find next feature
+                                continue;
+                            }
+                            VerificationFailure::AssertionFailure => {
+                                // Real regression - proceed with fix
+                                return Ok(SupervisorAction::Fix {
+                                    feature: feature.clone(),
+                                    error: error_msg,
+                                });
+                            }
+                        }
                     }
                 }
             }
