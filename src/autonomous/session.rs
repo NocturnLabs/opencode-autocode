@@ -185,16 +185,14 @@ fn build_opencode_command(
 
 /// Patterns that indicate a feature was completed - trigger early termination
 const FEATURE_COMPLETE_PATTERNS: &[&str] = &[
-    "mark-pass",
-    "db mark-pass", 
-    "Feature marked as passing",
-    "marked as passing",
+    "===SESSION_COMPLETE===",
+    "SESSION_COMPLETE",
+    "Implement [feature]",  // git commit message pattern
 ];
 
 /// Check if a line indicates feature completion
 fn is_feature_complete_signal(line: &str) -> bool {
-    let lower = line.to_lowercase();
-    FEATURE_COMPLETE_PATTERNS.iter().any(|p| lower.contains(&p.to_lowercase()))
+    FEATURE_COMPLETE_PATTERNS.iter().any(|p| line.contains(p))
 }
 
 fn execute_with_timeout(

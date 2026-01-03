@@ -202,10 +202,10 @@ fn run_supervisor_loop(
         println!("→ Running: opencode run --command /{}", command_name);
         println!();
 
-        // 2. Run Session
-        let before_passing = features::get_passing_feature_descriptions(db_path)?;
+        // 2. Get the feature the agent SHOULD be working on (first pending)
+        let target_feature = features::get_first_pending_feature(db_path)?;
 
-        // Execute the session
+        // 3. Run Session
         let result = session::execute_opencode_session(
             &command_name,
             &settings.model,
@@ -215,39 +215,50 @@ fn run_supervisor_loop(
             logger,
         )?;
 
-        // 3. Independent Verification (Trust but Verify)
-        let after_passing = features::get_passing_feature_descriptions(db_path)?;
-        // Detect what the agent CLAIMED to complete
-        let claimed_new = features::detect_newly_completed(&before_passing, &after_passing);
+        // 4. Supervisor Verification (agent does NOT mark-pass, we do it)
+        if let Some(feature) = target_feature {
+            println!("🔍 Supervisor: Verifying feature...");
+            println!("   Feature: {}", feature.description);
+            
+            if let Some(cmd) = &feature.verification_command {
+                let output = std::process::Command::new("sh")
+                    .arg("-c")
+                    .arg(cmd)
+                    .output()?;
 
-        if !claimed_new.is_empty() {
-            // ISOLATION ENFORCEMENT: Only verify the FIRST feature, rollback extras
-            if claimed_new.len() > 1 {
-                println!(
-                    "⚠️  Supervisor: Agent completed {} features (isolation violation!)",
-                    claimed_new.len()
-                );
-                println!("   Only verifying the first feature, rolling back extras...");
-                logger.warning(&format!(
-                    "Isolation violation: agent completed {} features in one session",
-                    claimed_new.len()
-                ));
-
-                // Rollback all but the first feature
-                let db = crate::db::Database::open(db_path)?;
-                for extra_desc in claimed_new.iter().skip(1) {
-                    db.features().mark_failing(extra_desc)?;
-                    println!("   ↺ Rolled back: {}", extra_desc);
+                if output.status.success() {
+                    println!("  ✅ Verification PASSED!");
+                    
+                    // Mark as passing
+                    let db = crate::db::Database::open(db_path)?;
+                    db.features().mark_passing(&feature.description)?;
+                    println!("  ✓ Marked as passing");
+                    
+                    // Commit if needed
+                    if settings.auto_commit {
+                        let _ = git::commit_completed_feature(&feature.description, settings.verbose);
+                    }
+                    
+                    // Notify webhook
+                    let progress = FeatureProgress::load_from_db(db_path)?;
+                    let _ = webhook::notify_feature_complete(
+                        config,
+                        &feature,
+                        iteration,
+                        progress.passing,
+                        progress.total(),
+                    );
+                } else {
+                    println!("  ❌ Verification FAILED");
+                    println!("     Command: {}", cmd);
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    if !stderr.is_empty() {
+                        println!("     Error: {}", stderr.lines().next().unwrap_or(""));
+                    }
+                    // Feature remains in failing state, agent will retry next session
                 }
-            }
-
-            println!(
-                "🔍 Supervisor: Verifying {} feature(s)...",
-                1 // Only verify one
-            );
-            // Only verify the FIRST feature
-            if let Some(feature_desc) = claimed_new.first() {
-                verify_and_commit(feature_desc, db_path, config, settings, iteration)?;
+            } else {
+                println!("  ⚠ No verification command (manual check required)");
             }
         }
 
@@ -370,6 +381,7 @@ fn generate_fix_template(
     Ok(())
 }
 
+#[allow(dead_code)]
 fn verify_and_commit(
     feature_desc: &str,
     db_path: &Path,

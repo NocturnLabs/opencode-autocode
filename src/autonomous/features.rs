@@ -46,6 +46,7 @@ impl FeatureProgress {
 }
 
 /// Get descriptions of currently passing features from database
+#[allow(dead_code)]
 pub fn get_passing_feature_descriptions(db_path: &Path) -> Result<HashSet<String>> {
     if !db_path.exists() {
         return Ok(HashSet::new());
@@ -57,6 +58,20 @@ pub fn get_passing_feature_descriptions(db_path: &Path) -> Result<HashSet<String
 }
 
 /// Detect newly completed features by comparing before/after sets
+#[allow(dead_code)]
 pub fn detect_newly_completed(before: &HashSet<String>, after: &HashSet<String>) -> Vec<String> {
     after.difference(before).cloned().collect()
+}
+
+/// Get the first pending (not passing) feature from the database
+pub fn get_first_pending_feature(db_path: &Path) -> Result<Option<db::features::Feature>> {
+    if !db_path.exists() {
+        return Ok(None);
+    }
+
+    let database = db::Database::open(db_path)?;
+    let features = database.features().list_all()?;
+    
+    // Find first feature where passes = false (i.e., passes = 0)
+    Ok(features.into_iter().find(|f| !f.passes))
 }

@@ -71,6 +71,7 @@ impl DebugLogger {
     }
 
     /// Log a WARN level message
+    #[allow(dead_code)]
     pub fn warning(&self, message: &str) {
         self.log("WARN ", message);
     }

@@ -139,9 +139,9 @@ Start server on the free port, not the default.
 
 ---
 
-### 8. Update & Commit
+### 8. Commit Changes
 
-**Before running mark-pass, confirm:**
+**Before committing, confirm:**
 
 - [ ] Ran the feature's `verification_command`
 - [ ] Verification test PASSED (not just "ran")
@@ -150,9 +150,10 @@ Start server on the free port, not the default.
 - [ ] Checked/Updated Memory (`auto db knowledge list/set`)
 
 ```bash
-opencode-autocode db mark-pass X
 git add . && git commit -m "Implement [feature]"
 ```
+
+> [!NOTE] > **DO NOT call mark-pass.** The supervisor will independently verify and mark the feature as passing after this session ends.
 
 > [!CAUTION] > **ISOLATION RULE: STOP NOW.** You have completed ONE feature. Do NOT look at the next feature. Do NOT run another SQL query.
 >
