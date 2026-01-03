@@ -331,6 +331,7 @@ fn classify_verification_failure(error: &str) -> VerificationFailure {
     }
 
     if lower.contains("command not found")
+        || lower.contains("unknown command")
         || lower.contains("not recognized")
         || lower.contains("spawn unknown")
         || lower.contains("permission denied")
