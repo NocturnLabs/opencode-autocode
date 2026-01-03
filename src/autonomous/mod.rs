@@ -496,30 +496,30 @@ fn generate_continue_template(feature: &crate::db::features::Feature) -> Result<
         r#"# Implement Feature
 
 ## Your Task
-Implement the following feature completely:
+Implement this feature completely:
 
 **Feature #{}: {}**
 
 ## Acceptance Criteria
 {}
 
-## Verification Command
-After implementation, this command should pass (supervisor will run it):
-```bash
-{}
-```
-
-## Guidelines
+## What You Do
 1. Implement the feature with production-quality code
-2. Write necessary tests
-3. Ensure the verification command passes
-4. Commit your changes with a descriptive message
-5. Output `===SESSION_COMPLETE===` when done
+2. Write necessary tests if applicable
+3. Output `===SESSION_COMPLETE===` when implementation is done
 
-Do NOT:
-- Query the database for feature information (already provided above)
-- Call `mark-pass` (supervisor handles this)
-- Work on any other features (one feature per session)
+## What Supervisor Does (NOT YOU)
+The supervisor will automatically handle after your session:
+- Run verification: `{}`
+- Commit changes to git
+- Mark feature as passing if verification succeeds
+
+## Rules
+- Do NOT run git commands (git add, git commit, git push)
+- Do NOT run the verification command yourself
+- Do NOT call mark-pass or query the database
+- Do NOT work on any other features
+- ONLY implement this one feature and output ===SESSION_COMPLETE===
 "#,
         feature.id.unwrap_or(0),
         feature.description,
