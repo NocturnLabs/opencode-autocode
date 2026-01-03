@@ -75,3 +75,16 @@ pub fn get_first_pending_feature(db_path: &Path) -> Result<Option<db::features::
     // Find first feature where passes = false (i.e., passes = 0)
     Ok(features.into_iter().find(|f| !f.passes))
 }
+
+/// Get up to N pending (not passing) features for parallel processing
+pub fn get_pending_features(db_path: &Path, limit: usize) -> Result<Vec<db::features::Feature>> {
+    if !db_path.exists() {
+        return Ok(Vec::new());
+    }
+
+    let database = db::Database::open(db_path)?;
+    let features = database.features().list_all()?;
+
+    // Get first N non-passing features
+    Ok(features.into_iter().filter(|f| !f.passes).take(limit).collect())
+}

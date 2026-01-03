@@ -68,6 +68,10 @@ pub enum Commands {
         /// Use single model for all tasks (disables dual-model reasoning/coding split)
         #[arg(long)]
         single_model: bool,
+
+        /// Run N workers in parallel using git worktrees (0 = auto-detect)
+        #[arg(long, value_name = "N")]
+        parallel: Option<usize>,
     },
     /// Start the autonomous enhancement loop (infinite refine)
     Enhance {

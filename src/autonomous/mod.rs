@@ -7,6 +7,7 @@ pub mod debug_logger;
 mod display;
 mod features;
 mod git;
+pub mod parallel;
 mod session;
 mod settings;
 mod webhook;
@@ -35,6 +36,86 @@ enum SupervisorAction {
     },
     /// Stop the loop (completed or otherwise)
     Stop,
+}
+
+/// Run parallel workers using git worktrees
+pub fn run_parallel(
+    worker_count: usize,
+    config_path: Option<&Path>,
+    developer_mode: bool,
+) -> Result<()> {
+    debug_logger::init(developer_mode);
+    let logger = debug_logger::get();
+    let config = load_config(config_path)?;
+    let settings = settings::LoopSettings::from_config(&config, None);
+    let db_path = Path::new(&settings.database_file);
+
+    // Get pending features
+    let pending = features::get_pending_features(db_path, worker_count)?;
+    if pending.is_empty() {
+        println!("✅ No pending features to work on");
+        return Ok(());
+    }
+
+    println!("📋 Selected {} features for parallel work:", pending.len());
+    for f in &pending {
+        println!("   • #{}: {}", f.id.unwrap_or(0), f.description);
+    }
+
+    let base_path = std::env::current_dir()?.parent().unwrap().to_path_buf();
+    let mut coordinator = parallel::Coordinator::new(worker_count, base_path.clone());
+
+    // Create worktrees and spawn workers
+    let mut handles = Vec::new();
+    for feature in pending {
+        let (worktree_path, branch_name) = parallel::create_worktree(&feature, &base_path)?;
+        println!("🌳 Created worktree: {}", branch_name);
+
+        let feature_id = feature.id.unwrap_or(0);
+        let wt = worktree_path.clone();
+        let bn = branch_name.clone();
+
+        // Spawn worker thread
+        let handle = std::thread::spawn(move || {
+            let status = std::process::Command::new("opencode-autocode")
+                .args(["vibe", "--limit", "1"])
+                .current_dir(&wt)
+                .status();
+
+            parallel::WorkerResult {
+                feature_id,
+                branch_name: bn,
+                worktree_path: wt,
+                success: status.map(|s| s.success()).unwrap_or(false),
+            }
+        });
+        handles.push(handle);
+    }
+
+    // Wait for workers and queue results
+    for handle in handles {
+        if let Ok(result) = handle.join() {
+            println!(
+                "{}  Worker {} finished ({})",
+                if result.success { "✅" } else { "❌" },
+                result.feature_id,
+                if result.success { "success" } else { "failed" }
+            );
+            coordinator.queue_for_merge(result);
+        }
+    }
+
+    // Process merge queue
+    println!("\n📦 Processing merge queue...");
+    let merged = coordinator.process_merge_queue()?;
+    println!("✅ Merged {} features to main", merged);
+
+    logger.info(&format!(
+        "Parallel session complete: {} workers, {} merged",
+        worker_count, merged
+    ));
+
+    Ok(())
 }
 
 /// Run the autonomous agent loop

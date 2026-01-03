@@ -44,13 +44,28 @@ fn main() -> Result<()> {
                 config_file,
                 developer,
                 single_model,
-            } => autonomous::run(
-                *limit,
-                config_file.as_deref(),
-                *developer,
-                *single_model,
-                false,
-            ),
+                parallel,
+            } => {
+                if let Some(worker_count) = parallel {
+                    // Parallel mode using worktrees
+                    let count = if *worker_count == 0 {
+                        num_cpus::get() / 2 // Auto-detect: half of CPU cores
+                    } else {
+                        *worker_count
+                    };
+                    println!("🔀 Starting parallel mode with {} workers", count);
+                    autonomous::run_parallel(count, config_file.as_deref(), *developer)
+                } else {
+                    // Standard sequential mode
+                    autonomous::run(
+                        *limit,
+                        config_file.as_deref(),
+                        *developer,
+                        *single_model,
+                        false,
+                    )
+                }
+            }
             Commands::Enhance {
                 limit,
                 config_file,
