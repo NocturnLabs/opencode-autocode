@@ -31,10 +31,6 @@ pub struct Cli {
     #[arg(long)]
     pub config: bool,
 
-    /// Run regression checks on feature_list.json
-    #[arg(long)]
-    pub regression_check: bool,
-
     /// Output directory for scaffolded files
     #[arg(short, long, value_name = "DIR")]
     pub output: Option<PathBuf>,
@@ -46,10 +42,6 @@ pub struct Cli {
     /// Disable parallel subagent spec generation (use legacy single-pass)
     #[arg(long)]
     pub no_subagents: bool,
-
-    /// Path to feature_list.json (for --regression-check)
-    #[arg(long, value_name = "FILE")]
-    pub feature_list: Option<PathBuf>,
 
     /// Verbose output
     #[arg(short, long)]
@@ -72,6 +64,28 @@ pub enum Commands {
         /// Enable developer mode with comprehensive debug logging
         #[arg(long)]
         developer: bool,
+
+        /// Use single model for all tasks (disables dual-model reasoning/coding split)
+        #[arg(long)]
+        single_model: bool,
+    },
+    /// Start the autonomous enhancement loop (infinite refine)
+    Enhance {
+        /// Maximum number of iterations (default: unlimited)
+        #[arg(short, long)]
+        limit: Option<usize>,
+
+        /// Path to custom config file (default: autocode.toml)
+        #[arg(long, value_name = "FILE")]
+        config_file: Option<PathBuf>,
+
+        /// Enable developer mode with comprehensive debug logging
+        #[arg(long)]
+        developer: bool,
+
+        /// Use single model for all tasks (disables dual-model reasoning/coding split)
+        #[arg(long)]
+        single_model: bool,
     },
     /// Manage project templates
     Templates {
@@ -83,6 +97,13 @@ pub enum Commands {
         #[command(subcommand)]
         action: DbAction,
     },
+    /// Show example documentation for various topics
+    Example {
+        #[command(subcommand)]
+        topic: ExampleTopic,
+    },
+    /// Update opencode-autocode to the latest version
+    Update,
 }
 
 /// Template subcommand actions
@@ -130,6 +151,12 @@ pub enum DbAction {
         /// SQL modification query string
         sql: String,
     },
+    /// Run regression checks on current project features
+    Check {
+        /// Path to custom feature database or JSON (legacy)
+        #[arg(long, value_name = "FILE")]
+        path: Option<PathBuf>,
+    },
     /// List all tables in the database
     Tables,
     /// Show schema for a table
@@ -144,6 +171,86 @@ pub enum DbAction {
         /// Feature ID to mark as passing
         id: i32,
     },
+    /// Manage persistent agent knowledge
+    Knowledge {
+        #[command(subcommand)]
+        action: KnowledgeAction,
+    },
+}
+
+#[derive(Subcommand, Debug)]
+pub enum KnowledgeAction {
+    /// Save a fact (key=value)
+    Set {
+        /// Unique key (e.g. dev_port)
+        key: String,
+        /// Value to store
+        value: String,
+        /// Category (default: general)
+        #[arg(short, long)]
+        category: Option<String>,
+        /// Optional description
+        #[arg(short, long)]
+        description: Option<String>,
+    },
+    /// Get a fact by key
+    Get { key: String },
+    /// List all facts
+    List {
+        /// Filter by category
+        #[arg(short, long)]
+        category: Option<String>,
+    },
+    /// Delete a fact
+    Delete { key: String },
+}
+
+/// Example topics for progressive discovery
+#[derive(Subcommand, Debug)]
+pub enum ExampleTopic {
+    /// Show database-related examples
+    Db {
+        /// Show example feature INSERT statements
+        #[arg(long)]
+        insert: bool,
+        /// Show example SQL queries for feature inspection
+        #[arg(long)]
+        query: bool,
+    },
+    /// Show example verification commands by project type
+    Verify,
+    /// Show example autocode.toml configuration sections
+    Config,
+    /// Show example conductor files (product.md, tech_stack.md)
+    Conductor,
+    /// Show the vibe loop workflow phases
+    Workflow,
+    /// Show app spec structure and sections
+    Spec,
+    /// Show agent identity and core values
+    Identity,
+    /// Show security constraints and allowlist usage
+    Security,
+    /// Show Model Context Protocol (MCP) tool guide
+    Mcp,
+    /// Show project architecture overview
+    Arch,
+    /// Show Rust development guide
+    Rust,
+    /// Show JavaScript/TypeScript development guide
+    Js,
+    /// Show testing strategies and E2E guide
+    Testing,
+    /// Show autonomous recovery protocols
+    Recovery,
+    /// Show high-speed orientation guide for autonomous agents
+    Vibe,
+    /// Show Conductor tracks and planning system guide
+    Tracks,
+    /// Show Interactive TUI spec generation workflow
+    Interactive,
+    /// Show Guide for project templates
+    TemplatesGuide,
 }
 
 /// The mode of operation
@@ -156,8 +263,6 @@ pub enum Mode {
     Interactive,
     /// Configure settings
     Config,
-    /// Run regression checks
-    RegressionCheck,
 }
 
 impl Cli {
@@ -166,9 +271,6 @@ impl Cli {
         // Check exclusive flags
         if self.config {
             return Ok(Mode::Config);
-        }
-        if self.regression_check {
-            return Ok(Mode::RegressionCheck);
         }
         if self.default {
             return Ok(Mode::Default);
@@ -198,11 +300,9 @@ mod tests {
             default: false,
             spec: None,
             config: false,
-            regression_check: false,
             output: None,
             dry_run: false,
             no_subagents: false,
-            feature_list: None,
             verbose: false,
         }
     }
@@ -226,12 +326,5 @@ mod tests {
         let mut cli = default_cli();
         cli.config = true;
         assert!(matches!(cli.mode().unwrap(), Mode::Config));
-    }
-
-    #[test]
-    fn test_regression_check_mode() {
-        let mut cli = default_cli();
-        cli.regression_check = true;
-        assert!(matches!(cli.mode().unwrap(), Mode::RegressionCheck));
     }
 }

@@ -11,7 +11,8 @@ mod session;
 mod settings;
 mod webhook;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
+use std::io::{self, BufRead, Write};
 use std::path::Path;
 use std::thread;
 use std::time::Duration;
@@ -23,8 +24,27 @@ use crate::regression;
 use features::FeatureProgress;
 use settings::{handle_session_result, LoopAction, LoopSettings};
 
+/// Actions determined by the Supervisor
+enum SupervisorAction {
+    /// Run a standard command (auto-init, auto-continue, etc.)
+    Command(&'static str),
+    /// Fix a regression
+    Fix {
+        feature: crate::db::features::Feature,
+        error: String,
+    },
+    /// Stop the loop (completed or otherwise)
+    Stop,
+}
+
 /// Run the autonomous agent loop
-pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: bool) -> Result<()> {
+pub fn run(
+    limit: Option<usize>,
+    config_path: Option<&Path>,
+    developer_mode: bool,
+    single_model: bool,
+    enhancement_mode: bool,
+) -> Result<()> {
     // Initialize debug logger
     debug_logger::init(developer_mode);
     let logger = debug_logger::get();
@@ -33,7 +53,7 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: boo
     let settings = LoopSettings::from_config(&config, limit);
 
     logger.separator();
-    logger.info("OpenCode Autonomous Agent Runner starting");
+    logger.info("OpenCode Supervisor starting");
     logger.info(&format!("Developer mode: {}", developer_mode));
     logger.info(&format!(
         "Project directory: {}",
@@ -42,6 +62,14 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: boo
             .unwrap_or_default()
     ));
     logger.info(&format!("Model: {}", settings.model));
+    logger.info(&format!(
+        "Dual-model: {}",
+        if single_model {
+            "disabled (--single-model)"
+        } else {
+            "enabled (reasoning + @coder)"
+        }
+    ));
     logger.info(&format!(
         "Max iterations: {}",
         if settings.max_iterations == usize::MAX {
@@ -63,8 +91,9 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: boo
         developer_mode,
     );
 
-    run_main_loop(&config, &settings)?;
+    run_supervisor_loop(&config, &settings, enhancement_mode)?;
 
+    // Final status display
     let db_path = Path::new(&settings.database_file);
     let (passing, total) = if db_path.exists() {
         FeatureProgress::load_from_db(db_path)
@@ -75,7 +104,7 @@ pub fn run(limit: Option<usize>, config_path: Option<&Path>, developer_mode: boo
     };
     logger.separator();
     logger.info(&format!(
-        "Runner stopped. Final status: {}/{} tests passing",
+        "Supervisor stopped. Final status: {}/{} tests passing",
         passing, total
     ));
     logger.separator();
@@ -92,7 +121,11 @@ fn load_config(config_path: Option<&Path>) -> Result<Config> {
     }
 }
 
-fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
+fn run_supervisor_loop(
+    config: &Config,
+    settings: &LoopSettings,
+    enhancement_mode: bool,
+) -> Result<()> {
     let db_path = Path::new(&settings.database_file);
     let mut iteration = 0usize;
     let mut consecutive_errors = 0u32;
@@ -102,38 +135,63 @@ fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
         iteration += 1;
 
         if iteration > settings.max_iterations {
-            logger.info(&format!(
-                "Reached max iterations ({})",
-                settings.max_iterations
-            ));
+            logger.info("Reached max iterations");
             println!("\nReached max iterations ({})", settings.max_iterations);
             break;
         }
 
         logger.separator();
-        logger.info(&format!(
-            "Session {} starting at {}",
-            iteration,
-            chrono::Local::now().format("%H:%M:%S")
-        ));
+        logger.info(&format!("Session {} starting", iteration));
         display::display_session_header(iteration);
 
-        let command = determine_command(db_path, config)?;
-        if command.is_none() {
-            logger.info("All tests passing! Project complete!");
-            println!("\n🎉 All tests passing! Project complete!");
-            break;
-        }
-        let command = command.unwrap();
+        // 1. Determine Action (Supervisor Logic)
+        let action = determine_action(db_path, config)?;
 
-        logger.info(&format!("Running command: /{}", command));
-        println!("→ Running: opencode run --command /{}", command);
+        let command_name = match action {
+            SupervisorAction::Stop => {
+                if enhancement_mode {
+                    match handle_enhancement_phase(db_path, config, settings, iteration) {
+                        Ok(LoopAction::Continue) => {
+                            iteration += 1;
+                            "auto-enhance-active".to_string()
+                        }
+                        _ => {
+                            logger.info("Supervisor: Stop signal received or enhancement exited.");
+                            break;
+                        }
+                    }
+                } else {
+                    logger.info("Supervisor: Stop signal received.");
+                    break;
+                }
+            }
+            SupervisorAction::Command(cmd) => {
+                logger.info(&format!("Supervisor: Selected command '{}'", cmd));
+                cmd.to_string()
+            }
+            SupervisorAction::Fix { feature, error } => {
+                logger.info(&format!(
+                    "Supervisor: REGRESSION DETECTED in '{}'",
+                    feature.description
+                ));
+                println!("🚨 REGRESSION DETECTED: {}", feature.description);
+                println!("→ Switching to auto-fix mode...");
+
+                // Generate dynamic auto-fix template
+                generate_fix_template(&feature, &error, db_path)?;
+                "auto-fix-active".to_string()
+            }
+        };
+
+        println!("→ Running: opencode run --command /{}", command_name);
         println!();
 
+        // 2. Run Session
         let before_passing = features::get_passing_feature_descriptions(db_path)?;
 
+        // Execute the session
         let result = session::execute_opencode_session(
-            command,
+            &command_name,
             &settings.model,
             &settings.log_level,
             None,
@@ -141,40 +199,33 @@ fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
             logger,
         )?;
 
+        // 3. Independent Verification (Trust but Verify)
         let after_passing = features::get_passing_feature_descriptions(db_path)?;
-        let new_features = features::detect_newly_completed(&before_passing, &after_passing);
+        // Detect what the agent CLAIMED to complete
+        let claimed_new = features::detect_newly_completed(&before_passing, &after_passing);
 
-        if !new_features.is_empty() {
-            for feature in &new_features {
-                logger.info(&format!("Feature completed: \"{}\"", feature));
+        if !claimed_new.is_empty() {
+            println!(
+                "🔍 Supervisor: Verifying {} feature(s)...",
+                claimed_new.len()
+            );
+            for feature_desc in &claimed_new {
+                verify_and_commit(feature_desc, db_path, config, settings, iteration)?;
             }
         }
 
-        handle_completed_features(config, settings, &new_features, db_path, iteration)?;
-
-        // Display token usage after each session
+        // Display token usage
         if let Some(ref stats) = session::fetch_token_stats() {
-            logger.info(&format!(
-                "Token usage: input={}, output={}, cost=${:.4}",
-                stats.input_tokens, stats.output_tokens, stats.total_cost
-            ));
             display::display_token_stats(stats);
         }
 
+        // Handle loop continuation
         match handle_session_result(result, settings, &mut consecutive_errors) {
             LoopAction::Continue => {
-                logger.debug(&format!(
-                    "Sleeping {}s before next session",
-                    settings.delay_seconds
-                ));
                 thread::sleep(Duration::from_secs(settings.delay_seconds as u64));
             }
-            LoopAction::Break => {
-                logger.info("Loop terminated");
-                break;
-            }
+            LoopAction::Break => break,
             LoopAction::RetryWithBackoff(backoff) => {
-                logger.info(&format!("Retrying with {}s backoff", backoff));
                 thread::sleep(Duration::from_secs(backoff as u64));
             }
         }
@@ -183,49 +234,58 @@ fn run_main_loop(config: &Config, settings: &LoopSettings) -> Result<()> {
     Ok(())
 }
 
-/// Determines the next action in the 5-phase autonomous loop:
-///
-/// 1. **Init**: Scaffold project structure and DB.
-/// 2. **Context**: Setup project-wide requirements.
-/// 3. **Continue (Active)**: Work on existing plans in tracks/.
-/// 4. **Done Check**: Stop if all features pass.
-/// 5. **Continue (Failing)**: Start new plan for remaining failing features.
-fn determine_command(db_path: &Path, config: &Config) -> Result<Option<&'static str>> {
-    let logger = debug_logger::get();
+fn determine_action(db_path: &Path, config: &Config) -> Result<SupervisorAction> {
+    let _logger = debug_logger::get();
 
-    // Phase 1: First run - auto-init populates features in the database
-    if !FeatureProgress::has_features(db_path) {
-        logger.info("Phase 1: First run, running auto-init");
-        println!("→ First run: auto-init");
-        return Ok(Some("auto-init"));
-    }
+    // 0. REGRESSION CHECK (Priority #1)
+    if FeatureProgress::has_features(db_path) {
+        let db = crate::db::Database::open(db_path)?;
+        let features = db.features().list_all()?;
 
-    // Phase 2: Ensure conductor context exists (if auto_setup enabled)
-    if config.conductor.auto_setup && !conductor::context_exists(config) {
-        logger.info("Phase 2: Conductor context missing, running auto-context");
-        println!("→ Setting up project context: auto-context");
-        return Ok(Some("auto-context"));
-    }
+        // Run check on ALL features (not just passing ones to be safe, but regression checks usually imply passing ones)
+        // actually regression check only checks passing ones.
+        // We want to verify that previously passing features are STILL passing.
+        let summary = regression::run_regression_check(&features, None, false)?;
 
-    // Phase 3: Check for active track with incomplete tasks
-    if let Some(track) = conductor::get_active_track(config)? {
-        let plan_path = track.path.join("plan.md");
-        if let Ok(tasks) = conductor::parse_plan(&plan_path) {
-            if let Some(next_task) = conductor::get_next_task(&tasks) {
-                logger.info(&format!(
-                    "Phase 3: Continuing track '{}', next task: {}",
-                    track.name, next_task.description
-                ));
-                println!(
-                    "→ Active track: {} (next: {})",
-                    track.name, next_task.description
-                );
-                return Ok(Some("auto-continue"));
+        if summary.automated_failed > 0 {
+            // Find the first failing feature to fix
+            for result in summary.results {
+                if !result.passed && result.was_automated {
+                    if let Some(feature) = features
+                        .iter()
+                        .find(|f| f.description == result.description)
+                    {
+                        return Ok(SupervisorAction::Fix {
+                            feature: feature.clone(),
+                            error: result.error_message.unwrap_or_default(),
+                        });
+                    }
+                }
             }
         }
     }
 
-    // Phase 4: Check database feature progress
+    // Phase 1: First run
+    if !FeatureProgress::has_features(db_path) {
+        return Ok(SupervisorAction::Command("auto-init"));
+    }
+
+    // Phase 2: Context
+    if config.conductor.auto_setup && !conductor::context_exists(config) {
+        return Ok(SupervisorAction::Command("auto-context"));
+    }
+
+    // Phase 3: Active Track
+    if let Some(track) = conductor::get_active_track(config)? {
+        let plan_path = track.path.join("plan.md");
+        if let Ok(tasks) = conductor::parse_plan(&plan_path) {
+            if conductor::get_next_task(&tasks).is_some() {
+                return Ok(SupervisorAction::Command("auto-continue"));
+            }
+        }
+    }
+
+    // Phase 4: DB Progress
     let progress = FeatureProgress::load_from_db(db_path)?;
     println!(
         "→ Progress: {} passing, {} remaining",
@@ -233,67 +293,137 @@ fn determine_command(db_path: &Path, config: &Config) -> Result<Option<&'static 
     );
 
     if progress.all_passing() {
-        logger.info("Phase 4: All features passing, project complete");
-        return Ok(None);
+        return Ok(SupervisorAction::Stop);
     }
 
-    // Phase 5: No active track, but features remain - use auto-continue
-    // (The AI in auto-continue will pick the next failing feature)
-    logger.info("Phase 5: No active track, running auto-continue for next feature");
-    Ok(Some("auto-continue"))
+    // Phase 5: Auto-continue
+    Ok(SupervisorAction::Command("auto-continue"))
 }
 
-fn handle_completed_features(
-    config: &Config,
-    settings: &LoopSettings,
-    new_features: &[String],
-    db_path: &Path,
-    session_number: usize,
+fn generate_fix_template(
+    feature: &crate::db::features::Feature,
+    error: &str,
+    _db_path: &Path,
 ) -> Result<()> {
-    if new_features.is_empty() {
-        return Ok(());
-    }
-
-    let progress = FeatureProgress::load_from_db(db_path).unwrap_or(FeatureProgress {
-        passing: 0,
-        remaining: 0,
-    });
-
-    // Load features from database for webhook notifications
-    let features_list = if db_path.exists() {
-        crate::db::Database::open(db_path)
-            .ok()
-            .and_then(|db| db.features().list_all().ok())
+    // Read template
+    let template_path = Path::new("templates/commands/auto-fix.md");
+    let template = if template_path.exists() {
+        std::fs::read_to_string(template_path)?
     } else {
-        None
+        // Fallback
+        "# Regression Fix\nFix {{failing_feature}}\nError: {{error_message}}".to_string()
     };
 
-    for feature_desc in new_features {
-        if let Some(ref features) = features_list {
-            if let Some(feature) = features.iter().find(|f| f.description == *feature_desc) {
-                // Convert db::Feature to regression::Feature for webhook
-                let regression_feature = regression::Feature {
-                    category: feature.category.clone(),
-                    description: feature.description.clone(),
-                    steps: feature.steps.clone(),
-                    passes: feature.passes,
-                    verification_command: feature.verification_command.clone(),
-                };
+    // Replace variables
+    let content = template
+        .replace("{{failing_feature}}", &feature.description)
+        .replace("{{error_message}}", error)
+        .replace("{{current_feature}}", "latest changes")
+        .replace(
+            "{{verification_command}}",
+            feature.verification_command.as_deref().unwrap_or("unknown"),
+        );
 
-                let _ = webhook::notify_feature_complete(
-                    config,
-                    &regression_feature,
-                    session_number,
-                    progress.passing,
-                    progress.total(),
-                );
+    // Write to active command file
+    let target = Path::new(".opencode/command/auto-fix-active.md");
+    if let Some(parent) = target.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    std::fs::write(target, content)?;
+    Ok(())
+}
 
-                if settings.auto_commit {
-                    let _ = git::commit_completed_feature(&feature.description, settings.verbose);
-                }
-            }
+fn verify_and_commit(
+    feature_desc: &str,
+    db_path: &Path,
+    config: &Config,
+    settings: &LoopSettings,
+    session_num: usize,
+) -> Result<()> {
+    let db = crate::db::Database::open(db_path)?;
+    let features = db.features().list_all()?;
+    let feature = features
+        .iter()
+        .find(|f| f.description == feature_desc)
+        .context("Feature not found in DB")?;
+
+    // 1. Run Verification
+    println!("  • Verifying '{}'...", feature.description);
+    if let Some(cmd) = &feature.verification_command {
+        let output = std::process::Command::new("sh")
+            .arg("-c")
+            .arg(cmd)
+            .output()?;
+
+        if !output.status.success() {
+            println!("  ❌ Verification FAILED!");
+            println!("     Command: {}", cmd);
+            println!("     Code: {}", output.status.code().unwrap_or(-1));
+
+            // ROLLBACK STATUS
+            db.features().mark_failing(&feature.description)?;
+            println!("  ↺ Rolled back status to 'failing'");
+            return Ok(()); // Do not commit, do not notify success
         }
+        println!("  ✅ Verified!");
+    } else {
+        println!("  ⚠ No verification command (manual verify)");
     }
 
+    // 2. Commit
+    if settings.auto_commit {
+        let _ = git::commit_completed_feature(&feature.description, settings.verbose);
+    }
+
+    // 3. Notify
+    let progress = FeatureProgress::load_from_db(db_path)?;
+    let _ = webhook::notify_feature_complete(
+        config,
+        feature,
+        session_num,
+        progress.passing,
+        progress.total(),
+    );
+
     Ok(())
+}
+
+fn handle_enhancement_phase(
+    _db_path: &Path,
+    _config: &Config,
+    _settings: &LoopSettings,
+    _iteration: usize,
+) -> Result<LoopAction> {
+    println!("\n✨ All features complete! The autonomous loop is now in enhancement mode.");
+    println!("What would you like to enhance? (or type 'exit' to finish)");
+    print!("> ");
+    io::stdout().flush()?;
+
+    let stdin = io::stdin();
+    let mut reader = stdin.lock();
+    let mut enhancement_request = String::new();
+    reader.read_line(&mut enhancement_request)?;
+
+    let enhancement_request = enhancement_request.trim();
+
+    if enhancement_request.is_empty() || enhancement_request.to_lowercase() == "exit" {
+        return Ok(LoopAction::Break);
+    }
+
+    // Generate dynamic enhancement template
+    let template = r#"# Enhancement Request
+{{enhancement_request}}
+
+Please implement this enhancement for the current project.
+"#;
+    let content = template.replace("{{enhancement_request}}", enhancement_request);
+
+    // Write to active command file
+    let target = Path::new(".opencode/command/auto-enhance-active.md");
+    if let Some(parent) = target.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    std::fs::write(target, content)?;
+
+    Ok(LoopAction::Continue)
 }

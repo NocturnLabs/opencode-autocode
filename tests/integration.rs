@@ -49,24 +49,25 @@ fn test_scaffold_no_shell_script() {
     );
 }
 
-/// Test that vibe command correctly detects feature_list.json
+/// Test that vibe command correctly detects database
 #[test]
-fn test_vibe_detects_feature_list() {
+fn test_vibe_detects_database() {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let output_path = temp_dir.path();
 
-    // Without feature_list.json, vibe should run auto-init
-    let feature_list_path = output_path.join("feature_list.json");
-    assert!(!feature_list_path.exists());
+    // Directory for database
+    let autocode_dir = output_path.join(".autocode");
+    fs::create_dir_all(&autocode_dir).expect("Failed to create .autocode dir");
 
-    // Create fake feature_list.json
-    let feature_list_content = r#"[
-        {"description": "Test feature", "passes": false}
-    ]"#;
-    fs::write(&feature_list_path, feature_list_content).expect("Failed to write feature list");
+    // Without database, vibe should run auto-init
+    let db_path = autocode_dir.join("progress.db");
+    assert!(!db_path.exists());
+
+    // Create database (simulated)
+    opencode_autocode::db::Database::open(&db_path).expect("Failed to create database");
 
     // Now it should exist
-    assert!(feature_list_path.exists());
+    assert!(db_path.exists());
 }
 
 /// Test config file generation
@@ -89,5 +90,62 @@ fn test_scaffold_generates_valid_config() {
     assert!(
         content.contains("[autonomous]"),
         "Config should have [autonomous] section"
+    );
+}
+
+/// Test that opencode.json is valid JSON (not JSONC with comments)
+#[test]
+fn test_scaffold_generates_valid_opencode_json() {
+    let temp_dir = TempDir::new().expect("Failed to create temp dir");
+    let output_path = temp_dir.path();
+
+    opencode_autocode::scaffold::scaffold_default(output_path).expect("Scaffold should succeed");
+
+    // Read and parse opencode.json
+    let json_path = output_path.join("opencode.json");
+    let content = fs::read_to_string(&json_path).expect("Failed to read opencode.json");
+
+    // This will fail if there are comments or invalid JSON
+    let parsed: Result<serde_json::Value, _> = serde_json::from_str(&content);
+    assert!(
+        parsed.is_ok(),
+        "opencode.json must be valid JSON, not JSONC: {:?}",
+        parsed.err()
+    );
+
+    // Verify expected structure
+    let json = parsed.unwrap();
+    assert!(json.get("$schema").is_some(), "Should have $schema field");
+    assert!(
+        json.get("instructions").is_some(),
+        "Should have instructions field"
+    );
+    assert!(
+        json.get("permission").is_some(),
+        "Should have permission field"
+    );
+}
+
+/// Test that scaffold preserves existing config.toml
+#[test]
+fn test_scaffold_preserves_existing_config() {
+    let temp_dir = TempDir::new().expect("Failed to create temp dir");
+    let output_path = temp_dir.path();
+
+    // Pre-create config with custom value
+    let autocode_dir = output_path.join(".autocode");
+    fs::create_dir_all(&autocode_dir).unwrap();
+    let config_path = autocode_dir.join("config.toml");
+    fs::write(&config_path, "[models]\ndefault = \"custom/model\"\n").unwrap();
+
+    // Scaffold - should NOT overwrite
+    opencode_autocode::scaffold::scaffold_default(output_path).expect("Scaffold should succeed");
+
+    // Verify custom value preserved
+    let content = fs::read_to_string(&config_path).expect("Failed to read config");
+    assert!(
+        content.contains("custom/model"),
+        "Config should preserve existing values, got: {}",
+        content
     );
 }

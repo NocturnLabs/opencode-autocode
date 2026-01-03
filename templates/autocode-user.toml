@@ -11,10 +11,10 @@
 [models]
 # Model for spec generation (interactive mode)
 # Leave empty to use OpenCode's default model
-default = "opencode/big-pickle"
+default = "opencode/glm-4.7-free"
 
 # Model for autonomous coding sessions
-autonomous = "opencode/grok-code"
+autonomous = "opencode/minimax-m2.1-free"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PATHS - File system paths
@@ -79,7 +79,7 @@ prefer_osgrep = false
 colored_output = true
 
 # Verbose output during generation
-verbose = false
+verbose = true
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ADVANCED SETTINGS (uncomment to customize)

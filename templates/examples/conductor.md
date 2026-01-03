@@ -1,0 +1,36 @@
+# Example: Conductor context files
+
+# .conductor/product.md:
+
+```markdown
+# Product Context
+
+## What We're Building
+
+A fast-paced vertical scrolling game...
+
+## Core Value Proposition
+
+Simple controls, high replayability...
+
+## Target Users
+
+Casual gamers who enjoy arcade-style games...
+```
+
+# .conductor/tech_stack.md:
+
+```markdown
+# Technical Stack
+
+## Languages & Frameworks
+
+- Rust 1.70+
+- Bevy 0.12 (game engine)
+- SQLite (local persistence)
+
+## Key Patterns
+
+- ECS architecture
+- Component-based design
+```

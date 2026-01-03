@@ -52,15 +52,19 @@ pub struct ModelsConfig {
     pub reasoning: String,
     /// Model for enhancement discovery
     pub enhancement: String,
+    /// We use this model specifically when retrying failed spec generations.
+    /// It needs to be good at adhering to strict output formats (XML/JSON) to "fix" what the creative model broke.
+    pub fixer: String,
 }
 
 impl Default for ModelsConfig {
     fn default() -> Self {
         Self {
-            default: "opencode/big-pickle".to_string(),
-            autonomous: "opencode/grok-code".to_string(),
-            reasoning: "opencode/grok-code".to_string(),
-            enhancement: "opencode/big-pickle".to_string(),
+            default: "opencode/glm-4.7-free".to_string(),
+            autonomous: "opencode/minimax-m2.1-free".to_string(),
+            reasoning: "opencode/glm-4.7-free".to_string(),
+            enhancement: "opencode/glm-4.7-free".to_string(),
+            fixer: "opencode/grok-code".to_string(),
         }
     }
 }
@@ -141,8 +145,6 @@ pub struct PathsConfig {
     pub vs_cache_dir: String,
     /// SQLite database file name
     pub database_file: String,
-    /// Feature list file name (legacy, for migration)
-    pub feature_list_file: String,
     /// App spec file name
     pub app_spec_file: String,
 }
@@ -158,7 +160,6 @@ impl Default for PathsConfig {
             log_dir: get_default_log_dir(),
             vs_cache_dir: ".vs-cache".to_string(),
             database_file: ".autocode/progress.db".to_string(),
-            feature_list_file: "feature_list.json".to_string(),
             app_spec_file: ".autocode/app_spec.md".to_string(),
         }
     }
@@ -291,7 +292,7 @@ impl Default for McpConfig {
             priority_order: vec![],
             // Empty by default - spec generator populates for web projects
             required_tools: vec![],
-            prefer_osgrep: false,
+            prefer_osgrep: true,
             use_sequential_thinking: true,
         }
     }
@@ -424,7 +425,7 @@ impl Default for UiConfig {
     fn default() -> Self {
         Self {
             colored_output: true,
-            verbose: false,
+            verbose: true,
             show_progress: true,
             spec_preview_lines: 25,
         }
@@ -642,8 +643,8 @@ mod tests {
     #[test]
     fn test_default_config() {
         let config = Config::default();
-        assert_eq!(config.models.default, "opencode/big-pickle");
-        assert_eq!(config.models.autonomous, "opencode/grok-code");
+        assert_eq!(config.models.default, "opencode/glm-4.7-free");
+        assert_eq!(config.models.autonomous, "opencode/minimax-m2.1-free");
         assert_eq!(config.autonomous.delay_between_sessions, 5);
         assert_eq!(config.agent.max_retry_attempts, 3);
         assert!(config.alternative_approaches.enabled);
@@ -653,7 +654,7 @@ mod tests {
     #[test]
     fn test_load_missing_file_returns_default() {
         let config = Config::load(Some(Path::new("/nonexistent/path"))).unwrap();
-        assert_eq!(config.models.default, "opencode/big-pickle");
+        assert_eq!(config.models.default, "opencode/glm-4.7-free");
     }
 
     #[test]

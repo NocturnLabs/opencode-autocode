@@ -9,6 +9,7 @@ Create a production-grade project specification based on the user's idea. The ou
 - A YC-backed startup's initial product
 - A mature open-source project's v1.0 release
 - Enterprise-grade software
+- Local software with robust logging, clean architecture, and professional error handling
 
 ## Research First
 
@@ -21,14 +22,16 @@ Before generating the spec:
 
 ## Scope Requirements
 
-The specification MUST include:
+The specification scope should **scale with the project's complexity**. Do NOT apply arbitrary minimums.
 
-| Category             | Minimum | Description                                             |
-| -------------------- | ------- | ------------------------------------------------------- |
-| Core Features        | 15-25   | Each with 5-10 sub-features, error handling, edge cases |
-| Database Tables      | 10-20   | Properly normalized with relationships and indexes      |
-| API Endpoints        | 30+     | Organized by resource, with auth requirements noted     |
-| Implementation Steps | 8-15    | Each with clear deliverables                            |
+**Guiding Principles:**
+
+- Include **ALL features necessary** for a production-ready, "finished" product. This could be 5 features for a simple CLI tool, or 50+ for a complex web application.
+- Include **ALL database tables** required by the features. If the project has no persistent state, this section may be minimal or omitted.
+- Include **ALL API endpoints** if the project exposes an HTTP API. For CLI tools or local applications, focus on command definitions instead.
+- Include **enough implementation phases** to logically break down the work. This could be 4 phases for a simple project, or 15+ for a complex one.
+
+**The goal is completeness, not hitting arbitrary numbers.**
 
 ## Content Guidelines
 
@@ -127,7 +130,7 @@ Output ONLY the specification in this XML structure. Fill every section with sub
   </prerequisites>
 
 <core_features>
-<!-- 15-25 feature blocks -->
+<!-- Include ALL features necessary for production-readiness -->
 <feature_name>
  - Sub-feature with implementation detail
  - Sub-feature with implementation detail
@@ -157,7 +160,7 @@ Output ONLY the specification in this XML structure. Fill every section with sub
 
 <database_schema>
 <tables>
-<!-- 10-20 tables -->
+<!-- Include ALL tables required by the features -->
 <table_name>
  - column_name: type, constraints, purpose
  - column_name: type, constraints, purpose
@@ -172,7 +175,7 @@ Output ONLY the specification in this XML structure. Fill every section with sub
 </database_schema>
 
 <api_endpoints>
-<!-- 30+ endpoints by category -->
+<!-- Include ALL endpoints if this is an API/web project -->
 <resource_category>
  - METHOD /path — description [auth: required|public]
  - METHOD /path — description [auth: required|public]
@@ -227,10 +230,16 @@ Output ONLY the specification in this XML structure. Fill every section with sub
  - Relative paths use correct file extensions (.js for browser)
  - No circular dependency issues
 </module_verification>
+<entry_point_verification>
+ - For CLI/Server projects: The main entry point (cmd/main.go, index.js, main.rs) MUST be wired to call all implemented handlers/commands.
+ - verification_command MUST include a check that the application RUNS, not just that individual components pass unit tests.
+ - Example for Go: `go run ./cmd/server & sleep 2; curl -sf http://localhost:8080/health; kill $!`
+ - If the entry point is a placeholder stub, the feature is NOT complete.
+</entry_point_verification>
 </testing_strategy>
 
 <implementation_steps>
-<!-- 8-15 phases -->
+<!-- 8+ phases -->
 <step number="1">
 <title>Phase Title</title>
 <estimated_effort>Rough time estimate</estimated_effort>
@@ -275,6 +284,8 @@ Output ONLY the specification in this XML structure. Fill every section with sub
 ## User's Idea
 
 {{IDEA}}
+
+{{TESTING_PREFERENCE}}
 
 ---
 

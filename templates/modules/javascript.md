@@ -2,6 +2,15 @@
 
 Read this module when working on web projects with JavaScript or TypeScript.
 
+## Toolchain: Use Bun
+
+**Always use `bun` instead of npm, pnpm, or yarn.**
+
+- Install deps: `bun install`
+- Run scripts: `bun run dev`
+- Tests: `bun test`
+- Init: `bun init`
+
 ---
 
 ## Port Conflict Prevention
@@ -9,15 +18,15 @@ Read this module when working on web projects with JavaScript or TypeScript.
 Before starting any servers or running tests, verify required ports are free:
 
 ```bash
-# Check if default ports are in use
-lsof -i :8000 -t 2>/dev/null && echo "Port 8000 in use" || echo "Port 8000 free"
-lsof -i :3000 -t 2>/dev/null && echo "Port 3000 in use" || echo "Port 3000 free"
+# Check if default ports are in use (ss is more reliable than lsof)
+ss -tlnH "sport = :8000" | grep -q . && echo "Port 8000 in use" || echo "Port 8000 free"
+ss -tlnH "sport = :3000" | grep -q . && echo "Port 3000 in use" || echo "Port 3000 free"
 ```
 
 **If ports are occupied:**
 
-- Kill conflicting processes if they belong to this project
-- Or choose an alternative port (8001, 8002, etc.)
+- **NEVER kill a process unless you are 100% sure it belongs to this project and was started by you.**
+- Search for a free port instead (8001, 8002, etc.)
 - Update `playwright.config.ts` or other configs:
   ```bash
   sed -i 's/localhost:[0-9]*/localhost:NEW_PORT/g' playwright.config.ts
@@ -63,10 +72,10 @@ Before marking a feature as passing, verify imports are correct:
 DEFAULT_PORT=8000
 PORT=$DEFAULT_PORT
 
-# Find an available port
+# Find an available port (using ss which is more reliable than lsof)
 find_free_port() {
     local port=$1
-    while lsof -i :$port -t >/dev/null 2>&1; do
+    while ss -tlnH "sport = :$port" | grep -q .; do
         echo "Port $port is in use, trying $((port + 1))..."
         port=$((port + 1))
     done
@@ -78,8 +87,8 @@ echo "Starting server on port $PORT"
 export PORT
 
 # Start the server (adjust based on tech stack)
-npm run dev -- --port $PORT &
-# Or: npx vite --port $PORT
+bun run dev --port $PORT &
+# Or: bun start --port $PORT
 # Or: python3 -m http.server $PORT
 
 echo "Server running at http://localhost:$PORT"

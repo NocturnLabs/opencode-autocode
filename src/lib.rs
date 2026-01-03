@@ -14,5 +14,7 @@ pub mod regression;
 pub mod scaffold;
 pub mod spec;
 pub mod templates;
+pub mod theming;
 pub mod tui;
+pub mod updater;
 pub mod validation;

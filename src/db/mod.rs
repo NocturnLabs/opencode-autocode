@@ -6,12 +6,16 @@
 // Allow dead code for internal APIs that will be used by autonomous loop integration
 #![allow(dead_code)]
 
-mod features;
+pub mod features;
+pub mod knowledge;
+pub mod meta;
 mod schema;
 mod sessions;
 
 // Re-export types used by main.rs
 pub use features::FeatureRepository;
+pub use knowledge::KnowledgeRepository;
+pub use meta::MetaRepository;
 pub use sessions::SessionRepository;
 
 use anyhow::{Context, Result};
@@ -67,6 +71,16 @@ impl Database {
     /// Get session repository
     pub fn sessions(&self) -> SessionRepository {
         SessionRepository::new(self.connection())
+    }
+
+    /// Get meta repository
+    pub fn meta(&self) -> MetaRepository {
+        MetaRepository::new(self.connection())
+    }
+
+    /// Get knowledge repository
+    pub fn knowledge(&self) -> KnowledgeRepository {
+        KnowledgeRepository::new(self.connection())
     }
 
     /// Check if database exists at path

@@ -27,71 +27,78 @@ responsive design, and database persistence.
 <prerequisites>
 <environment_setup>
 - Node.js 18+ installed
-- npm or bun for package management
+- bun (preferred) or npm for package management
 - .env file with JWT_SECRET
 </environment_setup>
 </prerequisites>
 
 <core_features>
 <user_authentication>
+
 - User registration with email/password
 - Login with JWT tokens
 - Password hashing with bcrypt
 - Protected routes
 - Session persistence
-</user_authentication>
+  </user_authentication>
 
 <responsive_ui>
+
 - Mobile-first design
 - Dark/light mode toggle
 - Responsive navigation
 - Toast notifications
-</responsive_ui>
+  </responsive_ui>
 
 <data_management>
+
 - CRUD operations
 - Form validation
 - Optimistic updates
 - Error handling
-</data_management>
+  </data_management>
 
 <api_layer>
+
 - RESTful endpoints
 - Input validation
 - Error responses
 - Rate limiting
-</api_layer>
-</core_features>
+  </api_layer>
+  </core_features>
 
 <database_schema>
 <tables>
 <users>
+
 - id, email, password_hash, created_at, updated_at
-</users>
-<sessions>
+  </users>
+  <sessions>
 - id, user_id, token, expires_at
-</sessions>
-</tables>
-</database_schema>
+  </sessions>
+  </tables>
+  </database_schema>
 
 <api_endpoints>
 <auth>
+
 - POST /api/auth/register (Create new user)
 - POST /api/auth/login (Authenticate user)
 - POST /api/auth/logout (Invalidate session)
 - GET /api/auth/me (Get current user)
-</auth>
-<resources>
+  </auth>
+  <resources>
 - GET /api/resources (List all)
 - POST /api/resources (Create new)
 - GET /api/resources/:id (Get one)
 - PUT /api/resources/:id (Update)
 - DELETE /api/resources/:id (Delete)
-</resources>
-</api_endpoints>
+  </resources>
+  </api_endpoints>
 
 <implementation_steps>
 <step number="1">
+
 <title>Project Setup</title>
 <tasks>
 - Initialize Vite + React project
@@ -134,14 +141,15 @@ responsive design, and database persistence.
 
 <success_criteria>
 <functionality>
+
 - Users can register and login
 - Protected routes require authentication
 - CRUD operations work correctly
 - Data persists across sessions
-</functionality>
-<performance>
+  </functionality>
+  <performance>
 - Page load under 2 seconds
 - API responses under 200ms
-</performance>
-</success_criteria>
-</project_specification>
+  </performance>
+  </success_criteria>
+  </project_specification>

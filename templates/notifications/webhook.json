@@ -1,38 +1,33 @@
 {
   "embeds": [
     {
-      "title": "✅ Feature Completed",
-      "description": "A feature has been successfully implemented and verified.",
+      "title": "🚀 OpenCode Project Status",
+      "description": "Real-time autonomous development dashboard.",
       "color": 3066993,
       "fields": [
         {
-          "name": "📋 Feature",
-          "value": "{{feature_name}}",
-          "inline": false
-        },
-        {
-          "name": "📁 Project",
-          "value": "`{{project_name}}`",
-          "inline": true
-        },
-        {
-          "name": "🏷️ Category",
-          "value": "{{feature_category}}",
-          "inline": true
-        },
-        {
           "name": "📊 Progress",
-          "value": "{{progress_current}}/{{progress_total}} features ({{progress_percent}}%)",
-          "inline": true
+          "value": "{{progress_bar}}\n`{{progress_current}}/{{progress_total}} features ({{progress_percent}}%)`",
+          "inline": false
         },
         {
-          "name": "✔️ Verification Steps",
-          "value": "{{verification_steps}}",
+          "name": "🆕 Latest Activity",
+          "value": "**Completed Feature:** {{feature_name}}\n**Category:** `{{feature_category}}`",
           "inline": false
+        },
+        {
+          "name": "📁 Project Context",
+          "value": "Project: `{{project_name}}`\nSession: `{{session_number}}`",
+          "inline": false
+        },
+        {
+          "name": "⚡ Verification Stats",
+          "value": "Passed: `{{progress_current}}`\nRemaining: `{{progress_remaining}}`",
+          "inline": true
         }
       ],
       "footer": {
-        "text": "OpenCode Autocode • Session {{session_number}} • {{timestamp}}"
+        "text": "Last Updated: {{timestamp}} • OpenCode Autocode"
       },
       "thumbnail": {
         "url": "https://raw.githubusercontent.com/NocturnLabs/.github/main/assets/opencode-icon.png"

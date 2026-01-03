@@ -4,14 +4,21 @@ Read this module when you need to verify features with automated or interactive 
 
 ---
 
-## E2E Testing (Playwright)
+## Core Principle
+
+> [!IMPORTANT] > **Unit tests passing ≠ Feature complete.**
+> A feature is only complete when its functionality is verified through the application's actual entry point (server, CLI, etc.).
+
+---
+
+## E2E Testing (Playwright) for Web Projects
 
 For web projects, every feature MUST have a Playwright E2E test.
 
 ### Setup
 
 ```bash
-npm init playwright@latest
+bun create playwright
 ```
 
 ### Test Structure
@@ -30,23 +37,59 @@ test("feature description", async ({ page }) => {
 ### Running Tests
 
 ```bash
-npx playwright test
-npx playwright test --headed  # See browser
-npx playwright test --debug   # Step through
+bun x playwright test
+bun x playwright test --headed  # See browser
+bun x playwright test --debug   # Step through
+```
+
+---
+
+## Integration Testing for Backend Services
+
+For backend HTTP services (Go, Rust, Python), verification MUST include a live service check.
+
+### Smoke Test Pattern
+
+```bash
+# Start server in background, verify, then stop
+./bin/server & PID=$!; sleep 2
+curl -sf http://localhost:8080/health && echo "OK"
+kill $PID
+```
+
+### Curl-Based Endpoint Verification
+
+```bash
+# GET request
+curl -sf http://localhost:8080/api/v1/resource
+
+# POST request with JSON body
+curl -sf -X POST -H "Content-Type: application/json" \
+  -d '{"key": "value"}' http://localhost:8080/api/v1/resource
 ```
 
 ---
 
 ## Verification Command
 
-Each feature in the database should have a `verification_command`:
+Each feature in the database should have a `verification_command`.
+
+> [!CAUTION] > `verification_command` MUST invoke an **E2E or Integration test**, NOT just unit tests.
+> Unit tests with mocks can pass even if the application is completely broken.
+
+**Web Example:**
 
 ```sql
 INSERT INTO features (category, description, passes, verification_command)
-VALUES ('functional', 'User can login', 0, 'npx playwright test --grep "login"');
+VALUES ('functional', 'User can login', 0, 'bun x playwright test --grep "login"');
 ```
 
-**verification_command MUST invoke E2E tests, NOT unit tests.**
+**Backend Example (preferred):**
+
+```sql
+INSERT INTO features (category, description, passes, verification_command)
+VALUES ('functional', 'Chunk API returns valid response', 0, 'curl -sf http://localhost:8080/api/v1/chunk -H "Content-Type: application/json" -d "{\"url\": \"test\"}"');
+```
 
 ---
 
@@ -63,16 +106,15 @@ In addition to automated tests, manually verify with chrome-devtools MCP:
 
 ## Regression Testing
 
-Before marking a new feature as passing:
+Before marking a new feature as passing, you MUST verify that no existing functionality was broken.
 
-1. Get count of passing features:
+```bash
+# Run automated regression check
+opencode-autocode db check
+```
 
-   ```bash
-   opencode-autocode db query "SELECT COUNT(*) FROM features WHERE passes = 1"
-   ```
+If any regression is detected:
 
-2. Run full test suite to verify no regressions
-
-3. If any regression detected:
-   - Mark that feature as `passes = 0`
-   - Fix regression BEFORE continuing
+1. Identify the failing feature
+2. Fix the regression BEFORE continuing
+3. DO NOT mark the current feature as passing until all regressions are fixed.

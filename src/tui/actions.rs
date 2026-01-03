@@ -2,12 +2,11 @@
 
 use anyhow::Result;
 use console::style;
-use dialoguer::{Confirm, Editor, Input};
+use dialoguer::{Confirm, Editor};
 use std::fs;
 use std::io::Write;
 use std::path::Path;
 
-use crate::config_tui::run_config_tui;
 use crate::generator::refine_spec_from_idea;
 use crate::scaffold::scaffold_with_spec_text;
 use crate::validation::print_diff;
@@ -30,20 +29,19 @@ pub fn handle_accept(output_dir: &Path, spec_text: &str, is_valid: bool) -> Resu
         style("✅ Project scaffolded successfully!").green().bold()
     );
 
+    // Config was already done before generation, just show next steps
+    println!("\n{}", style("─── Next Steps ───").cyan().bold());
+    println!(
+        "  {} Run {} to start the autonomous coding loop",
+        style("→").cyan(),
+        style("opencode-autocode vibe").green().bold()
+    );
+    println!(
+        "  {} Run {} to modify settings",
+        style("→").cyan(),
+        style("opencode-autocode --config").dim()
+    );
     println!();
-    if Confirm::new()
-        .with_prompt("Would you like to configure project settings now?")
-        .default(true)
-        .interact()?
-    {
-        println!();
-        run_config_tui()?;
-    } else {
-        println!(
-            "\n{}",
-            style("Run 'opencode-autocode --config' later to configure settings").dim()
-        );
-    }
 
     Ok(true)
 }
@@ -102,9 +100,12 @@ pub fn handle_refine(spec_text: &mut String, model: Option<&str>) -> Result<()> 
         style("TIP: Reference line numbers or section names in your instructions").dim()
     );
 
-    let refinement: String = Input::new()
-        .with_prompt("Refinement instructions")
-        .interact_text()?;
+    print!("{}: ", style("Refinement instructions").green());
+    let _ = std::io::stdout().flush();
+
+    use std::io::BufRead;
+    let stdin = std::io::stdin();
+    let refinement = stdin.lock().lines().next().transpose()?.unwrap_or_default();
 
     if refinement.trim().is_empty() {
         println!("{}", style("No instructions provided.").dim());
