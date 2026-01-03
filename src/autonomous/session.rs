@@ -110,7 +110,7 @@ pub enum SessionResult {
 }
 
 /// File checked for stop signal
-const STOP_SIGNAL_FILE: &str = ".opencode-stop";
+pub const STOP_SIGNAL_FILE: &str = ".opencode-stop";
 
 /// Polling interval for timeout checks (milliseconds)
 const POLL_INTERVAL_MS: u64 = 500;

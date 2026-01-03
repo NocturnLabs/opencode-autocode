@@ -52,6 +52,13 @@ pub fn run(
     let config = load_config(config_path)?;
     let settings = LoopSettings::from_config(&config, limit);
 
+    // Register Ctrl+C handler to create stop signal file
+    ctrlc::set_handler(|| {
+        std::fs::write(session::STOP_SIGNAL_FILE, "").ok();
+        println!("\n→ Ctrl+C detected, stopping after current session...");
+    })
+    .ok();
+
     logger.separator();
     logger.info("OpenCode Supervisor starting");
     logger.info(&format!("Developer mode: {}", developer_mode));

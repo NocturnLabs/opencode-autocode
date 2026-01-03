@@ -154,13 +154,15 @@ opencode-autocode db mark-pass X
 git add . && git commit -m "Implement [feature]"
 ```
 
-> [!CAUTION] > **STOP IMMEDIATELY AFTER THIS.** You have completed ONE feature. Do NOT look at the next feature. Do NOT run another `SELECT`. The session MUST end now to allow supervisor context reset.
+> [!CAUTION] > **ISOALTION RULE: STOP NOW.** You have completed ONE feature. Do NOT look at the next feature. Do NOT run another SQL query.
+>
+> **REASON**: Continuing multiple features in one session causes context bloat and webhook spam. The supervisor needs to reset for the next iteration.
 
 ---
 
 ### 9. Signal Completion & Exit
 
-> [!IMPORTANT] > **THIS IS THE FINAL STEP.** After outputting the session complete signal, you MUST stop all activity. Do not continue to the next feature.
+> [!IMPORTANT] > **THIS IS THE FINAL STEP.** You MUST exit immediately. Failure to stop after one feature is a violation of protocol.
 
 ```bash
 echo "CONTINUE" > .opencode-signal

@@ -136,7 +136,15 @@ fn create_new_message<S: WebhookSender>(
     sender: &S,
     db_path_str: &str,
 ) -> Result<()> {
-    let response = sender.send_with_response(url, payload, "POST")?;
+    // Discord requires ?wait=true to return the message object (and its ID)
+    let mut final_url = url.to_string();
+    if final_url.contains("discord.com") && !final_url.contains("wait=true") {
+        let separator = if final_url.contains('?') { "&" } else { "?" };
+        final_url.push_str(separator);
+        final_url.push_str("wait=true");
+    }
+
+    let response = sender.send_with_response(&final_url, payload, "POST")?;
 
     if let Some(id) = extract_json_id(&response) {
         let db_path = Path::new(db_path_str);
@@ -208,14 +216,17 @@ fn build_webhook_payload(
 }
 
 fn extract_json_id(json: &str) -> Option<String> {
-    let id_key = "\"id\":";
-    if let Some(start_idx) = json.find(id_key) {
-        let rest = &json[start_idx + id_key.len()..];
-        let rest = rest.trim_start();
-        // Clippy fix: usage of strip_prefix
-        if let Some(stripped) = rest.strip_prefix('"') {
-            if let Some(end_idx) = stripped.find('"') {
-                return Some(stripped[..end_idx].to_string());
+    // Robustly find "id": "value" even with varying whitespace
+    let id_key = "\"id\"";
+    if let Some(key_idx) = json.find(id_key) {
+        let rest = &json[key_idx + id_key.len()..];
+        // Find the colon and the opening quote for the value
+        if let Some(colon_idx) = rest.find(':') {
+            let val_part = &rest[colon_idx + 1..].trim_start();
+            if let Some(stripped) = val_part.strip_prefix('"') {
+                if let Some(end_idx) = stripped.find('"') {
+                    return Some(stripped[..end_idx].to_string());
+                }
             }
         }
     }

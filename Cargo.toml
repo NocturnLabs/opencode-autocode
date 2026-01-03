@@ -44,6 +44,9 @@ thiserror = "2.0.17"
 # Date/time for autonomous runner
 chrono = "0.4.42"
 
+# Ctrl+C signal handling
+ctrlc = "3.4"
+
 # XML parsing and diff generation (for spec validation)
 quick-xml = "0.38.4"
 similar = "2.7.0"
