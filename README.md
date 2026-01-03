@@ -49,6 +49,16 @@ opencode-autocode vibe --developer
 - **Agent-User Communication**: Polling-based Q&A channel via `.autocode/COMMUNICATION.md` for async collaboration.
 - **Spec Validation**: Validates generated specifications for structural correctness before scaffolding.
 
+## Technology Stack
+
+This tool is built for high-performance autonomous coding:
+
+- **Core**: [Rust](https://www.rust-lang.org/) (Edition 2021) for type safety, speed, and concurrency.
+- **TUI**: [Ratatui](https://ratatui.rs/) + Crossterm for the interactive dashboard.
+- **Database**: SQLite (via `rusqlite`) for ACID-compliant session state and resumption.
+- **Templating**: Handlebars for logic-free, maintainable command templates.
+- **Agent Protocol**: Dual-model architecture separating Reasoning (Planning) from Autonomy (Coding).
+
 ## CLI Reference
 
 ### Scaffolding Mode

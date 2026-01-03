@@ -2,6 +2,8 @@
 //!
 //! A CLI tool that scaffolds autonomous coding projects and runs
 //! the vibe loop to implement features automatically.
+//!
+//! For architectural details, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 #![deny(warnings)]
 
