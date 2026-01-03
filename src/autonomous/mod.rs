@@ -219,7 +219,7 @@ fn run_supervisor_loop(
         if let Some(feature) = target_feature {
             println!("🔍 Supervisor: Verifying feature...");
             println!("   Feature: {}", feature.description);
-            
+
             if let Some(cmd) = &feature.verification_command {
                 let output = std::process::Command::new("sh")
                     .arg("-c")
@@ -228,17 +228,18 @@ fn run_supervisor_loop(
 
                 if output.status.success() {
                     println!("  ✅ Verification PASSED!");
-                    
+
                     // Mark as passing
                     let db = crate::db::Database::open(db_path)?;
                     db.features().mark_passing(&feature.description)?;
                     println!("  ✓ Marked as passing");
-                    
+
                     // Commit if needed
                     if settings.auto_commit {
-                        let _ = git::commit_completed_feature(&feature.description, settings.verbose);
+                        let _ =
+                            git::commit_completed_feature(&feature.description, settings.verbose);
                     }
-                    
+
                     // Notify webhook
                     let progress = FeatureProgress::load_from_db(db_path)?;
                     let _ = webhook::notify_feature_complete(

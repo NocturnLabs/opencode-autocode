@@ -71,7 +71,7 @@ pub fn get_first_pending_feature(db_path: &Path) -> Result<Option<db::features::
 
     let database = db::Database::open(db_path)?;
     let features = database.features().list_all()?;
-    
+
     // Find first feature where passes = false (i.e., passes = 0)
     Ok(features.into_iter().find(|f| !f.passes))
 }

@@ -187,7 +187,7 @@ fn build_opencode_command(
 const FEATURE_COMPLETE_PATTERNS: &[&str] = &[
     "===SESSION_COMPLETE===",
     "SESSION_COMPLETE",
-    "Implement [feature]",  // git commit message pattern
+    "Implement [feature]", // git commit message pattern
 ];
 
 /// Check if a line indicates feature completion
@@ -200,8 +200,8 @@ fn execute_with_timeout(
     timeout_minutes: u32,
     logger: &DebugLogger,
 ) -> Result<SessionResult> {
-    use std::sync::mpsc;
     use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::mpsc;
     use std::sync::Arc;
 
     let timeout_secs = timeout_minutes as u64 * 60;
@@ -234,13 +234,15 @@ fn execute_with_timeout(
             let mut lines = Vec::new();
             for line in reader.lines().map_while(Result::ok) {
                 println!("{}", line);
-                
+
                 // Check for feature completion signal
-                if is_feature_complete_signal(&line) && !feature_completed_stdout.load(Ordering::SeqCst) {
+                if is_feature_complete_signal(&line)
+                    && !feature_completed_stdout.load(Ordering::SeqCst)
+                {
                     feature_completed_stdout.store(true, Ordering::SeqCst);
                     let _ = tx_stdout.send(line.clone());
                 }
-                
+
                 lines.push(line);
             }
             lines
@@ -269,8 +271,11 @@ fn execute_with_timeout(
             println!();
             println!("🛑 ISOLATION: Feature completed, terminating session early");
             println!("   Trigger: {}", trigger_line);
-            logger.info(&format!("Isolation enforcement: terminating after feature completion. Trigger: {}", trigger_line));
-            
+            logger.info(&format!(
+                "Isolation enforcement: terminating after feature completion. Trigger: {}",
+                trigger_line
+            ));
+
             // Give the session a moment to finish any pending writes
             thread::sleep(Duration::from_millis(1000));
             terminate_child(&mut child);
