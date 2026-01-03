@@ -52,7 +52,8 @@ pub struct ModelsConfig {
     pub reasoning: String,
     /// Model for enhancement discovery
     pub enhancement: String,
-    /// Model for fixing malformed XML during spec generation retries
+    /// We use this model specifically when retrying failed spec generations.
+    /// It needs to be good at adhering to strict output formats (XML/JSON) to "fix" what the creative model broke.
     pub fixer: String,
 }
 

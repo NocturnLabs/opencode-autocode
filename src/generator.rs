@@ -1,7 +1,8 @@
 //! AI-based spec generation using OpenCode CLI
 //!
-//! This module provides functionality to generate project specifications
-//! from a user's idea by leveraging OpenCode's LLM capabilities.
+//! We handle the translation of a user's raw idea into a structured project specification.
+//! Our role is to orchestrate the OpenCode LLM, manage the refinement loop, and ensure
+//! the final output is valid XML that the scaffolder can consume.
 
 use anyhow::{bail, Context, Result};
 use std::io::{BufRead, BufReader};
@@ -27,9 +28,9 @@ const FIX_MALFORMED_PROMPT: &str = include_str!("../templates/generator/fix_malf
 
 /// Generate a project specification from a user's idea using OpenCode CLI.
 ///
-/// This function shells out to `opencode run` with a carefully crafted prompt
-/// that instructs the LLM to research the idea and generate a comprehensive
-/// project specification in XML format.
+/// We shell out to `opencode run` with a carefully crafted prompt that instructs
+/// the LLM to research the idea. We then monitor the output, capturing the
+/// generated XML and validating it against our schema.
 ///
 /// # Arguments
 /// * `idea` - The user's project idea description
@@ -88,7 +89,10 @@ where
     for attempt in 0..=max_retries {
         let is_retry = attempt > 0;
 
-        // Use default model for first attempt, but switch to reliable fixer for retries
+        // We switch to the dedicated 'fixer' model for retries.
+        // Why? The default model (often a cheaper reasoning model) might be stuck in a specific
+        // failure mode. The fixer model (e.g., grok-code) is chosen specifically for its serialization
+        // reliability, which is critical when repairing malformed XML.
         let current_model = if is_retry {
             &config.models.fixer
         } else {
@@ -154,7 +158,9 @@ where
             continue;
         }
 
-        // Try to extract and validate matches
+        // We'll try to extract the XML block and then run it through our strict validator.
+        // If validation fails, we don't just give up—we feed the specific validation error
+        // back into the prompt so the next attempt can self-correct.
         match extract_spec_from_output(&full_output) {
             Ok(spec) => {
                 // Validate XML structure

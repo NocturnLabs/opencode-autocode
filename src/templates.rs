@@ -206,14 +206,13 @@ mod tests {
         }
     }
 
-    /// Approximate token count using the ~4 chars per token heuristic
+    /// We use this heuristic (text.len() / 4) to estimate token usage during tests.
+    /// While not perfect, it helps us catch massive regressions in prompt size before they hit production.
     fn estimate_tokens(text: &str) -> usize {
-        // Common LLM tokenizers average ~4 characters per token
-        // This is a rough estimate; actual tokenization varies by model
         (text.len() + 3) / 4
     }
 
-    /// Reports token counts for all project templates
+    /// We print these counts to stdout so developers can see the "context tax" of each template.
     #[test]
     fn test_project_template_token_counts() {
         println!("\n=== PROJECT TEMPLATE TOKEN COUNTS ===\n");
