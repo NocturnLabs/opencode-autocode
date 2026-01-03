@@ -87,7 +87,7 @@ where
 
     for attempt in 0..=max_retries {
         let is_retry = attempt > 0;
-        
+
         // Use default model for first attempt, but switch to reliable fixer for retries
         let current_model = if is_retry {
             &config.models.fixer
@@ -123,7 +123,10 @@ where
                     full_output.push_str(&line);
                     full_output.push('\n');
                     // Stream progress
-                    if line.contains("Searching") || line.contains("Reading") || line.contains("Tool") {
+                    if line.contains("Searching")
+                        || line.contains("Reading")
+                        || line.contains("Tool")
+                    {
                         on_output(&format!("   {}\n", line));
                     }
                 }
@@ -139,13 +142,13 @@ where
 
         if !status.success() {
             // Processing failure in opencode CLI itself
-             on_output(&format!(
+            on_output(&format!(
                 "   Warning: OpenCode CLI exited with error code.\n"
             ));
             last_error = "OpenCode CLI process failed".to_string();
             // We might try again?
             if attempt == max_retries {
-                 bail!(
+                bail!(
                     "OpenCode exited with error. Output:\n{}",
                     full_output.chars().take(1000).collect::<String>()
                 );
@@ -173,26 +176,30 @@ where
                             // Update prompt for next attempt
                             prompt = build_fix_prompt(idea, &last_error);
                         }
-                    },
+                    }
                     Err(e) => {
                         // Validator crashed?
                         last_error = format!("Validator error: {}", e);
-                         prompt = build_fix_prompt(idea, &last_error);
+                        prompt = build_fix_prompt(idea, &last_error);
                     }
                 }
-            },
+            }
             Err(e) => {
                 // Could not extract XML block
                 last_error = format!("Could not extract XML: {}", e);
-                prompt = build_fix_prompt(idea, "Could not locate <project_specification> block in output.");
+                prompt = build_fix_prompt(
+                    idea,
+                    "Could not locate <project_specification> block in output.",
+                );
             }
         }
     }
 
     // If we get here, retries exhausted
     bail!(
-        "Failed to generate valid specification after {} retries.\nLast error: {}", 
-        max_retries, last_error
+        "Failed to generate valid specification after {} retries.\nLast error: {}",
+        max_retries,
+        last_error
     );
 }
 

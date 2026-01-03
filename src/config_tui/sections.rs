@@ -43,11 +43,8 @@ pub fn configure_models(config: &mut Config, available_models: &[String]) -> Res
     )?;
 
     display_hint("Model used for fixing malformed XML during spec generation retries");
-    config.models.fixer = prompt_model_selection(
-        "Fixer model",
-        available_models,
-        &config.models.fixer,
-    )?;
+    config.models.fixer =
+        prompt_model_selection("Fixer model", available_models, &config.models.fixer)?;
 
     Ok(())
 }
