@@ -184,10 +184,20 @@ fn build_opencode_command(
 }
 
 /// Patterns that indicate a feature was completed - trigger early termination
+/// These are checked against stdout lines in real-time
 const FEATURE_COMPLETE_PATTERNS: &[&str] = &[
+    // Session complete signals
     "===SESSION_COMPLETE===",
     "SESSION_COMPLETE",
-    "Implement [feature]", // git commit message pattern
+    // Git commit output (appears when commit succeeds)
+    "[main ",   // git shows "[main abc1234] Commit message"
+    "[master ", // for repos using master branch
+    // Mark-pass output (backwards compat with old templates)
+    "marked as passing",
+    "Feature marked as passing",
+    // Explicit completion markers the agent might output
+    "Feature complete",
+    "✅ Verified!",
 ];
 
 /// Check if a line indicates feature completion
