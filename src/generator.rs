@@ -142,9 +142,7 @@ where
 
         if !status.success() {
             // Processing failure in opencode CLI itself
-            on_output(&format!(
-                "   Warning: OpenCode CLI exited with error code.\n"
-            ));
+            on_output("   Warning: OpenCode CLI exited with error code.\n");
             last_error = "OpenCode CLI process failed".to_string();
             // We might try again?
             if attempt == max_retries {
