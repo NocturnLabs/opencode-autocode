@@ -70,6 +70,11 @@ impl DebugLogger {
         self.log("ERROR", message);
     }
 
+    /// Log a WARN level message
+    pub fn warning(&self, message: &str) {
+        self.log("WARN ", message);
+    }
+
     /// Log a command being executed
     pub fn log_command(&self, program: &str, args: &[&str]) {
         if !self.enabled {

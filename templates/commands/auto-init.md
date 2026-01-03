@@ -126,17 +126,7 @@ git commit -m "Initial setup: features database, conductor context, project stru
 
 ---
 
-### STEP 7: Optional - Start Implementation
-
-If time remains, query for first feature:
-
-```sql
-SELECT id, description FROM features WHERE passes = 0 ORDER BY id LIMIT 1
-```
-
----
-
-### STEP 8: Signal Continuation
+### STEP 7: Signal Continuation
 
 ```bash
 echo "CONTINUE" > .opencode-signal

@@ -147,29 +147,38 @@ fn run_supervisor_loop(
             break;
         }
 
+        // Check for stop signal BEFORE printing session header (avoids "ghost sessions")
+        if session::stop_signal_exists() {
+            logger.info("Supervisor: Stop signal received.");
+            break;
+        }
+
+        // 1. Determine Action (Supervisor Logic) — check this before printing header
+        let action = determine_action(db_path, config)?;
+
+        // Exit early if all features are complete (don't print a ghost session)
+        if matches!(action, SupervisorAction::Stop) && !enhancement_mode {
+            logger.info("Supervisor: All features complete.");
+            break;
+        }
+
+        // Now safe to print the session header
         logger.separator();
         logger.info(&format!("Session {} starting", iteration));
         display::display_session_header(iteration);
 
-        // 1. Determine Action (Supervisor Logic)
-        let action = determine_action(db_path, config)?;
-
         let command_name = match action {
             SupervisorAction::Stop => {
-                if enhancement_mode {
-                    match handle_enhancement_phase(db_path, config, settings, iteration) {
-                        Ok(LoopAction::Continue) => {
-                            iteration += 1;
-                            "auto-enhance-active".to_string()
-                        }
-                        _ => {
-                            logger.info("Supervisor: Stop signal received or enhancement exited.");
-                            break;
-                        }
+                // enhancement_mode is true here (non-enhancement Stop is handled above)
+                match handle_enhancement_phase(db_path, config, settings, iteration) {
+                    Ok(LoopAction::Continue) => {
+                        iteration += 1;
+                        "auto-enhance-active".to_string()
                     }
-                } else {
-                    logger.info("Supervisor: Stop signal received.");
-                    break;
+                    _ => {
+                        logger.info("Supervisor: Stop signal received or enhancement exited.");
+                        break;
+                    }
                 }
             }
             SupervisorAction::Command(cmd) => {
@@ -212,11 +221,32 @@ fn run_supervisor_loop(
         let claimed_new = features::detect_newly_completed(&before_passing, &after_passing);
 
         if !claimed_new.is_empty() {
+            // ISOLATION ENFORCEMENT: Only verify the FIRST feature, rollback extras
+            if claimed_new.len() > 1 {
+                println!(
+                    "⚠️  Supervisor: Agent completed {} features (isolation violation!)",
+                    claimed_new.len()
+                );
+                println!("   Only verifying the first feature, rolling back extras...");
+                logger.warning(&format!(
+                    "Isolation violation: agent completed {} features in one session",
+                    claimed_new.len()
+                ));
+
+                // Rollback all but the first feature
+                let db = crate::db::Database::open(db_path)?;
+                for extra_desc in claimed_new.iter().skip(1) {
+                    db.features().mark_failing(extra_desc)?;
+                    println!("   ↺ Rolled back: {}", extra_desc);
+                }
+            }
+
             println!(
                 "🔍 Supervisor: Verifying {} feature(s)...",
-                claimed_new.len()
+                1 // Only verify one
             );
-            for feature_desc in &claimed_new {
+            // Only verify the FIRST feature
+            if let Some(feature_desc) = claimed_new.first() {
                 verify_and_commit(feature_desc, db_path, config, settings, iteration)?;
             }
         }
