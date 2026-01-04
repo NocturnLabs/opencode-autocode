@@ -7,21 +7,49 @@ use tempfile::TempDir;
 
 // --- Helper Functions ---
 
+/// Helper to find the correct binary path for testing
+fn get_bin_path() -> PathBuf {
+    // 1. Try CARGO_BIN_EXE_<name> environment variables (set by cargo test)
+    // Cargo normalizes hyphens to underscores in some contexts
+    if let Ok(path) = std::env::var("CARGO_BIN_EXE_opencode-autocode") {
+        return PathBuf::from(path);
+    }
+    if let Ok(path) = std::env::var("CARGO_BIN_EXE_opencode_autocode") {
+        return PathBuf::from(path);
+    }
+
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
+    let manifest_path = Path::new(&manifest_dir);
+
+    // 2. Try target/debug (typical for local cargo test)
+    let debug_bin = manifest_path.join("target/debug/opencode-autocode");
+    if debug_bin.exists() {
+        return debug_bin;
+    }
+
+    // 3. Try target/release (typical for production/CI builds)
+    let release_bin = manifest_path.join("target/release/opencode-autocode");
+    if release_bin.exists() {
+        return release_bin;
+    }
+
+    // 4. Fallback to system PATH
+    PathBuf::from("opencode-autocode")
+}
+
 /// Initialize a fresh test project
 fn setup_project() -> (TempDir, PathBuf) {
     let temp_dir = TempDir::new().expect("Failed to create temp dir");
     let project_path = temp_dir.path().to_path_buf();
 
-    // ... setup code ...
+    // Ensure we have a dummy git repo for worktree tests
+    let _ = Command::new("git")
+        .arg("init")
+        .current_dir(&project_path)
+        .output();
 
-    // Use CARGO_BIN_EXE_ to find the binary built by cargo for this workspace
-    let bin_path = std::env::var("CARGO_BIN_EXE_opencode-autocode")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let manifest_dir =
-                std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
-            Path::new(&manifest_dir).join("target/release/opencode-autocode")
-        });
+    let bin_path = get_bin_path();
+    println!("Using binary for setup: {:?}", bin_path);
 
     let status = Command::new(&bin_path)
         .arg("init")
@@ -31,13 +59,9 @@ fn setup_project() -> (TempDir, PathBuf) {
         .status()
         .expect("Failed to init project");
 
-    assert!(status.success(), "Failed to init project");
+    assert!(status.success(), "Failed to init project using {:?}", bin_path);
 
-    // Git Init (Required for worktrees)
-    let _ = Command::new("git")
-        .arg("init")
-        .current_dir(&project_path)
-        .output();
+    // Git setup for worktrees
     let _ = Command::new("git")
         .arg("config")
         .arg("user.email")
@@ -58,7 +82,7 @@ fn setup_project() -> (TempDir, PathBuf) {
     let _ = Command::new("git")
         .arg("commit")
         .arg("-m")
-        .arg("Initial commit")
+        .arg("initial commit")
         .current_dir(&project_path)
         .output();
 
@@ -67,13 +91,8 @@ fn setup_project() -> (TempDir, PathBuf) {
 
 /// Helper to run vibe command
 fn run_vibe(cwd: &Path, args: &[&str]) -> std::process::ExitStatus {
-    let bin_path = std::env::var("CARGO_BIN_EXE_opencode-autocode")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let manifest_dir =
-                std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
-            Path::new(&manifest_dir).join("target/release/opencode-autocode")
-        });
+    let bin_path = get_bin_path();
+    println!("Using binary for vibe: {:?}", bin_path);
 
     Command::new(bin_path)
         .arg("vibe")
@@ -87,14 +106,7 @@ fn run_vibe(cwd: &Path, args: &[&str]) -> std::process::ExitStatus {
 
 /// Add a mock feature to the database
 fn add_feature(cwd: &Path, id: i32, desc: &str) {
-    let bin_path = std::env::var("CARGO_BIN_EXE_opencode-autocode")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| {
-            let manifest_dir =
-                std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
-            Path::new(&manifest_dir).join("target/release/opencode-autocode")
-        });
-
+    let bin_path = get_bin_path();
     let mut cmd = Command::new(bin_path);
 
     let sql = format!(
