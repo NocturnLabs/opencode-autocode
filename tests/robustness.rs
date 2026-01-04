@@ -18,7 +18,8 @@ fn setup_project() -> (TempDir, PathBuf) {
     let bin_path = std::env::var("CARGO_BIN_EXE_opencode-autocode")
         .map(PathBuf::from)
         .unwrap_or_else(|_| {
-            let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
+            let manifest_dir =
+                std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
             Path::new(&manifest_dir).join("target/release/opencode-autocode")
         });
 
@@ -69,7 +70,8 @@ fn run_vibe(cwd: &Path, args: &[&str]) -> std::process::ExitStatus {
     let bin_path = std::env::var("CARGO_BIN_EXE_opencode-autocode")
         .map(PathBuf::from)
         .unwrap_or_else(|_| {
-            let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
+            let manifest_dir =
+                std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
             Path::new(&manifest_dir).join("target/release/opencode-autocode")
         });
 
@@ -88,7 +90,8 @@ fn add_feature(cwd: &Path, id: i32, desc: &str) {
     let bin_path = std::env::var("CARGO_BIN_EXE_opencode-autocode")
         .map(PathBuf::from)
         .unwrap_or_else(|_| {
-            let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
+            let manifest_dir =
+                std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
             Path::new(&manifest_dir).join("target/release/opencode-autocode")
         });
 
