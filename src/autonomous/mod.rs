@@ -386,7 +386,10 @@ fn run_supervisor_loop(
                             if let Some(task) = conductor::get_next_task(&tasks) {
                                 // Only mark if the description matches or it's the next logical task
                                 let _ = conductor::mark_task_complete(&plan_path, task.line_number);
-                                println!("  ✓ Marked task complete in plan.md: {}", task.description);
+                                println!(
+                                    "  ✓ Marked task complete in plan.md: {}",
+                                    task.description
+                                );
                             }
                         }
                     }
