@@ -22,9 +22,11 @@ pub fn run_validation_loop(
     output_dir: &Path,
     spec_text: &mut String,
     model_owned: Option<String>,
+    min_features: usize,
+    min_endpoints: usize,
 ) -> Result<()> {
     loop {
-        let validation = validate_and_preview(spec_text)?;
+        let validation = validate_and_preview(spec_text, min_features, min_endpoints)?;
         let action = prompt_for_action(validation.is_valid)?;
 
         match action {
@@ -53,13 +55,17 @@ pub fn run_validation_loop(
     Ok(())
 }
 
-fn validate_and_preview(spec_text: &str) -> Result<crate::validation::ValidationResult> {
+fn validate_and_preview(
+    spec_text: &str,
+    min_features: usize,
+    min_endpoints: usize,
+) -> Result<crate::validation::ValidationResult> {
     println!(
         "\n{}",
         style("─── Validating Specification ───").cyan().bold()
     );
 
-    let validation = validate_spec(spec_text)?;
+    let validation = validate_spec(spec_text, min_features, min_endpoints)?;
     validation.print();
 
     if !validation.is_valid {

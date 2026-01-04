@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS features (
     description TEXT NOT NULL UNIQUE,
     passes INTEGER DEFAULT 0,
     verification_command TEXT,
+    last_error TEXT,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
 );
@@ -81,4 +82,9 @@ CREATE TRIGGER IF NOT EXISTS update_knowledge_timestamp
 BEGIN
     UPDATE knowledge SET updated_at = datetime('now') WHERE key = NEW.key;
 END;
+"#;
+
+/// Migration for existing databases - adds last_error column if missing
+pub const MIGRATION_ADD_LAST_ERROR: &str = r#"
+ALTER TABLE features ADD COLUMN last_error TEXT;
 "#;

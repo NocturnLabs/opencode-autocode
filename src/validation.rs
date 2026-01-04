@@ -90,7 +90,11 @@ fn bool_icon(val: bool) -> &'static str {
 }
 
 /// Validate a project specification
-pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
+pub fn validate_spec(
+    spec_text: &str,
+    min_features: usize,
+    min_endpoints: usize,
+) -> Result<ValidationResult> {
     let mut errors = Vec::new();
     let mut warnings = Vec::new();
     let mut stats = SpecStats::default();
@@ -112,9 +116,12 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
     let mut in_features = false;
     let mut in_endpoints = false;
 
+    let mut feature_tags_found = 0;
+    let mut other_tags_in_features = 0;
+
     loop {
         match reader.read_event() {
-            Ok(Event::Start(ref e)) => {
+            Ok(Event::Start(ref e)) | Ok(Event::Empty(ref e)) => {
                 current_tag = String::from_utf8_lossy(e.name().as_ref()).to_string();
                 match current_tag.as_str() {
                     "project_name" => stats.has_project_name = true,
@@ -130,14 +137,20 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
                         in_endpoints = true;
                     }
                     "success_criteria" => stats.has_success_criteria = true,
-                    _ => {}
-                }
-
-                // Count features and endpoints
-                if in_features && !["core_features", "feature"].contains(&current_tag.as_str()) {
-                    // Any tag inside core_features that's not the container is a feature
-                    if current_tag != "core_features" {
-                        stats.feature_count += 1;
+                    "feature" => {
+                        if in_features {
+                            feature_tags_found += 1;
+                        }
+                    }
+                    "endpoint" => {
+                        if in_endpoints {
+                            stats.endpoint_count += 1;
+                        }
+                    }
+                    _ => {
+                        if in_features && current_tag != "core_features" {
+                            other_tags_in_features += 1;
+                        }
                     }
                 }
             }
@@ -151,11 +164,14 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
                 }
             }
             Ok(Event::Text(e)) => {
-                // Count API endpoint lines
+                // Count API endpoint lines (fallback for summary mode)
                 if in_endpoints {
                     let text = e.decode().unwrap_or_default();
                     for line in text.lines() {
-                        if line.trim().starts_with("- ") && line.contains("/") {
+                        let trimmed = line.trim();
+                        if trimmed.starts_with("- ")
+                            && (trimmed.contains("/") || trimmed.contains("METHOD"))
+                        {
                             stats.endpoint_count += 1;
                         }
                     }
@@ -174,6 +190,13 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
         }
     }
 
+    // Determine final feature count: prefer structured <feature> tags if present
+    stats.feature_count = if feature_tags_found > 0 {
+        feature_tags_found
+    } else {
+        other_tags_in_features
+    };
+
     // Quality checks
     if !stats.has_project_name {
         errors.push("Missing <project_name> element".to_string());
@@ -181,14 +204,25 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
     if !stats.has_overview {
         errors.push("Missing <overview> element".to_string());
     }
+
+    // Enforce minimum features
+    if stats.feature_count < min_features {
+        errors.push(format!(
+            "Spec only has {} features, but at least {} are required for a comprehensive specification. Please expand the features list.",
+            stats.feature_count, min_features
+        ));
+    }
+
+    // Enforce minimum endpoints (if applicable - some projects might not need them, but if we asked for them...)
+    if min_endpoints > 0 && stats.endpoint_count < min_endpoints {
+        errors.push(format!(
+            "Spec only has {} API endpoints, but at least {} are required. Please define more endpoints.",
+            stats.endpoint_count, min_endpoints
+        ));
+    }
+
     if !stats.has_features && !stats.has_tech_stack {
         warnings.push("Spec has no features or tech stack defined".to_string());
-    }
-    if stats.feature_count < 3 {
-        warnings.push(format!(
-            "Only {} features defined (recommend 3+)",
-            stats.feature_count
-        ));
     }
     if !stats.has_success_criteria {
         warnings.push("Missing success criteria - how will you know when it's done?".to_string());
@@ -258,6 +292,30 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_validate_structured_features() {
+        let spec = r#"
+<project_specification>
+<project_name>Structured</project_name>
+<overview>A test with structured features</overview>
+<core_features>
+<feature>
+  <name>Feature 1</name>
+</feature>
+<feature>
+  <name>Feature 2</name>
+</feature>
+<feature>
+  <name>Feature 3</name>
+</feature>
+</core_features>
+</project_specification>
+"#;
+        let result = validate_spec(spec, 3, 0).unwrap();
+        assert!(result.is_valid);
+        assert_eq!(result.stats.feature_count, 3);
+    }
+
+    #[test]
     fn test_validate_good_spec() {
         let spec = r#"
 <project_specification>
@@ -276,7 +334,7 @@ mod tests {
 </success_criteria>
 </project_specification>
 "#;
-        let result = validate_spec(spec).unwrap();
+        let result = validate_spec(spec, 3, 0).unwrap();
         assert!(result.is_valid);
         assert!(result.stats.has_project_name);
         assert!(result.stats.has_overview);
@@ -291,7 +349,7 @@ mod tests {
 <overview>Just the basics</overview>
 </project_specification>
 "#;
-        let result = validate_spec(spec).unwrap();
+        let result = validate_spec(spec, 0, 0).unwrap();
         assert!(result.is_valid); // Valid but has warnings
         assert!(!result.warnings.is_empty());
     }
@@ -299,7 +357,7 @@ mod tests {
     #[test]
     fn test_validate_broken_spec() {
         let spec = "This is not XML at all";
-        let result = validate_spec(spec).unwrap();
+        let result = validate_spec(spec, 0, 0).unwrap();
         assert!(!result.is_valid);
         assert!(!result.errors.is_empty());
     }

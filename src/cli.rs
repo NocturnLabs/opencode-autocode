@@ -72,6 +72,10 @@ pub enum Commands {
         /// Run N workers in parallel using git worktrees (0 = auto-detect)
         #[arg(long, value_name = "N")]
         parallel: Option<usize>,
+
+        /// Target a specific feature ID (used by parallel workers)
+        #[arg(long)]
+        feature_id: Option<i64>,
     },
     /// Start the autonomous enhancement loop (infinite refine)
     Enhance {
@@ -108,6 +112,20 @@ pub enum Commands {
     },
     /// Update opencode-autocode to the latest version
     Update,
+    /// Initialize a new project (alias for interactive mode)
+    Init {
+        /// Use the default app spec template
+        #[arg(long)]
+        default: bool,
+
+        /// Path to a custom app spec file
+        #[arg(long, value_name = "FILE")]
+        spec: Option<PathBuf>,
+
+        /// Disable parallel subagent spec generation
+        #[arg(long)]
+        no_subagents: bool,
+    },
 }
 
 /// Template subcommand actions

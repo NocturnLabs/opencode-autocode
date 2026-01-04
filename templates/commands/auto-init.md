@@ -25,7 +25,7 @@ Read `app_spec.md` in your working directory. Understand:
 
 ### STEP 2: Populate Features Database
 
-**CRITICAL: Break down spec into 5-15 SEPARATE features.** Each feature = one testable unit.
+**CRITICAL: Break down spec into at least {{MIN_FEATURES}} SEPARATE features.** Each feature = one testable unit.
 
 Based on `app_spec.md`, insert features using the CLI:
 
@@ -53,18 +53,25 @@ opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'Audio play
 
 #### Requirements
 
-| Rule             | Description                                                    |
-| ---------------- | -------------------------------------------------------------- |
-| **Granularity**  | Each feature = ONE testable behavior. Not "implement the app". |
-| **Count**        | Insert 5-15 features minimum. More is better.                  |
-| **Categories**   | Mix `functional` (logic) and `style` (UI/UX)                   |
-| **Passes**       | ALL start with `passes = 0`                                    |
-| **Verification** | Real test commands, not just `cargo build` or `bun run dev`    |
+| Rule             | Description                                                            |
+| ---------------- | ---------------------------------------------------------------------- |
+| **Granularity**  | Each feature = ONE testable behavior. Not "implement the app".         |
+| **Count**        | Insert at least {{MIN_FEATURES}} features minimum. More is better.     |
+| **Categories**   | Mix `functional` (logic) and `style` (UI/UX)                           |
+| **Passes**       | ALL start with `passes = 0`                                            |
+| **Verification** | Project-appropriate commands (e.g. `npm test`, `pytest`, `cargo test`) |
+
+> [!TIP] > **Use standard test runners:**
+>
+> - **Node/TS:** `npm test -- --grep "feature name"` or `vitest run -t "feature"`
+> - **Python:** `pytest tests/e2e/test_name.py`
+> - **Rust:** `cargo test --test feature_name`
+> - **Custom:** Create a `verify.sh` that takes a feature name/ID.
 
 > **NEVER** combine multiple behaviors into one feature.
 > **NEVER** use generic verification like `cargo build` — use actual test commands.
 > **For web projects:** E2E tests (Playwright) are MANDATORY. See `templates/modules/testing.md`.
-> **Need examples?** Run `opencode-autocode example db --insert` or `example db --query`.
+> **Ensure verification commands are executable from the root directory.** > **Need examples?** Run `opencode-autocode example db --insert` or `example db --query`.
 > **Stuck already?** Run `opencode-autocode example vibe` for orientation.
 
 ---

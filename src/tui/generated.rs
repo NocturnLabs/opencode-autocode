@@ -46,10 +46,24 @@ pub fn run_generated_mode(
             Err(e) => return handle_generation_error(e, output_dir),
         };
 
+    let (min_f, min_e) = if config.generation.complexity == "minimal" {
+        (
+            config.generation.minimal_min_features as usize,
+            config.generation.minimal_min_api_endpoints as usize,
+        )
+    } else {
+        (
+            config.generation.min_features as usize,
+            config.generation.min_api_endpoints as usize,
+        )
+    };
+
     run_validation_loop(
         output_dir,
         &mut spec_text,
         Some(config.models.default.clone()),
+        min_f,
+        min_e,
     )
 }
 

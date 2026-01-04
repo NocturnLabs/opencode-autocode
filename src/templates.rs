@@ -111,7 +111,7 @@ pub fn use_template(name: &str, output_dir: &Path) -> Result<()> {
         .replace("{{DESCRIPTION}}", &description);
 
     // Validate the filled template
-    let validation = crate::validation::validate_spec(&spec)?;
+    let validation = crate::validation::validate_spec(&spec, 0, 0)?;
     validation.print();
 
     // Scaffold
@@ -167,7 +167,7 @@ pub fn select_template_interactive(output_dir: &Path) -> Result<()> {
         "\n{}",
         style("─── Validating Specification ───").cyan().bold()
     );
-    let validation = crate::validation::validate_spec(&spec)?;
+    let validation = crate::validation::validate_spec(&spec, 0, 0)?;
     validation.print();
 
     // Scaffold

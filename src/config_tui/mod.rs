@@ -43,6 +43,9 @@ pub fn run_config_tui() -> Result<()> {
     sections::configure_generation(&mut config)?;
     sections::configure_security(&mut config)?;
     sections::configure_notifications(&mut config)?;
+    sections::configure_communication(&mut config)?;
+    sections::configure_features(&mut config)?;
+    sections::configure_scaffolding(&mut config)?;
     sections::configure_ui(&mut config)?;
 
     // Save configuration files

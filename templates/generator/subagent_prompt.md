@@ -15,7 +15,7 @@ You are orchestrating parallel subagents to generate a production-grade project 
    After generating the blueprint, invoke these subagents to complete the specification:
 
    ```
-   @spec-product Generate the core_features and user_experience sections for: {{IDEA}}
+   @spec-product Generate at least {{MIN_FEATURES}} core_features and user_experience sections for: {{IDEA}}
 
    Blueprint context:
    {{BLUEPRINT}}

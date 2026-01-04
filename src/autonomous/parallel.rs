@@ -20,10 +20,58 @@ pub struct WorkerResult {
 
 /// Create a worktree for a feature, with shared config symlinked
 pub fn create_worktree(feature: &Feature, base_path: &Path) -> Result<(PathBuf, String)> {
+    // Check for git index lock to avoid hanging/contention
+    let lock_file = base_path.join(".git/index.lock");
+    if lock_file.exists() {
+        // Wait briefly to see if it clears (transient lock)
+        std::thread::sleep(std::time::Duration::from_millis(1000));
+        if lock_file.exists() {
+            anyhow::bail!("Git index is locked (.git/index.lock exists). Please ensure no other git operations are running or remove the stale lock.");
+        }
+    }
+
     let feature_id = feature.id.unwrap_or(0);
     let slug = slugify(&feature.description);
     let branch_name = format!("feature/{}-{}", feature_id, slug);
     let worktree_path = base_path.join(&branch_name);
+
+    // Clean up potential leftovers from previous runs
+    if worktree_path.exists() {
+        // Try git remove first
+        let _ = Command::new("git")
+            .args([
+                "worktree",
+                "remove",
+                "--force",
+                worktree_path.to_str().unwrap(),
+            ])
+            .status();
+
+        // If directory still exists (e.g. untracked files and git failed), force delete
+        if worktree_path.exists() {
+            std::fs::remove_dir_all(&worktree_path).ok();
+            // Prune to update git's internal state
+            let _ = Command::new("git").args(["worktree", "prune"]).status();
+        }
+    }
+
+    // Force delete the branch if it exists (fresh start for the feature execution)
+    // We prioritize consistency over "resuming" potentially broken branch state.
+    // However, we cannot delete a branch if we are currently on it in the main repo.
+    let current_branch_output = Command::new("git")
+        .args(["rev-parse", "--abbrev-ref", "HEAD"])
+        .output();
+    if let Ok(output) = current_branch_output {
+        let current = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if current == branch_name {
+            // We are on the branch we want to delete, must move off it first
+            let _ = Command::new("git").args(["checkout", "main"]).status();
+        }
+    }
+
+    let _ = Command::new("git")
+        .args(["branch", "-D", &branch_name])
+        .output();
 
     // Create the worktree with a new branch
     let status = Command::new("git")
@@ -41,19 +89,28 @@ pub fn create_worktree(feature: &Feature, base_path: &Path) -> Result<(PathBuf, 
         anyhow::bail!("git worktree add failed for feature {}", feature_id);
     }
 
-    // Symlink the database file specifically (the .autocode directory already exists
-    // from tracked files, but progress.db is gitignored so needs to be symlinked)
-    let main_db = std::env::current_dir()?.join(".autocode/progress.db");
-    let worktree_db = worktree_path.join(".autocode/progress.db");
-    
-    if main_db.exists() && !worktree_db.exists() {
-        #[cfg(unix)]
-        std::os::unix::fs::symlink(&main_db, &worktree_db)
-            .context("Failed to symlink progress.db")?;
-        
-        #[cfg(windows)]
-        std::os::windows::fs::symlink_file(&main_db, &worktree_db)
-            .context("Failed to symlink progress.db")?;
+    // Ensure .autocode directory exists in worktree before symlinking database files
+    let worktree_autocode_dir = worktree_path.join(".autocode");
+    if !worktree_autocode_dir.exists() {
+        std::fs::create_dir_all(&worktree_autocode_dir)
+            .with_context(|| "Failed to create .autocode dir in worktree".to_string())?;
+    }
+
+    // Symlink the database file specifically
+    let db_files = ["progress.db", "progress.db-shm", "progress.db-wal"];
+    for filename in db_files {
+        let main_file = std::env::current_dir()?.join(".autocode").join(filename);
+        let worktree_file = worktree_path.join(".autocode").join(filename);
+
+        if main_file.exists() && !worktree_file.exists() {
+            #[cfg(unix)]
+            std::os::unix::fs::symlink(&main_file, &worktree_file)
+                .with_context(|| format!("Failed to symlink {}", filename))?;
+
+            #[cfg(windows)]
+            std::os::windows::fs::symlink_file(&main_file, &worktree_file)
+                .with_context(|| format!("Failed to symlink {}", filename))?;
+        }
     }
 
     // Also symlink autocode.toml if it exists
@@ -66,27 +123,53 @@ pub fn create_worktree(feature: &Feature, base_path: &Path) -> Result<(PathBuf, 
         std::os::windows::fs::symlink_file(&main_config, &worktree_config).ok();
     }
 
+    // Symlink .conductor context directory (shared planning context)
+    let main_conductor = base_path.join(".conductor");
+    let worktree_conductor = worktree_path.join(".conductor");
+    if main_conductor.exists() && !worktree_conductor.exists() {
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&main_conductor, &worktree_conductor)
+            .with_context(|| "Failed to symlink .conductor directory")?;
+        #[cfg(windows)]
+        std::os::windows::fs::symlink_dir(&main_conductor, &worktree_conductor)
+            .with_context(|| "Failed to symlink .conductor directory")?;
+    }
+
+    // Symlink tracks directory (per-feature specs and plans)
+    let main_tracks = base_path.join("tracks");
+    let worktree_tracks = worktree_path.join("tracks");
+    if main_tracks.exists() && !worktree_tracks.exists() {
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&main_tracks, &worktree_tracks)
+            .with_context(|| "Failed to symlink tracks directory")?;
+        #[cfg(windows)]
+        std::os::windows::fs::symlink_dir(&main_tracks, &worktree_tracks)
+            .with_context(|| "Failed to symlink tracks directory")?;
+    }
+
     Ok((worktree_path, branch_name))
 }
 
 /// Remove a worktree after completion
-pub fn remove_worktree(worktree_path: &Path, branch_name: &str) -> Result<()> {
-    // Remove worktree
+pub fn remove_worktree(worktree_path: &Path, _branch_name: &str) -> Result<()> {
+    // Force remove worktree (workers might have left untracked files)
     let _ = Command::new("git")
-        .args(["worktree", "remove", worktree_path.to_str().unwrap()])
+        .args([
+            "worktree",
+            "remove",
+            "--force",
+            worktree_path.to_str().unwrap(),
+        ])
         .status();
-
-    // Delete the branch (it's been merged)
-    let _ = Command::new("git")
-        .args(["branch", "-d", branch_name])
-        .status();
-
     Ok(())
 }
 
 /// Rebase a branch onto main and fast-forward merge
 pub fn rebase_and_merge(branch_name: &str) -> Result<bool> {
-    // Checkout main
+    // 1. Ensure main is clean and selected
+    let _ = Command::new("git")
+        .args(["reset", "--hard", "HEAD"])
+        .status();
     let status = Command::new("git")
         .args(["checkout", "main"])
         .status()
@@ -96,7 +179,7 @@ pub fn rebase_and_merge(branch_name: &str) -> Result<bool> {
         return Ok(false);
     }
 
-    // Rebase the feature branch onto main
+    // 2. Rebase the feature branch onto main (this checks it out in the main repo)
     let status = Command::new("git")
         .args(["rebase", "main", branch_name])
         .status()
@@ -105,10 +188,15 @@ pub fn rebase_and_merge(branch_name: &str) -> Result<bool> {
     if !status.success() {
         // Abort the rebase if it failed
         let _ = Command::new("git").args(["rebase", "--abort"]).status();
+        // ALWAYS return to main
+        let _ = Command::new("git").args(["checkout", "main"]).status();
         return Ok(false);
     }
 
-    // Fast-forward merge
+    // 3. Checkout main again (rebase leaves you on the feature branch)
+    let _ = Command::new("git").args(["checkout", "main"]).status();
+
+    // 4. Fast-forward merge
     let status = Command::new("git")
         .args(["merge", "--ff-only", branch_name])
         .status()
@@ -149,31 +237,40 @@ impl Coordinator {
 
     /// Queue a completed worker result for merging
     pub fn queue_for_merge(&mut self, result: WorkerResult) {
-        if result.success {
-            self.merge_queue.push(result);
-        }
+        // Queue EVERYTHING so we can clean up properly
+        self.merge_queue.push(result);
     }
 
-    /// Process the merge queue - rebase and merge each branch sequentially
+    /// Process the merge queue - clean up all, merge successful ones
     pub fn process_merge_queue(&mut self) -> Result<usize> {
         let mut merged_count = 0;
-        let mut retry_queue = Vec::new();
 
         for result in self.merge_queue.drain(..) {
-            println!("📦 Merging: {}", result.branch_name);
+            println!("📦 Processing result for: {}", result.branch_name);
 
-            if rebase_and_merge(&result.branch_name)? {
-                println!("  ✅ Merged successfully");
-                remove_worktree(&result.worktree_path, &result.branch_name)?;
-                merged_count += 1;
+            // ALWAYS remove worktree first
+            println!("  → Removing worktree...");
+            remove_worktree(&result.worktree_path, &result.branch_name)?;
+
+            if result.success {
+                println!("  → Merging feature...");
+                if rebase_and_merge(&result.branch_name)? {
+                    println!("  ✅ Merged successfully");
+                    // Delete the merged branch
+                    let _ = std::process::Command::new("git")
+                        .args(["branch", "-d", &result.branch_name])
+                        .status();
+                    merged_count += 1;
+                } else {
+                    println!("  ⚠️ Rebase failed, branch left for manual review");
+                }
             } else {
-                println!("  ⚠️ Rebase failed, re-queuing");
-                retry_queue.push(result);
+                println!("  ❌ Worker failed, skipping merge (branch preserved for debugging)");
+                // We do NOT delete the branch here, so user can debug why it failed.
+                // But we DID remove the worktree so we don't hog the filesystem.
             }
         }
 
-        // Re-add failed ones for another attempt
-        self.merge_queue = retry_queue;
         Ok(merged_count)
     }
 }

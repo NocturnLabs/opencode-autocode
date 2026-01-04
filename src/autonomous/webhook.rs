@@ -288,6 +288,7 @@ mod tests {
             passes: true,
             verification_command: None,
             steps: vec![],
+            last_error: None,
         };
 
         // Setup Mock Sender

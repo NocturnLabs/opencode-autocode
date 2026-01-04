@@ -181,6 +181,14 @@ pub fn configure_mcp(config: &mut Config) -> Result<()> {
         .interact_text()?;
     config.mcp.required_tools = parse_comma_list(&tools_str);
 
+    display_hint("Priority order for MCP tools (e.g., 'search, file-edit')");
+    let current_priority = config.mcp.priority_order.join(", ");
+    let priority_str: String = Input::new()
+        .with_prompt("Priority order (comma-separated)")
+        .default(current_priority)
+        .interact_text()?;
+    config.mcp.priority_order = parse_comma_list(&priority_str);
+
     Ok(())
 }
 
@@ -232,6 +240,26 @@ pub fn configure_generation(config: &mut Config) -> Result<()> {
         &["comprehensive", "minimal"],
         &config.generation.complexity,
     )?;
+
+    if config.generation.complexity == "comprehensive" {
+        display_hint("Minimum features for comprehensive mode");
+        config.generation.min_features = Input::new()
+            .with_prompt("Min features")
+            .default(config.generation.min_features)
+            .interact()?;
+
+        display_hint("Minimum implementation steps");
+        config.generation.min_implementation_steps = Input::new()
+            .with_prompt("Min steps")
+            .default(config.generation.min_implementation_steps)
+            .interact()?;
+    }
+
+    display_hint("Enable parallel sub-agent generation (faster but uses more tokens)");
+    config.generation.enable_subagents = Confirm::new()
+        .with_prompt("Enable sub-agents?")
+        .default(config.generation.enable_subagents)
+        .interact()?;
 
     display_hint("Include security considerations section");
     config.generation.include_security_section = Confirm::new()
@@ -338,6 +366,126 @@ pub fn configure_ui(config: &mut Config) -> Result<()> {
         .with_prompt("Spec preview lines")
         .default(config.ui.spec_preview_lines)
         .interact()?;
+
+    Ok(())
+}
+
+/// Configure communication (Agent-User Channel)
+pub fn configure_communication(config: &mut Config) -> Result<()> {
+    display_section(
+        "Communication",
+        "Configure the agent-user communication channel",
+    );
+
+    display_hint("Enable the communication channel");
+    config.communication.enabled = Confirm::new()
+        .with_prompt("Enable communication?")
+        .default(config.communication.enabled)
+        .interact()?;
+
+    if config.communication.enabled {
+        display_hint("Path to the communication markdown file");
+        config.communication.file_path = Input::new()
+            .with_prompt("Communication file path")
+            .default(config.communication.file_path.clone())
+            .interact_text()?;
+
+        display_hint("Automatically ask user when errors repeat");
+        config.communication.auto_ask_on_error = Confirm::new()
+            .with_prompt("Auto-ask on error?")
+            .default(config.communication.auto_ask_on_error)
+            .interact()?;
+
+        display_hint("Check for user responses every N sessions");
+        config.communication.check_interval_sessions = Input::new()
+            .with_prompt("Check interval (sessions)")
+            .default(config.communication.check_interval_sessions)
+            .interact()?;
+
+        display_hint("Maximum pending questions allowed");
+        config.communication.max_pending_questions = Input::new()
+            .with_prompt("Max pending questions")
+            .default(config.communication.max_pending_questions)
+            .interact()?;
+    }
+
+    Ok(())
+}
+
+/// Configure project features and priorities
+pub fn configure_features(config: &mut Config) -> Result<()> {
+    display_section("Features", "Feature categories and testing priorities");
+
+    display_hint("Require a verification_command for every feature");
+    config.features.require_verification_command = Confirm::new()
+        .with_prompt("Require verification command?")
+        .default(config.features.require_verification_command)
+        .interact()?;
+
+    display_hint("Feature categories (comma-separated)");
+    let current_cats = config.features.categories.join(", ");
+    let cats_str: String = Input::new()
+        .with_prompt("Categories")
+        .default(current_cats)
+        .interact_text()?;
+    config.features.categories = parse_comma_list(&cats_str);
+
+    display_hint("Priority levels (comma-separated)");
+    let current_prios = config.features.priorities.join(", ");
+    let prios_str: String = Input::new()
+        .with_prompt("Priorities")
+        .default(current_prios)
+        .interact_text()?;
+    config.features.priorities = parse_comma_list(&prios_str);
+
+    display_hint("Minimum steps for narrow tests");
+    config.features.narrow_test_min_steps = Input::new()
+        .with_prompt("Narrow test min steps")
+        .default(config.features.narrow_test_min_steps)
+        .interact()?;
+
+    display_hint("Maximum steps for narrow tests");
+    config.features.narrow_test_max_steps = Input::new()
+        .with_prompt("Narrow test max steps")
+        .default(config.features.narrow_test_max_steps)
+        .interact()?;
+
+    display_hint("Minimum steps for comprehensive tests");
+    config.features.comprehensive_test_min_steps = Input::new()
+        .with_prompt("Comprehensive test min steps")
+        .default(config.features.comprehensive_test_min_steps)
+        .interact()?;
+
+    Ok(())
+}
+
+/// Configure project scaffolding settings
+pub fn configure_scaffolding(config: &mut Config) -> Result<()> {
+    display_section("Scaffolding", "Project initialization settings");
+
+    display_hint("Initialize a git repository");
+    config.scaffolding.git_init = Confirm::new()
+        .with_prompt("Git init?")
+        .default(config.scaffolding.git_init)
+        .interact()?;
+
+    display_hint("Create .opencode directory");
+    config.scaffolding.create_opencode_dir = Confirm::new()
+        .with_prompt("Create .opencode dir?")
+        .default(config.scaffolding.create_opencode_dir)
+        .interact()?;
+
+    display_hint("Create scripts directory");
+    config.scaffolding.create_scripts_dir = Confirm::new()
+        .with_prompt("Create scripts dir?")
+        .default(config.scaffolding.create_scripts_dir)
+        .interact()?;
+
+    display_hint("Default output directory (leave empty for current)");
+    config.scaffolding.output_dir = Input::new()
+        .with_prompt("Output directory")
+        .default(config.scaffolding.output_dir.clone())
+        .interact_text()?;
 
     Ok(())
 }

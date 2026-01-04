@@ -86,5 +86,21 @@ pub fn get_pending_features(db_path: &Path, limit: usize) -> Result<Vec<db::feat
     let features = database.features().list_all()?;
 
     // Get first N non-passing features
-    Ok(features.into_iter().filter(|f| !f.passes).take(limit).collect())
+    Ok(features
+        .into_iter()
+        .filter(|f| !f.passes)
+        .take(limit)
+        .collect())
+}
+
+/// Get a specific feature by its ID
+pub fn get_feature_by_id(db_path: &Path, id: i64) -> Result<Option<db::features::Feature>> {
+    if !db_path.exists() {
+        return Ok(None);
+    }
+
+    let database = db::Database::open(db_path)?;
+    let features = database.features().list_all()?;
+
+    Ok(features.into_iter().find(|f| f.id == Some(id)))
 }

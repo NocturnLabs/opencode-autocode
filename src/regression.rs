@@ -171,6 +171,7 @@ mod tests {
                 steps: vec!["Step 1".to_string(), "Step 2".to_string()],
                 passes: true,
                 verification_command: Some("echo test".to_string()),
+                last_error: None,
             },
             Feature {
                 id: Some(2),
@@ -179,6 +180,7 @@ mod tests {
                 steps: vec!["Step 1".to_string()],
                 passes: false,
                 verification_command: None,
+                last_error: None,
             },
         ]
     }

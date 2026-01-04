@@ -55,10 +55,22 @@ where
     let config = Config::load(None).unwrap_or_default();
 
     // Build the initial prompt
-    let mut prompt = if use_subagents {
-        build_subagent_prompt(idea, testing_preference)
+    let (min_features, min_endpoints) = if config.generation.complexity == "minimal" {
+        (
+            config.generation.minimal_min_features as usize,
+            config.generation.minimal_min_api_endpoints as usize,
+        )
     } else {
-        build_generation_prompt(idea, testing_preference)
+        (
+            config.generation.min_features as usize,
+            config.generation.min_api_endpoints as usize,
+        )
+    };
+
+    let mut prompt = if use_subagents {
+        build_subagent_prompt(idea, testing_preference, &config)
+    } else {
+        build_generation_prompt(idea, testing_preference, &config)
     };
 
     // Check if opencode is available
@@ -164,7 +176,7 @@ where
         match extract_spec_from_output(&full_output) {
             Ok(spec) => {
                 // Validate XML structure
-                match validation::validate_spec(&spec) {
+                match validation::validate_spec(&spec, min_features, min_endpoints) {
                     Ok(result) => {
                         if result.is_valid {
                             // Success!
@@ -177,6 +189,7 @@ where
                         } else {
                             // Validation logic errors (malformed XML)
                             last_error = result.errors.join("\n");
+                            on_output(&format!("   ⚠️  Validation error: {}\n", last_error));
                             // Update prompt for next attempt
                             prompt = build_fix_prompt(idea, &last_error);
                         }
@@ -288,8 +301,12 @@ where
     Ok(spec)
 }
 
-/// Build the generation prompt by inserting the user's idea into the template.
-fn build_generation_prompt(idea: &str, testing_preference: Option<&str>) -> String {
+/// Build the generation prompt by inserting the user's idea and configuration constraints.
+fn build_generation_prompt(
+    idea: &str,
+    testing_preference: Option<&str>,
+    config: &Config,
+) -> String {
     let pref_text = match testing_preference {
         Some(pref) if !pref.trim().is_empty() => format!(
             "\n## User Preferences\n\nTesting & QA Framework Preference: {}\n",
@@ -298,13 +315,37 @@ fn build_generation_prompt(idea: &str, testing_preference: Option<&str>) -> Stri
         _ => String::new(),
     };
 
+    let (min_features, min_db, min_endpoints, min_steps, guidance) =
+        if config.generation.complexity == "minimal" {
+            (
+            config.generation.minimal_min_features,
+            config.generation.minimal_min_database_tables,
+            config.generation.minimal_min_api_endpoints,
+            config.generation.minimal_min_implementation_steps,
+            "The target is a minimal, lightweight implementation. Focus only on the absolute core.",
+        )
+        } else {
+            (
+                config.generation.min_features,
+                config.generation.min_database_tables,
+                config.generation.min_api_endpoints,
+                config.generation.min_implementation_steps,
+                "The target is a comprehensive, production-ready specification with deep detail.",
+            )
+        };
+
     GENERATOR_PROMPT
         .replace("{{IDEA}}", idea)
         .replace("{{TESTING_PREFERENCE}}", &pref_text)
+        .replace("{{MIN_FEATURES}}", &min_features.to_string())
+        .replace("{{MIN_DATABASE_TABLES}}", &min_db.to_string())
+        .replace("{{MIN_API_ENDPOINTS}}", &min_endpoints.to_string())
+        .replace("{{MIN_STEPS}}", &min_steps.to_string())
+        .replace("{{COMPLEXITY_GUIDANCE}}", guidance)
 }
 
-/// Build the subagent-based generation prompt by inserting the user's idea.
-fn build_subagent_prompt(idea: &str, testing_preference: Option<&str>) -> String {
+/// Build the subagent-based generation prompt by inserting the user's idea and constraints.
+fn build_subagent_prompt(idea: &str, testing_preference: Option<&str>, config: &Config) -> String {
     let pref_text = match testing_preference {
         Some(pref) if !pref.trim().is_empty() => format!(
             "\n**User Preference:** QA/Testing framework should be: {}\n",
@@ -313,9 +354,24 @@ fn build_subagent_prompt(idea: &str, testing_preference: Option<&str>) -> String
         _ => String::new(),
     };
 
+    let (min_features, min_endpoints) = if config.generation.complexity == "minimal" {
+        (
+            config.generation.minimal_min_features,
+            config.generation.minimal_min_api_endpoints,
+        )
+    } else {
+        (
+            config.generation.min_features,
+            config.generation.min_api_endpoints,
+        )
+    };
+
     SUBAGENT_PROMPT
         .replace("{{IDEA}}", idea)
         .replace("{{TESTING_PREFERENCE}}", &pref_text)
+        .replace("{{MIN_FEATURES}}", &min_features.to_string())
+        .replace("{{MIN_API_ENDPOINTS}}", &min_endpoints.to_string())
+        .replace("{{BLUEPRINT}}", "[The blueprint you generated above]")
 }
 
 /// Build the refinement prompt by inserting the current spec and refinement instructions.
@@ -327,9 +383,25 @@ fn build_refine_prompt(current_spec: &str, refinement: &str) -> String {
 
 /// Build the fix prompt by inserting the original idea and error message.
 fn build_fix_prompt(idea: &str, errors: &str) -> String {
+    // Load config to get complexity targets
+    let config = Config::load(None).unwrap_or_default();
+    let (min_features, min_endpoints) = if config.generation.complexity == "minimal" {
+        (
+            config.generation.minimal_min_features as usize,
+            config.generation.minimal_min_api_endpoints as usize,
+        )
+    } else {
+        (
+            config.generation.min_features as usize,
+            config.generation.min_api_endpoints as usize,
+        )
+    };
+
     FIX_MALFORMED_PROMPT
         .replace("{{IDEA}}", idea)
         .replace("{{ERRORS}}", errors)
+        .replace("{{MIN_FEATURES}}", &min_features.to_string())
+        .replace("{{MIN_API_ENDPOINTS}}", &min_endpoints.to_string())
 }
 
 /// Find the opencode executable using paths from config.
@@ -413,21 +485,24 @@ mod tests {
     #[test]
     fn test_build_generation_prompt() {
         let idea = "A todo app with tags";
-        let prompt = build_generation_prompt(idea, None);
+        let config = Config::default();
+        let prompt = build_generation_prompt(idea, None, &config);
 
         assert!(prompt.contains("A todo app with tags"));
         assert!(prompt.contains("<project_specification>"));
         assert!(!prompt.contains("{{IDEA}}"));
+        assert!(!prompt.contains("{{MIN_FEATURES}}"));
     }
 
     #[test]
-    fn test_build_generation_prompt_contains_open_ended_minimums() {
+    fn test_build_generation_prompt_contains_constraints() {
         let idea = "A complex ERP";
-        let prompt = build_generation_prompt(idea, None);
+        let mut config = Config::default();
+        config.generation.min_features = 42;
+        let prompt = build_generation_prompt(idea, None, &config);
 
-        assert!(prompt.contains("scale with the project's complexity"));
-        assert!(prompt.contains("ALL features necessary"));
-        assert!(prompt.contains("The goal is completeness, not hitting arbitrary numbers"));
+        assert!(prompt.contains("at least 42 features"));
+        assert!(prompt.contains("production-ready specification with deep detail"));
     }
 
     #[test]

@@ -25,7 +25,7 @@ crossterm = "0.29"
 # Serialization - stable, no CVEs
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.148"
-toml = "0.9.10+spec-1.1.0"
+toml = "0.9.10"
 
 # Templating - v6.4.0 (latest stable, no CVEs)
 handlebars = "6.4.0"

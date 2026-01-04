@@ -45,6 +45,7 @@ fn main() -> Result<()> {
                 developer,
                 single_model,
                 parallel,
+                feature_id,
             } => {
                 if let Some(worker_count) = parallel {
                     // Parallel mode using worktrees
@@ -54,7 +55,7 @@ fn main() -> Result<()> {
                         *worker_count
                     };
                     println!("🔀 Starting parallel mode with {} workers", count);
-                    autonomous::run_parallel(count, config_file.as_deref(), *developer)
+                    autonomous::run_parallel(count, *limit, config_file.as_deref(), *developer)
                 } else {
                     // Standard sequential mode
                     autonomous::run(
@@ -63,6 +64,7 @@ fn main() -> Result<()> {
                         *developer,
                         *single_model,
                         false,
+                        *feature_id,
                     )
                 }
             }
@@ -77,7 +79,32 @@ fn main() -> Result<()> {
                 *developer,
                 *single_model,
                 true,
+                None,
             ),
+            Commands::Init {
+                default,
+                spec,
+                no_subagents,
+            } => {
+                let output_dir = output_dir.clone();
+                if *default {
+                    println!("🚀 Scaffolding with default app spec...");
+                    scaffold::scaffold_default(&output_dir)?;
+                    print_next_steps(&output_dir);
+                    Ok(())
+                } else if let Some(spec_path) = spec {
+                    if !spec_path.exists() {
+                        anyhow::bail!("Spec file not found: {}", spec_path.display());
+                    }
+                    println!("📄 Scaffolding with custom spec: {}", spec_path.display());
+                    scaffold::scaffold_custom(&output_dir, spec_path)?;
+                    print_next_steps(&output_dir);
+                    Ok(())
+                } else {
+                    tui::run_interactive(&output_dir, !*no_subagents)?;
+                    Ok(())
+                }
+            }
             Commands::Templates { action } => match action {
                 TemplateAction::List => {
                     templates::list_templates();

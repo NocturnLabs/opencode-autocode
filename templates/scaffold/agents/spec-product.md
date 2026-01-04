@@ -15,7 +15,7 @@ Generate the `<core_features>` and `<user_experience>` XML sections based on the
 
 ## Requirements
 
-### Core Features (15+ features)
+### Core Features ({{MIN_FEATURES}}+ features)
 
 For each feature, include:
 

@@ -30,6 +30,10 @@ pub struct Feature {
     /// Optional shell command for automated verification
     #[serde(skip_serializing_if = "Option::is_none")]
     pub verification_command: Option<String>,
+
+    /// Last verification error (for auto-fix context)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_error: Option<String>,
 }
 
 /// Repository for feature CRUD operations
@@ -115,13 +119,13 @@ impl FeatureRepository {
         Ok((passing as usize, remaining as usize))
     }
 
-    /// Mark a feature as passing by description
+    /// Mark a feature as passing by description (clears last_error)
     pub fn mark_passing(&self, description: &str) -> Result<bool> {
         let conn = self.conn.lock().unwrap();
 
         let rows = conn
             .execute(
-                "UPDATE features SET passes = 1 WHERE description = ?1",
+                "UPDATE features SET passes = 1, last_error = NULL WHERE description = ?1",
                 params![description],
             )
             .context("Failed to mark feature as passing")?;
@@ -129,14 +133,19 @@ impl FeatureRepository {
         Ok(rows > 0)
     }
 
-    /// Mark a feature as failing by description
+    /// Mark a feature as failing by description with an optional error message
     pub fn mark_failing(&self, description: &str) -> Result<bool> {
+        self.mark_failing_with_error(description, None)
+    }
+
+    /// Mark a feature as failing with an error message for auto-fix context
+    pub fn mark_failing_with_error(&self, description: &str, error: Option<&str>) -> Result<bool> {
         let conn = self.conn.lock().unwrap();
 
         let rows = conn
             .execute(
-                "UPDATE features SET passes = 0 WHERE description = ?1",
-                params![description],
+                "UPDATE features SET passes = 0, last_error = ?2 WHERE description = ?1",
+                params![description, error],
             )
             .context("Failed to mark feature as failing")?;
 
@@ -206,6 +215,7 @@ impl FeatureRepository {
                     row.get::<_, String>(2)?,         // description
                     row.get::<_, i32>(3)? != 0,       // passes
                     row.get::<_, Option<String>>(4)?, // verification_command
+                    row.get::<_, Option<String>>(5)?, // last_error
                 ))
             })
             .context("Failed to query features")?;
@@ -213,7 +223,7 @@ impl FeatureRepository {
         let mut features = Vec::new();
 
         for row in feature_rows {
-            let (id, category, description, passes, verification_command) =
+            let (id, category, description, passes, verification_command, last_error) =
                 row.context("Failed to read feature row")?;
 
             // Load steps for this feature
@@ -226,6 +236,7 @@ impl FeatureRepository {
                 steps,
                 passes,
                 verification_command,
+                last_error,
             });
         }
 
@@ -275,6 +286,7 @@ mod tests {
             steps: vec!["Step 1".to_string(), "Step 2".to_string()],
             passes: false,
             verification_command: Some("echo test".to_string()),
+            last_error: None,
         };
 
         let id = repo.insert(&feature).unwrap();
@@ -298,6 +310,7 @@ mod tests {
             steps: vec![],
             passes: false,
             verification_command: None,
+            last_error: None,
         };
 
         repo.insert(&feature).unwrap();
@@ -327,6 +340,7 @@ mod tests {
                 steps: vec![],
                 passes: i % 2 == 0, // 0, 2, 4 pass; 1, 3 fail
                 verification_command: None,
+                last_error: None,
             };
             repo.insert(&feature).unwrap();
         }

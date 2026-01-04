@@ -119,10 +119,26 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
         .with_context(|| format!("Failed to write app_spec.md: {}", spec_path.display()))?;
     println!("   📄 Created .autocode/app_spec.md");
 
+    // Load config to get complexity targets
+    let config = crate::config::Config::load(None).unwrap_or_default();
+    let (min_f, min_e) = if config.generation.complexity == "minimal" {
+        (
+            config.generation.minimal_min_features,
+            config.generation.minimal_min_api_endpoints,
+        )
+    } else {
+        (
+            config.generation.min_features,
+            config.generation.min_api_endpoints,
+        )
+    };
+
     // Write command files (these stay in .opencode/ for OpenCode compatibility)
-    // Templates are processed to resolve {{INCLUDE}} directives
+    // Templates are processed to resolve {{INCLUDE}} directives and complexity placeholders
     let auto_init_path = command_dir.join("auto-init.md");
-    let auto_init_content = resolve_includes(AUTO_INIT_TEMPLATE);
+    let auto_init_content = resolve_includes(AUTO_INIT_TEMPLATE)
+        .replace("{{MIN_FEATURES}}", &min_f.to_string())
+        .replace("{{MIN_API_ENDPOINTS}}", &min_e.to_string());
     fs::write(&auto_init_path, auto_init_content)
         .with_context(|| format!("Failed to write auto-init.md: {}", auto_init_path.display()))?;
     println!("   📄 Created .opencode/command/auto-init.md");

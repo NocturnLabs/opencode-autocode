@@ -12,7 +12,7 @@ mod session;
 mod settings;
 mod webhook;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::io::{self, BufRead, Write};
 use std::path::Path;
 use std::thread;
@@ -41,79 +41,112 @@ enum SupervisorAction {
 /// Run parallel workers using git worktrees
 pub fn run_parallel(
     worker_count: usize,
+    limit: Option<usize>,
     config_path: Option<&Path>,
     developer_mode: bool,
 ) -> Result<()> {
     debug_logger::init(developer_mode);
     let logger = debug_logger::get();
     let config = load_config(config_path)?;
-    let settings = settings::LoopSettings::from_config(&config, None);
+    let settings = settings::LoopSettings::from_config(&config, limit);
     let db_path = Path::new(&settings.database_file);
 
-    // Get pending features
-    let pending = features::get_pending_features(db_path, worker_count)?;
-    if pending.is_empty() {
-        println!("✅ No pending features to work on");
-        return Ok(());
-    }
+    let mut iteration = 0usize;
 
-    println!("📋 Selected {} features for parallel work:", pending.len());
-    for f in &pending {
-        println!("   • #{}: {}", f.id.unwrap_or(0), f.description);
-    }
+    loop {
+        iteration += 1;
 
-    let base_path = std::env::current_dir()?.parent().unwrap().to_path_buf();
-    let mut coordinator = parallel::Coordinator::new(worker_count, base_path.clone());
+        if iteration > settings.max_iterations {
+            logger.info("Reached max iterations");
+            println!("\nReached max iterations ({})", settings.max_iterations);
+            break;
+        }
 
-    // Create worktrees and spawn workers
-    let mut handles = Vec::new();
-    for feature in pending {
-        let (worktree_path, branch_name) = parallel::create_worktree(&feature, &base_path)?;
-        println!("🌳 Created worktree: {}", branch_name);
+        if session::stop_signal_exists() {
+            logger.info("Parallel Coordinator: Stop signal received.");
+            break;
+        }
 
-        let feature_id = feature.id.unwrap_or(0);
-        let wt = worktree_path.clone();
-        let bn = branch_name.clone();
+        // Get pending features
+        let pending = features::get_pending_features(db_path, worker_count)?;
+        if pending.is_empty() {
+            println!("✅ No pending features to work on");
+            break;
+        }
 
-        // Spawn worker thread
-        let handle = std::thread::spawn(move || {
-            let status = std::process::Command::new("opencode-autocode")
-                .args(["vibe", "--limit", "1"])
-                .current_dir(&wt)
-                .status();
+        logger.separator();
+        logger.info(&format!("Parallel Iteration {} starting", iteration));
+        display::display_session_header(iteration);
 
-            parallel::WorkerResult {
-                feature_id,
-                branch_name: bn,
-                worktree_path: wt,
-                success: status.map(|s| s.success()).unwrap_or(false),
+        println!("📋 Selected {} features for parallel work:", pending.len());
+        for f in &pending {
+            println!("   • #{}: {}", f.id.unwrap_or(0), f.description);
+        }
+
+        let base_path = std::env::current_dir()?;
+        let mut coordinator = parallel::Coordinator::new(worker_count, base_path.clone());
+
+        // Create worktrees and spawn workers
+        let mut handles = Vec::new();
+        for feature in pending {
+            let (worktree_path, branch_name) = parallel::create_worktree(&feature, &base_path)?;
+            println!("🌳 Created worktree: {}", branch_name);
+
+            let feature_id = feature.id.unwrap_or(0);
+            let wt = worktree_path.clone();
+            let bn = branch_name.clone();
+
+            // Spawn worker thread
+            let handle = std::thread::spawn(move || {
+                let status = std::process::Command::new("opencode-autocode")
+                    .args([
+                        "vibe",
+                        "--limit",
+                        "1",
+                        "--feature-id",
+                        &feature_id.to_string(),
+                    ])
+                    .current_dir(&wt)
+                    .status();
+
+                parallel::WorkerResult {
+                    feature_id,
+                    branch_name: bn,
+                    worktree_path: wt,
+                    success: status.map(|s| s.success()).unwrap_or(false),
+                }
+            });
+            handles.push(handle);
+        }
+
+        // Wait for workers and queue results
+        for handle in handles {
+            if let Ok(result) = handle.join() {
+                println!(
+                    "{}  Worker {} finished ({})",
+                    if result.success { "✅" } else { "❌" },
+                    result.feature_id,
+                    if result.success { "success" } else { "failed" }
+                );
+                coordinator.queue_for_merge(result);
             }
-        });
-        handles.push(handle);
-    }
+        }
 
-    // Wait for workers and queue results
-    for handle in handles {
-        if let Ok(result) = handle.join() {
-            println!(
-                "{}  Worker {} finished ({})",
-                if result.success { "✅" } else { "❌" },
-                result.feature_id,
-                if result.success { "success" } else { "failed" }
-            );
-            coordinator.queue_for_merge(result);
+        // Process merge queue
+        println!("\n📦 Processing merge queue...");
+        let merged = coordinator.process_merge_queue()?;
+        println!("✅ Merged {} features to main", merged);
+
+        logger.info(&format!(
+            "Parallel iteration complete: {} workers, {} merged",
+            worker_count, merged
+        ));
+
+        // Delay between iterations
+        if iteration < settings.max_iterations {
+            std::thread::sleep(Duration::from_secs(settings.delay_seconds as u64));
         }
     }
-
-    // Process merge queue
-    println!("\n📦 Processing merge queue...");
-    let merged = coordinator.process_merge_queue()?;
-    println!("✅ Merged {} features to main", merged);
-
-    logger.info(&format!(
-        "Parallel session complete: {} workers, {} merged",
-        worker_count, merged
-    ));
 
     Ok(())
 }
@@ -125,6 +158,7 @@ pub fn run(
     developer_mode: bool,
     single_model: bool,
     enhancement_mode: bool,
+    target_feature_id: Option<i64>,
 ) -> Result<()> {
     // Initialize debug logger
     debug_logger::init(developer_mode);
@@ -179,7 +213,7 @@ pub fn run(
         developer_mode,
     );
 
-    run_supervisor_loop(&config, &settings, enhancement_mode)?;
+    run_supervisor_loop(&config, &settings, enhancement_mode, target_feature_id)?;
 
     // Final status display
     let db_path = Path::new(&settings.database_file);
@@ -213,10 +247,12 @@ fn run_supervisor_loop(
     config: &Config,
     settings: &LoopSettings,
     enhancement_mode: bool,
+    target_feature_id: Option<i64>,
 ) -> Result<()> {
     let db_path = Path::new(&settings.database_file);
     let mut iteration = 0usize;
     let mut consecutive_errors = 0u32;
+    let mut last_run_success = true;
     let logger = debug_logger::get();
 
     loop {
@@ -235,7 +271,7 @@ fn run_supervisor_loop(
         }
 
         // 1. Determine Action (Supervisor Logic) — check this before printing header
-        let action = determine_action(db_path, config)?;
+        let action = determine_action(db_path, config, target_feature_id)?;
 
         // Exit early if all features are complete (don't print a ghost session)
         if matches!(action, SupervisorAction::Stop) && !enhancement_mode {
@@ -267,11 +303,18 @@ fn run_supervisor_loop(
 
                 // For auto-continue, inject feature context (supervisor controls what LLM works on)
                 if cmd == "auto-continue" {
-                    if let Some(feature) = features::get_first_pending_feature(db_path)? {
+                    let feature_opt = if let Some(id) = target_feature_id {
+                        features::get_feature_by_id(db_path, id)?
+                    } else {
+                        features::get_first_pending_feature(db_path)?
+                    };
+
+                    if let Some(feature) = feature_opt {
                         generate_continue_template(&feature)?;
                         println!(
                             "📋 Feature #{}: {}",
-                            feature.id.unwrap_or(0), feature.description
+                            feature.id.unwrap_or(0),
+                            feature.description
                         );
                         "auto-continue-active".to_string()
                     } else {
@@ -300,7 +343,11 @@ fn run_supervisor_loop(
         println!();
 
         // 2. Get the feature the agent SHOULD be working on (for verification after session)
-        let target_feature = features::get_first_pending_feature(db_path)?;
+        let target_feature = if let Some(id) = target_feature_id {
+            features::get_feature_by_id(db_path, id)?
+        } else {
+            features::get_first_pending_feature(db_path)?
+        };
 
         // 3. Run Session
         let result = session::execute_opencode_session(
@@ -325,11 +372,24 @@ fn run_supervisor_loop(
 
                 if output.status.success() {
                     println!("  ✅ Verification PASSED!");
+                    last_run_success = true;
 
                     // Mark as passing
                     let db = crate::db::Database::open(db_path)?;
                     db.features().mark_passing(&feature.description)?;
-                    println!("  ✓ Marked as passing");
+                    println!("  ✓ Marked as passing in DB");
+
+                    // NEW: Mark in Conductor plan if active track matches
+                    if let Some(track) = conductor::get_active_track(config)? {
+                        let plan_path = track.path.join("plan.md");
+                        if let Ok(tasks) = conductor::parse_plan(&plan_path) {
+                            if let Some(task) = conductor::get_next_task(&tasks) {
+                                // Only mark if the description matches or it's the next logical task
+                                let _ = conductor::mark_task_complete(&plan_path, task.line_number);
+                                println!("  ✓ Marked task complete in plan.md: {}", task.description);
+                            }
+                        }
+                    }
 
                     // Commit if needed
                     if settings.auto_commit {
@@ -350,13 +410,34 @@ fn run_supervisor_loop(
                     println!("  ❌ Verification FAILED");
                     println!("     Command: {}", cmd);
                     let stderr = String::from_utf8_lossy(&output.stderr);
-                    if !stderr.is_empty() {
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    let error_msg = if !stderr.is_empty() {
                         println!("     Error: {}", stderr.lines().next().unwrap_or(""));
-                    }
-                    // Feature remains in failing state, agent will retry next session
+                        stderr.to_string()
+                    } else if !stdout.is_empty() {
+                        // Some test frameworks output to stdout
+                        stdout.to_string()
+                    } else {
+                        "Verification command failed with no output".to_string()
+                    };
+
+                    // Mark as failing with error context for auto-fix
+                    let db = crate::db::Database::open(db_path)?;
+                    db.features()
+                        .mark_failing_with_error(&feature.description, Some(&error_msg))?;
+                    println!("  → Feature marked as failing (will auto-fix next iteration)");
+
+                    last_run_success = false;
                 }
             } else {
-                println!("  ⚠ No verification command (manual check required)");
+                println!("  ❌ No verification command (manual check required)");
+                last_run_success = false;
+                // If we don't have a command, we mark it as failing to avoid infinite loop
+                let db = crate::db::Database::open(db_path)?;
+                db.features().mark_failing_with_error(
+                    &feature.description,
+                    Some("No verification command produced by agent"),
+                )?;
             }
         }
 
@@ -377,7 +458,11 @@ fn run_supervisor_loop(
         }
     }
 
-    Ok(())
+    if last_run_success {
+        Ok(())
+    } else {
+        anyhow::bail!("Autonomous run complete but the last feature failed verification.")
+    }
 }
 
 /// Types of verification failures - determines corrective action
@@ -440,8 +525,42 @@ fn classify_verification_failure(error: &str) -> VerificationFailure {
     VerificationFailure::AssertionFailure
 }
 
-fn determine_action(db_path: &Path, config: &Config) -> Result<SupervisorAction> {
+fn determine_action(
+    db_path: &Path,
+    config: &Config,
+    target_feature_id: Option<i64>,
+) -> Result<SupervisorAction> {
     let logger = debug_logger::get();
+
+    // If targeting a specific feature (parallel mode), skip regression check and focus on that feature
+    if let Some(id) = target_feature_id {
+        let db = crate::db::Database::open(db_path)?;
+        let features = db.features().list_all()?;
+        if let Some(feature) = features.iter().find(|f| f.id == Some(id)) {
+            if feature.passes {
+                logger.info(&format!("Target feature {} already passes", id));
+                return Ok(SupervisorAction::Stop);
+            }
+
+            // If feature has a stored error, trigger Fix mode to give agent context
+            if let Some(ref error) = feature.last_error {
+                println!(
+                    "🔧 Target Feature #{} has previous error, entering Fix mode",
+                    id
+                );
+                return Ok(SupervisorAction::Fix {
+                    feature: feature.clone(),
+                    error: error.clone(),
+                });
+            }
+
+            println!("📋 Target Feature #{}: {}", id, feature.description);
+            return Ok(SupervisorAction::Command("auto-continue"));
+        } else {
+            logger.error(&format!("Target feature {} not found", id));
+            return Ok(SupervisorAction::Stop);
+        }
+    }
 
     // 0. REGRESSION CHECK (Priority #1)
     if FeatureProgress::has_features(db_path) {
@@ -587,7 +706,10 @@ Implement this feature completely:
 ## What You Do
 1. Implement the feature with production-quality code
 2. Write necessary tests if applicable
-3. Output `===SESSION_COMPLETE===` when implementation is done
+3. **VERIFY** that the verification command below is still correct for your implementation.
+4. If the command changed (e.g. new test file path), you **MUST** update it in the database:
+   `opencode-autocode db exec "UPDATE features SET verification_command = 'your-new-command' WHERE id = {}"`
+5. Output `===SESSION_COMPLETE===` when implementation is done
 
 ## What Supervisor Does (NOT YOU)
 The supervisor will automatically handle after your session:
@@ -597,9 +719,9 @@ The supervisor will automatically handle after your session:
 
 ## Rules
 - Do NOT run git commands (git add, git commit, git push)
-- Do NOT run the verification command yourself
-- Do NOT call mark-pass or query the database
-- Do NOT work on any other features
+- Do NOT run the verification command Yourself
+- Do NOT call mark-pass
+- **ALLOWED**: You may use `opencode-autocode db` commands to update your OWN feature's verification_command or steps.
 - ONLY implement this one feature and output ===SESSION_COMPLETE===
 "#,
         feature.id.unwrap_or(0),
@@ -607,11 +729,15 @@ The supervisor will automatically handle after your session:
         if feature.steps.is_empty() {
             "Not specified - implement as described".to_string()
         } else {
-            feature.steps.iter().enumerate()
+            feature
+                .steps
+                .iter()
+                .enumerate()
                 .map(|(i, s)| format!("{}. {}", i + 1, s))
                 .collect::<Vec<_>>()
                 .join("\n")
         },
+        feature.id.unwrap_or(0),
         feature
             .verification_command
             .as_deref()
@@ -623,62 +749,6 @@ The supervisor will automatically handle after your session:
         std::fs::create_dir_all(parent)?;
     }
     std::fs::write(target, content)?;
-    Ok(())
-}
-
-#[allow(dead_code)]
-fn verify_and_commit(
-    feature_desc: &str,
-    db_path: &Path,
-    config: &Config,
-    settings: &LoopSettings,
-    session_num: usize,
-) -> Result<()> {
-    let db = crate::db::Database::open(db_path)?;
-    let features = db.features().list_all()?;
-    let feature = features
-        .iter()
-        .find(|f| f.description == feature_desc)
-        .context("Feature not found in DB")?;
-
-    // 1. Run Verification
-    println!("  • Verifying '{}'...", feature.description);
-    if let Some(cmd) = &feature.verification_command {
-        let output = std::process::Command::new("sh")
-            .arg("-c")
-            .arg(cmd)
-            .output()?;
-
-        if !output.status.success() {
-            println!("  ❌ Verification FAILED!");
-            println!("     Command: {}", cmd);
-            println!("     Code: {}", output.status.code().unwrap_or(-1));
-
-            // ROLLBACK STATUS
-            db.features().mark_failing(&feature.description)?;
-            println!("  ↺ Rolled back status to 'failing'");
-            return Ok(()); // Do not commit, do not notify success
-        }
-        println!("  ✅ Verified!");
-    } else {
-        println!("  ⚠ No verification command (manual verify)");
-    }
-
-    // 2. Commit
-    if settings.auto_commit {
-        let _ = git::commit_completed_feature(&feature.description, settings.verbose);
-    }
-
-    // 3. Notify
-    let progress = FeatureProgress::load_from_db(db_path)?;
-    let _ = webhook::notify_feature_complete(
-        config,
-        feature,
-        session_num,
-        progress.passing,
-        progress.total(),
-    );
-
     Ok(())
 }
 

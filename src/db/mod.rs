@@ -50,11 +50,16 @@ impl Database {
         Self::open(Path::new(DEFAULT_DB_PATH))
     }
 
-    /// Initialize database schema
+    /// Initialize database schema and run migrations
     fn init_schema(&self) -> Result<()> {
         let conn = self.conn.lock().unwrap();
         conn.execute_batch(schema::SCHEMA)
             .context("Failed to initialize database schema")?;
+
+        // Run migrations for existing databases (safe to run multiple times)
+        // ALTER TABLE ADD COLUMN fails if column exists, which we ignore
+        let _ = conn.execute_batch(schema::MIGRATION_ADD_LAST_ERROR);
+
         Ok(())
     }
 

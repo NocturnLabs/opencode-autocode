@@ -10,9 +10,10 @@ You previously attempted to generate a project specification, but it contained X
 
 {{IDEA}}
 
-## Requirement
-
 Please regenerate the **complete** project specification in valid XML.
+
+- **DENSITY REQUIREMENT**: You MUST provide at least **{{MIN_FEATURES}}** core_features and **{{MIN_API_ENDPOINTS}}** API endpoints. This is a strict requirement for a comprehensive specification.
+- Ensure all tags are properly closed.
 
 - Ensure all tags are properly closed.
 - Ensure special characters like `&`, `<`, `>` are escaped (e.g., `&amp;`, `&lt;`, `&gt;`).
@@ -35,7 +36,7 @@ Output ONLY the repaired XML specification using this exact structure:
       <name>Feature Name</name>
       <description>Description...</description>
     </feature>
-    <!-- At least 3 features -->
+    <!-- At least {{MIN_FEATURES}} features -->
   </core_features>
 
   <database_schema>
@@ -43,11 +44,16 @@ Output ONLY the repaired XML specification using this exact structure:
   </database_schema>
 
   <api_endpoints>
-    <!-- API definitions if applicable -->
+    <endpoint>
+      <method>GET|POST|PUT|DELETE</method>
+      <path>/api/v1/resource</path>
+      <description>Description...</description>
+    </endpoint>
   </api_endpoints>
 
   <success_criteria>
-    <!-- Measurable goals -->
+    <functionality>...</functionality>
+    <quality>...</quality>
   </success_criteria>
 </project_specification>
 ```
