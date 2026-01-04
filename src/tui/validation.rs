@@ -27,7 +27,8 @@ pub fn run_validation_loop(
     spec_preview_lines: u32,
 ) -> Result<()> {
     loop {
-        let validation = validate_and_preview(spec_text, min_features, min_endpoints, spec_preview_lines)?;
+        let validation =
+            validate_and_preview(spec_text, min_features, min_endpoints, spec_preview_lines)?;
         let action = prompt_for_action(validation.is_valid)?;
 
         match action {
