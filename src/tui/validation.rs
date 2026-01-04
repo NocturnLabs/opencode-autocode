@@ -24,9 +24,10 @@ pub fn run_validation_loop(
     model_owned: Option<String>,
     min_features: usize,
     min_endpoints: usize,
+    spec_preview_lines: u32,
 ) -> Result<()> {
     loop {
-        let validation = validate_and_preview(spec_text, min_features, min_endpoints)?;
+        let validation = validate_and_preview(spec_text, min_features, min_endpoints, spec_preview_lines)?;
         let action = prompt_for_action(validation.is_valid)?;
 
         match action {
@@ -59,6 +60,7 @@ fn validate_and_preview(
     spec_text: &str,
     min_features: usize,
     min_endpoints: usize,
+    spec_preview_lines: u32,
 ) -> Result<crate::validation::ValidationResult> {
     println!(
         "\n{}",
@@ -72,11 +74,11 @@ fn validate_and_preview(
         println!("\n{}", style("The spec has validation errors.").red());
     }
 
-    display_spec_preview(spec_text);
+    display_spec_preview(spec_text, spec_preview_lines);
     Ok(validation)
 }
 
-fn display_spec_preview(spec_text: &str) {
+fn display_spec_preview(spec_text: &str, max_lines: u32) {
     println!(
         "\n{}",
         style("═══════════════════════════════════════════════════").green()
@@ -90,14 +92,15 @@ fn display_spec_preview(spec_text: &str) {
         style("═══════════════════════════════════════════════════").green()
     );
 
-    for line in spec_text.lines().take(25) {
+    let max = max_lines as usize;
+    for line in spec_text.lines().take(max) {
         println!("  {}", style(line).dim());
     }
     let total_lines = spec_text.lines().count();
-    if total_lines > 25 {
+    if total_lines > max {
         println!(
             "  {}",
-            style(format!("... ({} more lines)", total_lines - 25)).dim()
+            style(format!("... ({} more lines)", total_lines - max)).dim()
         );
     }
 }

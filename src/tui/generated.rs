@@ -64,6 +64,7 @@ pub fn run_generated_mode(
         Some(config.models.default.clone()),
         min_f,
         min_e,
+        config.ui.spec_preview_lines,
     )
 }
 

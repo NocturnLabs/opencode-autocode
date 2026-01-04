@@ -64,6 +64,13 @@ impl CommunicationChannel {
         }
     }
 
+    /// Create a communication channel from config
+    pub fn from_config(config: &crate::config::CommunicationConfig) -> Self {
+        Self {
+            path: std::path::PathBuf::from(&config.file_path),
+        }
+    }
+
     /// Check if communication file exists
     pub fn exists(&self) -> bool {
         self.path.exists()
