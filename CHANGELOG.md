@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2026-01-04
+
+### Added
+
+- **Autonomous Runner & Supervisor**:
+  - **Parallel Execution**: Introduced `--parallel N` mode using isolated Git worktrees for concurrent feature development.
+  - **Supervisor State Machine**: Reinforced "one feature per session" isolation and moved feature marking responsibilities from the agent to the supervisor after verification.
+  - **Enhanced Context**: Supervisor now injects mandatory Knowledge Base recall and feature-specific context into OpenCode sessions.
+  - **Robustness**: Added smart "stuck detection" for broken verification commands and real-time session termination on completion signals.
+  - **Graceful Shutdown**: Implemented Ctrl+C signal handling for clean exit.
+- **Configuration & TUI**:
+  - **Exhaustive Config Wiring**: Fully integrated `ui.spec_preview_lines`, `alternative_approaches`, `communication`, `ui.colored_output`, `ui.verbose`, and `ui.show_progress` fields into the application logic.
+  - **TUI Expansion**: Added configuration sections for Communication, Features, Scaffolding, and MCP to the interactive TUI.
+  - **Refined Selection**: Users can now specify testing framework preferences during interactive setup.
+- **Scaffolding & AI Generation**:
+  - **Dynamic Guidance**: Refactored generator prompts to use open-ended, complexity-based constraints instead of hardcoded ranges.
+  - **Spec Generation Retry**: Implemented a 5-attempt retry mechanism for fixing malformed XML using `opencode/grok-code`.
+  - **Template Centralization**: Relocated `{{INCLUDE}}` resolution to the `scaffold` module for better maintainability.
+  - **Project Schema**: Added `<entry_point_verification>` tag and enhanced Go module scaffolding guidelines.
+
+### Changed
+
+- **Documentation**:
+  - **Architecture Reference**: Integrated `ARCHITECTURE_DETAILED.md` with complete module mappings and call graphs.
+  - **Intent-First Comments**: Reflowed internal code documentation to emphasize design decisions ("Why") over implementation details ("What").
+
+### Fixed
+
+- **Fixes & CI/CD**:
+  - **Merge Management**: Resolved Git index lock issues and worktree cleanup failures in parallel mode.
+  - **Webhook Optimization**: Fixed Discord notifications to update a single message ID, preventing notification spam.
+  - **Release Workflow**: Fixed GITHUB_TOKEN permissions for automated binary releases.
+
 ## [0.5.0] - 2026-01-02
 
 ### Added
