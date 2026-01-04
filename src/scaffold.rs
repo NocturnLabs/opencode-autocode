@@ -38,6 +38,9 @@ const SPEC_QUALITY_AGENT: &str = include_str!("../templates/scaffold/agents/spec
 /// Embedded coder subagent for dual-model architecture
 const CODER_AGENT: &str = include_str!("../templates/scaffold/agents/coder.md");
 
+/// Embedded AGENTS.md template
+const AGENTS_MD_TEMPLATE: &str = include_str!("../templates/AGENTS.md");
+
 /// Resolve {{INCLUDE path}} directives in templates.
 ///
 /// This implements the "Progressive Discovery" pattern, where high-level
@@ -245,6 +248,18 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     })?;
     println!("   ⚙️  Created opencode.json");
 
+    // Write AGENTS.md at project root
+    let agents_md_path = output_dir.join("AGENTS.md");
+    if !agents_md_path.exists() {
+        fs::write(&agents_md_path, AGENTS_MD_TEMPLATE).with_context(|| {
+            format!(
+                "Failed to write AGENTS.md: {}",
+                agents_md_path.display()
+            )
+        })?;
+        println!("   📝 Created AGENTS.md");
+    }
+
     Ok(())
 }
 
@@ -310,6 +325,10 @@ pub fn preview_scaffold(output_dir: &Path) {
         "   ⚙️  {}",
         style(output_dir.join("opencode.json").display()).green()
     );
+    println!(
+        "   📝 {}",
+        style(output_dir.join("AGENTS.md").display()).green()
+    );
 
     println!("\n{}", style("─".repeat(50)).dim());
     println!("{}", style("Total: 3 directories, 8 files").cyan());
@@ -328,6 +347,28 @@ fn generate_opencode_json() -> String {
     ".autocode/config.toml",
     ".autocode/app_spec.md"
   ],
+  "provider": {
+    "google": {
+      "options": {
+        "thinkingLevel": "high"
+      }
+    },
+    "anthropic": {
+      "options": {
+        "thinking": {
+          "type": "enabled",
+          "budget_tokens": 16000
+        }
+      }
+    },
+    "deepseek": {
+      "options": {
+        "thinking": {
+          "type": "enabled"
+        }
+      }
+    }
+  },
   "mcp": {},
   "permission": {
     "bash": "allow",
