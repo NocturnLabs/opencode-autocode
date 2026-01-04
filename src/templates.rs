@@ -294,51 +294,19 @@ mod tests {
 
         println!("\n--- Command Templates (Resolved, after include resolution) ---\n");
 
-        // Simple include resolver for testing
-        fn resolve_includes_test(template: &str) -> String {
-            let mut result = template.to_string();
-            let includes: &[(&str, &str)] = &[
-                (
-                    "core/identity.md",
-                    include_str!("../templates/core/identity.md"),
-                ),
-                (
-                    "core/security.md",
-                    include_str!("../templates/core/security.md"),
-                ),
-                (
-                    "core/database.md",
-                    include_str!("../templates/core/database.md"),
-                ),
-                (
-                    "core/mcp_guide.md",
-                    include_str!("../templates/core/mcp_guide.md"),
-                ),
-                (
-                    "core/signaling.md",
-                    include_str!("../templates/core/signaling.md"),
-                ),
-                (
-                    "core/communication.md",
-                    include_str!("../templates/core/communication.md"),
-                ),
-            ];
-            for (path, content) in includes {
-                let directive = format!("{{{{INCLUDE {}}}}}", path);
-                result = result.replace(&directive, content);
-            }
-            result
-        }
-
+        // Use the public resolve_includes from scaffold module
         let commands_resolved = [
-            ("auto-init.md (resolved)", resolve_includes_test(AUTO_INIT)),
+            (
+                "auto-init.md (resolved)",
+                crate::scaffold::resolve_includes(AUTO_INIT),
+            ),
             (
                 "auto-continue.md (resolved)",
-                resolve_includes_test(AUTO_CONTINUE),
+                crate::scaffold::resolve_includes(AUTO_CONTINUE),
             ),
             (
                 "auto-enhance.md (resolved)",
-                resolve_includes_test(AUTO_ENHANCE),
+                crate::scaffold::resolve_includes(AUTO_ENHANCE),
             ),
         ];
 
