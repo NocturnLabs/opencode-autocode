@@ -14,28 +14,23 @@ fn setup_project() -> (TempDir, PathBuf) {
 
     // ... setup code ...
 
-    let status = Command::new("opencode-autocode") // Assumes binary is in PATH or alias
+    // Use CARGO_BIN_EXE_ to find the binary built by cargo for this workspace
+    let bin_path = std::env::var("CARGO_BIN_EXE_opencode-autocode")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
+            Path::new(&manifest_dir).join("target/release/opencode-autocode")
+        });
+
+    let status = Command::new(&bin_path)
         .arg("init")
         .arg("--default")
         .current_dir(&project_path)
         .stdout(Stdio::null())
-        .status();
+        .status()
+        .expect("Failed to init project");
 
-    if status.is_err() || !status.unwrap().success() {
-        // Fallback: try finding binary in target/release if not in PATH
-        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or(".".to_string());
-        let bin_path = Path::new(&manifest_dir).join("target/release/opencode-autocode");
-
-        let status = Command::new(&bin_path)
-            .arg("init")
-            .arg("--default")
-            .current_dir(&project_path)
-            .stdout(Stdio::null())
-            .status()
-            .expect("Failed to init project using target/release binary");
-
-        assert!(status.success(), "Failed to init project");
-    }
+    assert!(status.success(), "Failed to init project");
 
     // Git Init (Required for worktrees)
     let _ = Command::new("git")
@@ -71,41 +66,33 @@ fn setup_project() -> (TempDir, PathBuf) {
 
 /// Helper to run vibe command
 fn run_vibe(cwd: &Path, args: &[&str]) -> std::process::ExitStatus {
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or(".".to_string());
-    let bin_path = Path::new(&manifest_dir).join("target/release/opencode-autocode");
+    let bin_path = std::env::var("CARGO_BIN_EXE_opencode-autocode")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
+            Path::new(&manifest_dir).join("target/release/opencode-autocode")
+        });
 
-    // Try target binary first, fallback to PATH
-    if bin_path.exists() {
-        Command::new(bin_path)
-            .arg("vibe")
-            .args(args)
-            .current_dir(cwd)
-            .stdout(Stdio::null())
-            .stderr(Stdio::inherit()) // We want to see errors
-            .status()
-            .expect("Failed to run vibe")
-    } else {
-        Command::new("opencode-autocode")
-            .arg("vibe")
-            .args(args)
-            .current_dir(cwd)
-            .stdout(Stdio::null())
-            .stderr(Stdio::inherit())
-            .status()
-            .expect("Failed to run vibe")
-    }
+    Command::new(bin_path)
+        .arg("vibe")
+        .args(args)
+        .current_dir(cwd)
+        .stdout(Stdio::null())
+        .stderr(Stdio::inherit())
+        .status()
+        .expect("Failed to run vibe")
 }
 
 /// Add a mock feature to the database
 fn add_feature(cwd: &Path, id: i32, desc: &str) {
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or(".".to_string());
-    let bin_path = Path::new(&manifest_dir).join("target/release/opencode-autocode");
+    let bin_path = std::env::var("CARGO_BIN_EXE_opencode-autocode")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| ".".to_string());
+            Path::new(&manifest_dir).join("target/release/opencode-autocode")
+        });
 
-    let mut cmd = if bin_path.exists() {
-        Command::new(bin_path)
-    } else {
-        Command::new("opencode-autocode")
-    };
+    let mut cmd = Command::new(bin_path);
 
     let sql = format!(
         "INSERT INTO features (id, description, category, passes) VALUES ({}, '{}', 'Test', 0)",
