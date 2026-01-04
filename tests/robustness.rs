@@ -59,7 +59,11 @@ fn setup_project() -> (TempDir, PathBuf) {
         .status()
         .expect("Failed to init project");
 
-    assert!(status.success(), "Failed to init project using {:?}", bin_path);
+    assert!(
+        status.success(),
+        "Failed to init project using {:?}",
+        bin_path
+    );
 
     // Git setup for worktrees
     let _ = Command::new("git")
