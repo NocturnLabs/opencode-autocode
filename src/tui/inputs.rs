@@ -21,7 +21,7 @@ pub fn read_multiline(prompt: &str) -> Result<String> {
 
         if line.trim().is_empty() {
             consecutive_empty += 1;
-            if consecutive_empty >= 1 {
+            if consecutive_empty >= 2 {
                 break;
             }
         } else {

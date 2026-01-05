@@ -11,6 +11,7 @@ use super::debug_logger;
 use super::display;
 use super::features::{self, FeatureProgress};
 use super::git;
+use super::security;
 use super::session;
 use super::settings::{handle_session_result, LoopAction, LoopSettings};
 use super::templates;
@@ -75,7 +76,8 @@ pub fn determine_action(
         // Run check on ALL features (not just passing ones to be safe, but regression checks usually imply passing ones)
         // actually regression check only checks passing ones.
         // We want to verify that previously passing features are STILL passing.
-        let summary = regression::run_regression_check(&features, None, false)?;
+        let summary =
+            regression::run_regression_check(&features, None, false, Some(&config.security))?;
 
         if summary.automated_failed > 0 {
             // Find the first failing feature to fix
@@ -283,10 +285,21 @@ pub fn run_supervisor_loop(
             println!("   Feature: {}", feature.description);
 
             if let Some(cmd) = &feature.verification_command {
-                let output = std::process::Command::new("sh")
-                    .arg("-c")
-                    .arg(cmd)
-                    .output()?;
+                // Use security-validated command runner
+                let output = match security::run_verified_command(cmd, &config.security, None) {
+                    Ok(out) => out,
+                    Err(e) => {
+                        println!("  🚫 Security: Command blocked");
+                        println!("     {}", e);
+                        last_run_success = false;
+                        let db = crate::db::Database::open(db_path)?;
+                        db.features().mark_failing_with_error(
+                            &feature.description,
+                            Some(&format!("Security blocked: {}", e)),
+                        )?;
+                        continue;
+                    }
+                };
 
                 if output.status.success() {
                     println!("  ✅ Verification PASSED!");

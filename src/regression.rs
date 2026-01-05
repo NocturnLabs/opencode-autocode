@@ -3,9 +3,10 @@
 //! This module provides functionality to parse feature_list.json and run
 //! regression checks on features marked as passing.
 
-use anyhow::{Context, Result};
-use std::process::Command;
+use anyhow::Result;
 
+use crate::autonomous::security;
+use crate::config::SecurityConfig;
 use crate::db::features::Feature;
 
 /// Result of a single feature check
@@ -33,6 +34,7 @@ pub fn run_regression_check(
     features: &[Feature],
     category_filter: Option<&str>,
     verbose: bool,
+    security_config: Option<&SecurityConfig>,
 ) -> Result<RegressionSummary> {
     let total_features = features.len();
     let passing_features: Vec<_> = features
@@ -56,12 +58,26 @@ pub fn run_regression_check(
         }
 
         if let Some(ref cmd) = feature.verification_command {
-            // Run automated verification
-            let output = Command::new("sh")
-                .arg("-c")
-                .arg(cmd)
-                .output()
-                .with_context(|| format!("Failed to execute: {}", cmd))?;
+            // Use security-validated command runner if config provided, otherwise default security
+            let default_security = SecurityConfig::default();
+            let sec_cfg = security_config.unwrap_or(&default_security);
+
+            let output = match security::run_verified_command(cmd, sec_cfg, None) {
+                Ok(out) => out,
+                Err(e) => {
+                    if verbose {
+                        println!("  🚫 BLOCKED: {}", e);
+                    }
+                    automated_failed += 1;
+                    results.push(CheckResult {
+                        description: feature.description.clone(),
+                        passed: false,
+                        error_message: Some(format!("Security blocked: {}", e)),
+                        was_automated: true,
+                    });
+                    continue;
+                }
+            };
 
             if output.status.success() {
                 automated_passed += 1;
@@ -188,7 +204,7 @@ mod tests {
     #[test]
     fn test_run_regression_check() {
         let features = create_test_features();
-        let summary = run_regression_check(&features, None, false).unwrap();
+        let summary = run_regression_check(&features, None, false, None).unwrap();
 
         assert_eq!(summary.total_features, 2);
         assert_eq!(summary.passing_features, 1);

@@ -8,6 +8,7 @@ mod display;
 mod features;
 mod git;
 pub mod parallel;
+pub mod security;
 mod session;
 mod settings;
 pub mod supervisor;

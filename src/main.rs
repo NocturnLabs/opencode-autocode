@@ -340,7 +340,7 @@ fn handle_db_command(action: &DbAction) -> Result<()> {
                 features.len()
             );
 
-            let summary = regression::run_regression_check(&features, None, false)?;
+            let summary = regression::run_regression_check(&features, None, false, None)?;
             regression::report_results(&summary);
 
             if summary.automated_failed > 0 {

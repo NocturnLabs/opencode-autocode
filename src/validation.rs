@@ -88,6 +88,49 @@ fn bool_icon(val: bool) -> &'static str {
     }
 }
 
+/// Strip XML comments from text to prevent bypass attacks.
+/// Comments like <!-- hidden content --> are removed before validation.
+fn strip_xml_comments(text: &str) -> String {
+    let mut result = String::with_capacity(text.len());
+    let mut chars = text.chars().peekable();
+
+    while let Some(c) = chars.next() {
+        if c == '<' {
+            // Check for comment start
+            let mut lookahead = String::new();
+            lookahead.push(c);
+
+            for _ in 0..3 {
+                if let Some(&next) = chars.peek() {
+                    lookahead.push(next);
+                    chars.next();
+                }
+            }
+
+            if lookahead == "<!--" {
+                // Skip until we find -->
+                let mut end_seq = String::new();
+                for ch in chars.by_ref() {
+                    end_seq.push(ch);
+                    if end_seq.len() > 3 {
+                        end_seq.remove(0);
+                    }
+                    if end_seq == "-->" {
+                        break;
+                    }
+                }
+            } else {
+                // Not a comment, include the lookahead
+                result.push_str(&lookahead);
+            }
+        } else {
+            result.push(c);
+        }
+    }
+
+    result
+}
+
 /// Validate a project specification
 pub fn validate_spec(
     spec_text: &str,
@@ -98,11 +141,15 @@ pub fn validate_spec(
     let mut warnings = Vec::new();
     let mut stats = SpecStats::default();
 
-    // Check if it looks like XML at all
-    if !spec_text.contains("<project_specification>") {
+    // Strip XML comments before validation to prevent bypass attacks
+    // where malformed content is hidden inside <!-- ... --> blocks
+    let stripped_spec = strip_xml_comments(spec_text);
+
+    // Check if it looks like XML at all (using stripped version)
+    if !stripped_spec.contains("<project_specification>") {
         errors.push("Missing <project_specification> root element".to_string());
     }
-    if !spec_text.contains("</project_specification>") {
+    if !stripped_spec.contains("</project_specification>") {
         errors.push("Missing </project_specification> closing tag".to_string());
     }
 
