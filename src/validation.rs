@@ -9,7 +9,7 @@ use quick_xml::events::Event;
 use quick_xml::Reader;
 
 /// Result of validating a spec
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ValidationResult {
     pub is_valid: bool,
     pub errors: Vec<String>,
@@ -132,11 +132,7 @@ fn strip_xml_comments(text: &str) -> String {
 }
 
 /// Validate a project specification
-pub fn validate_spec(
-    spec_text: &str,
-    min_features: usize,
-    min_endpoints: usize,
-) -> Result<ValidationResult> {
+pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
     let mut errors = Vec::new();
     let mut warnings = Vec::new();
     let mut stats = SpecStats::default();
@@ -251,22 +247,6 @@ pub fn validate_spec(
         errors.push("Missing <overview> element".to_string());
     }
 
-    // Enforce minimum features
-    if stats.feature_count < min_features {
-        errors.push(format!(
-            "Spec only has {} features, but at least {} are required for a comprehensive specification. Please expand the features list.",
-            stats.feature_count, min_features
-        ));
-    }
-
-    // Enforce minimum endpoints (if applicable - some projects might not need them, but if we asked for them...)
-    if min_endpoints > 0 && stats.endpoint_count < min_endpoints {
-        errors.push(format!(
-            "Spec only has {} API endpoints, but at least {} are required. Please define more endpoints.",
-            stats.endpoint_count, min_endpoints
-        ));
-    }
-
     if !stats.has_features && !stats.has_tech_stack {
         warnings.push("Spec has no features or tech stack defined".to_string());
     }
@@ -337,7 +317,7 @@ mod tests {
 </core_features>
 </project_specification>
 "#;
-        let result = validate_spec(spec, 3, 0).unwrap();
+        let result = validate_spec(spec).unwrap();
         assert!(result.is_valid);
         assert_eq!(result.stats.feature_count, 3);
     }
@@ -361,7 +341,7 @@ mod tests {
 </success_criteria>
 </project_specification>
 "#;
-        let result = validate_spec(spec, 3, 0).unwrap();
+        let result = validate_spec(spec).unwrap();
         assert!(result.is_valid);
         assert!(result.stats.has_project_name);
         assert!(result.stats.has_overview);
@@ -376,7 +356,7 @@ mod tests {
 <overview>Just the basics</overview>
 </project_specification>
 "#;
-        let result = validate_spec(spec, 0, 0).unwrap();
+        let result = validate_spec(spec).unwrap();
         assert!(result.is_valid); // Valid but has warnings
         assert!(!result.warnings.is_empty());
     }
@@ -384,7 +364,7 @@ mod tests {
     #[test]
     fn test_validate_broken_spec() {
         let spec = "This is not XML at all";
-        let result = validate_spec(spec, 0, 0).unwrap();
+        let result = validate_spec(spec).unwrap();
         assert!(!result.is_valid);
         assert!(!result.errors.is_empty());
     }

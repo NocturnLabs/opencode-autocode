@@ -241,20 +241,6 @@ pub fn configure_generation(config: &mut Config) -> Result<()> {
         &config.generation.complexity,
     )?;
 
-    if config.generation.complexity == "comprehensive" {
-        display_hint("Minimum features for comprehensive mode");
-        config.generation.min_features = Input::new()
-            .with_prompt("Min features")
-            .default(config.generation.min_features)
-            .interact()?;
-
-        display_hint("Minimum implementation steps");
-        config.generation.min_implementation_steps = Input::new()
-            .with_prompt("Min steps")
-            .default(config.generation.min_implementation_steps)
-            .interact()?;
-    }
-
     display_hint("Enable parallel sub-agent generation (faster but uses more tokens)");
     config.generation.enable_subagents = Confirm::new()
         .with_prompt("Enable sub-agents?")

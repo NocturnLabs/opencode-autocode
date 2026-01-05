@@ -10,14 +10,17 @@ You previously attempted to generate a project specification, but it contained X
 
 {{IDEA}}
 
-Please regenerate the **complete** project specification in valid XML.
+{{PARTIAL_OUTPUT}}
 
-- **DENSITY REQUIREMENT**: You MUST provide at least **{{MIN_FEATURES}}** core_features and **{{MIN_API_ENDPOINTS}}** API endpoints. This is a strict requirement for a comprehensive specification.
-- Ensure all tags are properly closed.
+## Repair Requirements
 
-- Ensure all tags are properly closed.
-- Ensure special characters like `&`, `<`, `>` are escaped (e.g., `&amp;`, `&lt;`, `&gt;`).
-- Do not include markdown code blocks around the XML if possible, or ensure the code block is closed.
+1. **MAINTAIN DEPTH**: Do not simplify or truncate the content to fix the error. The goal is a **COMPREHENSIVE, PRODUCTION-READY** specification.
+2. **RESTORE ALL SECTIONS**: Ensure Features (20+), Database (8+ tables), and Endpoints (20+) are all present and detailed.
+3. **FIX SYNTAX**:
+   - Ensure all tags are properly closed.
+   - Ensure special characters like `&`, `<`, `>` are escaped (e.g., `&amp;`, `&lt;`, `&gt;`).
+   - If the previous output was truncated, complete the missing sections logically based on the {{IDEA}}.
+4. **FORMAT**: Output ONLY the repaired XML specification. Do not include markdown code blocks around the XML.
 
 Output ONLY the repaired XML specification using this exact structure:
 
@@ -36,7 +39,6 @@ Output ONLY the repaired XML specification using this exact structure:
       <name>Feature Name</name>
       <description>Description...</description>
     </feature>
-    <!-- At least {{MIN_FEATURES}} features -->
   </core_features>
 
   <database_schema>

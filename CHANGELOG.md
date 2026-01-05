@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - 2026-01-05
+
+### Added
+
+- **Port Management**: Implemented dynamic port discovery for Go servers and Python-based port detection for JavaScript environments.
+- **Security & Validation**: Introduced a new security module for command validation and enforced read-only database queries for safety.
+- **Process Tracking**: Added CLI commands for tracking and managing background server processes.
+- **Scaffolding**: Added `AGENTS.md` template to project scaffolding and updated `opencode.json` with provider configurations.
+- **Database Concurrency**: Improved database reliability with enhanced concurrency handling.
+
+### Changed
+
+- **Core Architecture**: Centralized session initialization and extracted shared utilities to improve codebase maintainability.
+- **Autonomous Runner**: Enhanced rebase safety with automated stashing and enabled configurable worktree database paths.
+- **Generation Prompts**: Refined agent architecture generation prompts to improve the quality and relevance of generated specifications.
+
+### Fixed
+
+- **Parallel Execution**: Resolved issues with database test setup and streamlined parallel workspace initialization.
+
 ## [0.6.0] - 2026-01-04
 
 ### Added

@@ -119,7 +119,7 @@ pub async fn test_cli_execution(
 
     // Run the CLI command
     let output = Command::new("cargo")
-        .args(&["run", "--", command])
+        .args(["run", "--", command])
         .current_dir("../../")
         .output()?;
 
@@ -209,10 +209,8 @@ pub async fn test_end_to_end_workflow(
     }
 
     // Validate spec if requested
-    if validate_spec {
-        if !spec.contains("<project_specification>") {
-            return Err("Specification validation failed".into());
-        }
+    if validate_spec && !spec.contains("<project_specification>") {
+        return Err("Specification validation failed".into());
     }
 
     // Check templates if requested

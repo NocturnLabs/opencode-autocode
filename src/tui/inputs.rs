@@ -8,7 +8,7 @@ use std::io::{self, BufRead, Write};
 pub fn read_multiline(prompt: &str) -> Result<String> {
     print!(
         "{}: ",
-        style(format!("{} (Press Enter twice to finish)", prompt)).green()
+        style(format!("{} (Press Enter three times to finish)", prompt)).green()
     );
     let _ = io::stdout().flush();
 

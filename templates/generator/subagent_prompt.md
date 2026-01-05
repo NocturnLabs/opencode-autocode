@@ -2,35 +2,45 @@
 
 You are orchestrating parallel subagents to generate a production-grade project specification.
 
+> [!CRITICAL]
+> This must be a **COMPREHENSIVE, PRODUCTION-READY** specification—not an MVP. Think: what would a well-funded startup need to launch? Include ALL features, ALL endpoints, ALL database tables. Be exhaustive.
+
 ## Phase 1: Generate Blueprint (You do this directly)
 
 First, create the foundation:
 
 - **Project name**: Descriptive, memorable name
-- **Overview**: 5-10 sentences explaining the project
-- **Technology stack**: Frontend, backend, database, devops choices
-- **Prerequisites**: Required tools, accounts, and knowledge
+- **Overview**: 5-10 sentences explaining the project scope, users, and business value
+- **Technology stack**: Structured with frontend, backend, database, devops subsections
+- **Prerequisites**: Required tools, accounts, environment setup, and knowledge
 
 ## Phase 2: Invoke Subagents
 
 After generating the blueprint, invoke these THREE subagents IN PARALLEL:
 
 ```
-@spec-product Generate at least {{MIN_FEATURES}} core features and user experience sections for: {{IDEA}}
+@spec-product Generate comprehensive core features and user experience sections for: {{IDEA}}
 
-Use the blueprint above as context.
+IMPORTANT: Generate 20-50 features depending on project complexity. Each feature must include:
+- Name
+- Detailed description (2-4 sentences)
+- Sub-features (list of specific capabilities)
+- Error handling approach
+- Edge cases to consider
 ```
 
 ```
-@spec-architecture Generate database schema with at least 8 tables and {{MIN_API_ENDPOINTS}} API endpoints for: {{IDEA}}
+@spec-architecture Generate the complete database schema and ALL API endpoints for: {{IDEA}}
 
-Use the blueprint above as context.
+IMPORTANT: 
+- Database: Define 8-20 tables with full column specifications, types, constraints, and relationships
+- API Endpoints: Define 20-60 endpoints in structured <endpoint> elements with method, path, and description
 ```
 
 ```
 @spec-quality Generate security, testing strategy, implementation steps, success criteria, and future enhancements for: {{IDEA}}
 
-Use the blueprint above as context.
+IMPORTANT: Implementation steps should have 8-15 phases with specific tasks and verification criteria.
 ```
 
 ## Phase 3: Aggregate and Validate
@@ -39,50 +49,116 @@ Once all subagents have returned their sections:
 
 1. **Merge** all XML fragments into a single document
 2. **Self-validate** the output:
-   - Count features: must be >= {{MIN_FEATURES}}
-   - Count endpoints: must be >= {{MIN_API_ENDPOINTS}}
    - Verify ALL closing tags are present
    - Ensure no truncated content
+   - Confirm features have corresponding endpoints and database tables
 
 ## Output Format
 
 > [!CRITICAL]
-> Output ONLY the complete, valid XML specification. Do NOT include any explanation or commentary outside the XML tags.
+> Output ONLY the complete, valid XML specification. Follow the EXACT structure below—especially the nested elements.
 
 ```xml
 <project_specification>
-  <project_name>...</project_name>
-  <overview>...</overview>
-  <technology_stack>...</technology_stack>
-  <prerequisites>...</prerequisites>
+  <project_name>Name</project_name>
+  <overview>5-10 detailed sentences about scope, users, differentiators</overview>
+  
+  <technology_stack>
+    <frontend>
+      <framework>Framework with justification</framework>
+      <styling>CSS approach</styling>
+      <state_management>State solution</state_management>
+      <testing>Test framework</testing>
+    </frontend>
+    <backend>
+      <runtime>Language/runtime</runtime>
+      <framework>Framework choice</framework>
+      <database>Database with justification</database>
+      <auth>Auth approach</auth>
+      <api_style>REST/GraphQL/tRPC</api_style>
+      <testing>Test framework</testing>
+    </backend>
+  </technology_stack>
+  
+  <prerequisites>
+    <environment_setup>
+      - Environment variables
+      - System dependencies
+      - Port requirements
+    </environment_setup>
+  </prerequisites>
 
-  <!-- From @spec-product -->
   <core_features>
-    <feature>
+    <!-- 20+ features for production-ready app -->
+    <feature priority="high">
       <name>Feature Name</name>
-      <description>...</description>
+      <description>2-4 sentence description</description>
+      <sub_features>
+        - Sub-feature 1
+        - Sub-feature 2
+      </sub_features>
+      <error_handling>How errors are handled</error_handling>
+      <edge_cases>Edge case considerations</edge_cases>
     </feature>
-    <!-- MUST have {{MIN_FEATURES}}+ features -->
   </core_features>
-  <user_experience>...</user_experience>
+  
+  <ui_layout>
+    <main_structure>Layout description</main_structure>
+    <sidebar>Navigation structure</sidebar>
+    <main_area>Primary content area</main_area>
+    <modals_overlays>Dialogs and modals</modals_overlays>
+  </ui_layout>
 
-  <!-- From @spec-architecture -->
-  <database_schema>...</database_schema>
-  <api_endpoints>
-    <!-- MUST have {{MIN_API_ENDPOINTS}}+ endpoints -->
-  </api_endpoints>
+  <database_schema>
+    <tables>
+      <table name="users">
+        <column name="id" type="uuid" constraints="PRIMARY KEY" />
+        <column name="email" type="varchar(255)" constraints="UNIQUE NOT NULL" />
+      </table>
+    </tables>
+  </database_schema>
 
-  <!-- From @spec-quality -->
-  <security>...</security>
+  <api_endpoints_summary>
+    <!-- 20+ endpoints -->
+    <endpoint>
+      <method>POST</method>
+      <path>/api/v1/auth/login</path>
+      <description>Authenticate user [auth: public]</description>
+    </endpoint>
+    <endpoint>
+      <method>GET</method>
+      <path>/api/v1/users/me</path>
+      <description>Get current user profile [auth: required]</description>
+    </endpoint>
+  </api_endpoints_summary>
+
+  <security>Security requirements and measures</security>
+  
   <testing_strategy>
-    <unit_tests>...</unit_tests>
-    <integration_tests>...</integration_tests>
-    <e2e_tests>...</e2e_tests>
-    <entry_point_verification>...</entry_point_verification>
+    <unit_tests>Unit test approach and coverage</unit_tests>
+    <integration_tests>Integration test approach</integration_tests>
+    <e2e_tests>End-to-end test approach</e2e_tests>
+    <entry_point_verification>Entry point testing</entry_point_verification>
   </testing_strategy>
-  <implementation_steps>...</implementation_steps>
-  <success_criteria>...</success_criteria>
-  <future_enhancements>...</future_enhancements>
+  
+  <implementation_steps>
+    <!-- 8-15 phases -->
+    <step number="1">
+      <title>Phase Title</title>
+      <tasks>
+        - Task 1
+        - Task 2
+      </tasks>
+      <verification>How to verify completion</verification>
+    </step>
+  </implementation_steps>
+  
+  <success_criteria>
+    <functionality>Functional requirements</functionality>
+    <quality>Quality metrics</quality>
+  </success_criteria>
+  
+  <future_enhancements>Post-launch features</future_enhancements>
 </project_specification>
 ```
 

@@ -41,22 +41,6 @@ impl Default for ModelsConfig {
 pub struct GenerationConfig {
     /// Complexity level: "comprehensive" or "minimal"
     pub complexity: String,
-    /// Minimum features for comprehensive mode
-    pub min_features: u32,
-    /// Minimum database tables
-    pub min_database_tables: u32,
-    /// Minimum API endpoints
-    pub min_api_endpoints: u32,
-    /// Minimum implementation steps
-    pub min_implementation_steps: u32,
-    /// Minimum features for minimal mode
-    pub minimal_min_features: u32,
-    /// Minimum database tables for minimal mode
-    pub minimal_min_database_tables: u32,
-    /// Minimum API endpoints for minimal mode
-    pub minimal_min_api_endpoints: u32,
-    /// Minimum implementation steps for minimal mode
-    pub minimal_min_implementation_steps: u32,
     /// Include security section
     pub include_security_section: bool,
     /// Include testing strategy section
@@ -75,14 +59,6 @@ impl Default for GenerationConfig {
     fn default() -> Self {
         Self {
             complexity: "comprehensive".to_string(),
-            min_features: 15,
-            min_database_tables: 10,
-            min_api_endpoints: 30,
-            min_implementation_steps: 8,
-            minimal_min_features: 5,
-            minimal_min_database_tables: 3,
-            minimal_min_api_endpoints: 10,
-            minimal_min_implementation_steps: 4,
             include_security_section: true,
             include_testing_strategy: true,
             include_devops_section: true,

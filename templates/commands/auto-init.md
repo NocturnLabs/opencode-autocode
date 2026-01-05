@@ -25,9 +25,10 @@ Read `app_spec.md` in your working directory. Understand:
 
 ### STEP 2: Populate Features Database
 
-**CRITICAL: Break down spec into at least {{MIN_FEATURES}} SEPARATE features.** Each feature = one testable unit.
+**CRITICAL: Break down the specification into SEPARATE, testable features.** Based on your analysis of `app_spec.md` (which defines approximately **{{SPEC_FEATURE_COUNT}}** features and **{{SPEC_ENDPOINT_COUNT}}** API endpoints), insert ALL required features into the database.
 
-Based on `app_spec.md`, insert features using the CLI:
+> [!TIP]
+> **If there are many features (e.g., >20), you can insert them in batches of 10.**
 
 ```bash
 opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Feature description', 0, 'bun test -- --grep \"feature\"')"
@@ -56,7 +57,7 @@ opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'Audio play
 | Rule             | Description                                                            |
 | ---------------- | ---------------------------------------------------------------------- |
 | **Granularity**  | Each feature = ONE testable behavior. Not "implement the app".         |
-| **Count**        | Insert at least {{MIN_FEATURES}} features minimum. More is better.     |
+| **Count**        | Insert ALL **{{SPEC_FEATURE_COUNT}}** features defined in the spec.       |
 | **Categories**   | Mix `functional` (logic) and `style` (UI/UX)                           |
 | **Passes**       | ALL start with `passes = 0`                                            |
 | **Verification** | Project-appropriate commands (e.g. `npm test`, `pytest`, `cargo test`) |

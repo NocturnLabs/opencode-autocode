@@ -22,16 +22,16 @@ Before generating the spec:
 
 ## Scope Requirements
 
-The specification scope should **scale with the project's complexity**. Do NOT apply arbitrary minimums.
+The specification scope should **scale with the project's complexity**. Generate features, tables, endpoints, and phases based on what the project actually needs for a complete, production-ready implementation.
+
+**{{COMPLEXITY_GUIDANCE}}**
 
 **Guiding Principles:**
 
-- Include **at least {{MIN_FEATURES}} features** for a production-ready, "finished" product.
-- Include **ALL database tables** required by the features (minimum {{MIN_DATABASE_TABLES}} if applicable).
-- Include **ALL API endpoints** (minimum {{MIN_API_ENDPOINTS}} if applicable).
-- Include **at least {{MIN_STEPS}} implementation phases** to logically break down the work.
-
-**{{COMPLEXITY_GUIDANCE}}**
+- Include **ALL features** required for a complete, production-ready product
+- Include **ALL database tables** required by the features
+- Include **ALL API endpoints** needed to support the features
+- Include **logical implementation phases** to break down the work
 
 ## Output Format
 
@@ -75,7 +75,6 @@ Output ONLY valid XML following this structure. Fill every section with substant
   </prerequisites>
 
 <core_features>
-<!-- Minimum {{MIN_FEATURES}} features -->
 <feature priority="high|medium|low">
   <name>Feature Name</name>
   <description>Detailed description</description>
@@ -110,7 +109,6 @@ Output ONLY valid XML following this structure. Fill every section with substant
 
 <database_schema>
 <tables>
-<!-- Minimum {{MIN_DATABASE_TABLES}} tables -->
 <table_name>
  - column_name: type, constraints, purpose
  - foreign_keys: [relationships]
@@ -119,7 +117,6 @@ Output ONLY valid XML following this structure. Fill every section with substant
 </database_schema>
 
 <api_endpoints_summary>
-<!-- Minimum {{MIN_API_ENDPOINTS}} endpoints -->
 <endpoint>
   <method>GET|POST|PUT|DELETE</method>
   <path>/api/v1/resource</path>
@@ -141,7 +138,6 @@ Output ONLY valid XML following this structure. Fill every section with substant
 </testing_strategy>
 
 <implementation_steps>
-<!-- Minimum {{MIN_STEPS}} phases -->
 <step number="1">
 <title>Phase Title</title>
 <tasks>

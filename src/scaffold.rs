@@ -120,26 +120,24 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     write_file(&spec_path, spec_content)?;
     println!("   📄 Created .autocode/app_spec.md");
 
-    // Load config to get complexity targets
-    let config = crate::config::Config::load(None).unwrap_or_default();
-    let (min_f, min_e) = if config.generation.complexity == "minimal" {
-        (
-            config.generation.minimal_min_features,
-            config.generation.minimal_min_api_endpoints,
-        )
-    } else {
-        (
-            config.generation.min_features,
-            config.generation.min_api_endpoints,
-        )
-    };
+    // Load config
+    let _config = crate::config::Config::load(None).unwrap_or_default();
+
+    // Run validation to get stats for prompt injection
+    let stats = crate::validation::validate_spec(spec_content).unwrap_or_default();
 
     // Write command files (these stay in .opencode/ for OpenCode compatibility)
-    // Templates are processed to resolve {{INCLUDE}} directives and complexity placeholders
+    // Templates are processed to resolve {{INCLUDE}} directives
     let auto_init_path = command_dir.join("auto-init.md");
     let auto_init_content = resolve_includes(AUTO_INIT_TEMPLATE)
-        .replace("{{MIN_FEATURES}}", &min_f.to_string())
-        .replace("{{MIN_API_ENDPOINTS}}", &min_e.to_string());
+        .replace(
+            "{{SPEC_FEATURE_COUNT}}",
+            &stats.stats.feature_count.to_string(),
+        )
+        .replace(
+            "{{SPEC_ENDPOINT_COUNT}}",
+            &stats.stats.endpoint_count.to_string(),
+        );
     write_file(&auto_init_path, &auto_init_content)?;
     println!("   📄 Created .opencode/command/auto-init.md");
 
