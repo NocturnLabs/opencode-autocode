@@ -71,7 +71,6 @@ impl DebugLogger {
     }
 
     /// Log a WARN level message
-
     pub fn warning(&self, message: &str) {
         self.log("WARN ", message);
     }

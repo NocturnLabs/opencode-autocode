@@ -183,7 +183,7 @@ pub fn rebase_and_merge(branch_name: &str) -> Result<bool> {
     let stash_output = Command::new("git")
         .args(["stash", "push", "-m", "Auto-stash before parallel merge"])
         .output();
-    
+
     let stashed = if let Ok(output) = stash_output {
         String::from_utf8_lossy(&output.stdout).contains("Saved working directory and index state")
     } else {
@@ -244,7 +244,6 @@ fn slugify(s: &str) -> String {
 }
 
 /// Coordinator for parallel workers
-
 pub struct Coordinator {
     merge_queue: Vec<WorkerResult>,
 }

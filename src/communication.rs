@@ -5,6 +5,12 @@
 
 pub struct CommunicationChannel;
 
+impl Default for CommunicationChannel {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CommunicationChannel {
     pub fn new() -> Self {
         Self
