@@ -131,16 +131,24 @@ go build -o ./bin/server ./cmd/server
 echo "--- Running tests ---"
 go test ./... -v
 
-echo "--- Starting server (verify manually) ---"
-./bin/server &
+echo "--- Starting server ---"
+DEFAULT_PORT=8080
+PORT=$DEFAULT_PORT
+
+# Find an available port
+while ! python3 -c "import socket; s = socket.socket(socket.AF_INET, socket.SOCK_STREAM); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); s.bind(('0.0.0.0', $PORT))" &>/dev/null; do
+  PORT=$((PORT + 1))
+done
+
+./bin/server --port $PORT &
 PID=$!
 sleep 2
 
 # Basic smoke test
-if curl -sf http://localhost:8080/health > /dev/null; then
-  echo "✓ Server health check passed"
+if curl -sf http://localhost:$PORT/health > /dev/null; then
+  echo "✓ Server health check passed on port $PORT"
 else
-  echo "✗ Server health check failed"
+  echo "✗ Server health check failed on port $PORT"
   kill $PID 2>/dev/null
   exit 1
 fi

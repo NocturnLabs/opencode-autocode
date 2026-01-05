@@ -72,11 +72,10 @@ Before marking a feature as passing, verify imports are correct:
 DEFAULT_PORT=8000
 PORT=$DEFAULT_PORT
 
-# Find an available port (using ss which is more reliable than lsof)
+# Find an available port (Python bind check is the most reliable across environments)
 find_free_port() {
     local port=$1
-    while ss -tlnH "sport = :$port" | grep -q .; do
-        echo "Port $port is in use, trying $((port + 1))..."
+    while ! python3 -c "import socket; s = socket.socket(socket.AF_INET, socket.SOCK_STREAM); s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); s.bind(('0.0.0.0', $port))" &>/dev/null; do
         port=$((port + 1))
     done
     echo $port

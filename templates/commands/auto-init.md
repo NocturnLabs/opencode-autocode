@@ -112,6 +112,7 @@ npm run dev # or cargo run, python app.py, etc.
 ```
 
 > **Web projects:** Include port conflict prevention. Always prefer finding a free port over killing existing ones.
+> If your `init.sh` uses a simple file server (like `python3 -m http.server`), ensure `index.html` is in the project root or explicitly specify the directory (e.g., `-d public`).
 > See `templates/modules/javascript.md` for template.
 
 ---
