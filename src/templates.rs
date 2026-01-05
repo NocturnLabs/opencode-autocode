@@ -1,4 +1,3 @@
-
 //! Template library for project scaffolding
 //!
 //! Provides pre-built templates for common project types.
@@ -124,8 +123,6 @@ pub fn use_template(name: &str, output_dir: &Path) -> Result<()> {
 
     Ok(())
 }
-
-
 
 #[cfg(test)]
 mod tests {

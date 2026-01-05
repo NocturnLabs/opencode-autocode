@@ -84,7 +84,6 @@ impl FeatureRepository {
         self.query_features(&conn, "SELECT * FROM features ORDER BY id")
     }
 
-
     pub fn count(&self) -> Result<(usize, usize)> {
         let conn = self.conn.lock().unwrap();
 
@@ -184,8 +183,6 @@ impl FeatureRepository {
 
         Ok(count > 0)
     }
-
-
 
     /// Helper to query features and load their steps
     fn query_features(&self, conn: &Connection, sql: &str) -> Result<Vec<Feature>> {

@@ -1,4 +1,3 @@
-
 //! Session repository for tracking autonomous runs
 //!
 //! Provides session management and event logging.
@@ -64,8 +63,6 @@ pub struct SessionStats {
     pub total_features_completed: usize,
 }
 
-
-
 #[cfg(test)]
 mod tests {
 
@@ -90,4 +87,3 @@ mod tests {
         assert_eq!(stats.total_features_completed, 0);
     }
 }
-

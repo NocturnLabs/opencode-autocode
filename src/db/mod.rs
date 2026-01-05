@@ -5,7 +5,6 @@
 
 // Allow dead code for internal APIs that will be used by autonomous loop integration
 
-
 pub mod features;
 pub mod knowledge;
 pub mod meta;
@@ -87,7 +86,6 @@ impl Database {
     pub fn knowledge(&self) -> KnowledgeRepository {
         KnowledgeRepository::new(self.connection())
     }
-
 
     // ============================================================
     // MCP-equivalent operations (replaces SQLite MCP server)

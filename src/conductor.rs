@@ -8,8 +8,6 @@
 //! This module integrates with the existing feature_list.json workflow,
 //! adding persistent planning artifacts that survive across sessions.
 
-
-
 use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
@@ -23,12 +21,10 @@ use crate::config::Config;
 /// Check if conductor context has been set up
 pub fn context_exists(config: &Config) -> bool {
     let context_dir = Path::new(&config.conductor.context_dir);
-    context_dir.exists()
-        && context_dir.join("product.md").exists()
+    context_dir.exists() && context_dir.join("product.md").exists()
 }
 
 /// Create the conductor context directory structure
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Track Management
@@ -74,8 +70,6 @@ pub fn get_active_track(config: &Config) -> Result<Option<Track>> {
     Ok(None)
 }
 
-
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Plan Parsing
 // ─────────────────────────────────────────────────────────────────────────────
@@ -89,7 +83,7 @@ pub struct PlanTask {
     pub description: String,
     /// Whether the task is complete
     pub complete: bool,
-    
+
     /// Indentation level (0 = top-level, 1 = subtask, etc.)
     #[allow(dead_code)]
     pub level: usize,
@@ -162,8 +156,6 @@ pub fn mark_task_complete(plan_path: &Path, line_number: usize) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-
 
     #[test]
     fn test_parse_plan() {

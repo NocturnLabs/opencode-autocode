@@ -47,8 +47,6 @@ impl FeatureProgress {
 
 /// Get descriptions of currently passing features from database
 
-
-
 /// Get the first pending (not passing) feature from the database
 pub fn get_first_pending_feature(db_path: &Path) -> Result<Option<db::features::Feature>> {
     if !db_path.exists() {

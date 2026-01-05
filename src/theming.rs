@@ -3,8 +3,6 @@
 //! Provides consistent colors, symbols, and box drawing characters
 //! across all interactive terminal displays.
 
-
-
 use console::{style, StyledObject};
 
 /// RGB color palette for the TUI theme
@@ -55,12 +53,10 @@ pub mod boxes {
     pub const HORIZONTAL: &str = "─";
     pub const VERTICAL: &str = "│";
 
-
     /// Create a horizontal line of specified width
     pub fn line(width: usize) -> String {
         HORIZONTAL.repeat(width)
     }
-
 }
 
 /// Styled output helpers

@@ -75,7 +75,8 @@ pub fn run_parallel(
         // Create worktrees and spawn workers
         let mut handles = Vec::new();
         for feature in pending {
-            let (worktree_path, branch_name) = parallel::create_worktree(&feature, &base_path)?;
+            let (worktree_path, branch_name) =
+                parallel::create_worktree(&feature, &base_path, &config)?;
             println!("🌳 Created worktree: {}", branch_name);
 
             let feature_id = feature.id.unwrap_or(0);

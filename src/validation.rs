@@ -1,4 +1,3 @@
-
 //! Output validation and diff generationty checks
 //!
 //! Validates generated project specifications for structural correctness
@@ -268,8 +267,6 @@ pub fn print_diff(old_spec: &str, new_spec: &str) {
     }
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -344,6 +341,4 @@ mod tests {
         assert!(!result.is_valid);
         assert!(!result.errors.is_empty());
     }
-
-
 }

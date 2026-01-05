@@ -381,6 +381,12 @@ fn generate_opencode_json() -> String {
 fn generate_gitignore() -> String {
     r#"# MCP & Tool caches (do not commit)
 .osgrep/
+
+# OpenCode Autocode
+progress.db*
+opencode-debug.log
+.autocode/logs/
+.conductor/
 "#
     .to_string()
 }
