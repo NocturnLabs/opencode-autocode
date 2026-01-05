@@ -251,12 +251,8 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     // Write AGENTS.md at project root
     let agents_md_path = output_dir.join("AGENTS.md");
     if !agents_md_path.exists() {
-        fs::write(&agents_md_path, AGENTS_MD_TEMPLATE).with_context(|| {
-            format!(
-                "Failed to write AGENTS.md: {}",
-                agents_md_path.display()
-            )
-        })?;
+        fs::write(&agents_md_path, AGENTS_MD_TEMPLATE)
+            .with_context(|| format!("Failed to write AGENTS.md: {}", agents_md_path.display()))?;
         println!("   📝 Created AGENTS.md");
     }
 

@@ -15,7 +15,9 @@ pub mod environment;
 pub mod project;
 
 pub use autonomous::{AgentConfig, AlternativeApproachesConfig, AutonomousConfig, ConductorConfig};
-pub use environment::{CommunicationConfig, McpConfig, NotificationsConfig, SecurityConfig, UiConfig};
+pub use environment::{
+    CommunicationConfig, McpConfig, NotificationsConfig, SecurityConfig, UiConfig,
+};
 pub use project::{FeaturesConfig, GenerationConfig, ModelsConfig, PathsConfig, ScaffoldingConfig};
 
 /// Default config filename
