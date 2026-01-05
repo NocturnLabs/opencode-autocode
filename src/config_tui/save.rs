@@ -271,6 +271,7 @@ fn format_opencode_json(config: &Config) -> String {
     }}
   }},
   "permission": {{
+    "*": "allow",
     "bash": "allow",
     "edit": "allow"
   }}

@@ -43,3 +43,23 @@ auto db knowledge list
 ```
 
 Use this at the start of a session to "remember" the project state.
+
+---
+
+## Server PID Tracking
+
+When starting servers, track their PIDs for safe cleanup:
+
+```bash
+# Start server and save PID
+bun run dev --port 8000 &
+SERVER_PID=$!
+auto db knowledge set server_port_8000_pid $SERVER_PID --category servers --description "Dev server"
+
+# Later: safe cleanup (only kills YOUR server)
+TRACKED_PID=$(auto db knowledge get server_port_8000_pid 2>/dev/null | grep -oP '(?<=value: )\d+')
+[ -n "$TRACKED_PID" ] && kill "$TRACKED_PID" && auto db knowledge delete server_port_8000_pid
+```
+
+> [!CAUTION]
+> Never use `pkill` or `killall` to kill servers. This can kill unrelated processes.

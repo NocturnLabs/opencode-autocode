@@ -225,6 +225,23 @@ pub enum KnowledgeAction {
     },
     /// Delete a fact
     Delete { key: String },
+    /// Track a server process (saves port→PID mapping)
+    TrackServer {
+        /// Port the server is running on
+        port: u16,
+        /// PID of the server process
+        pid: u32,
+    },
+    /// Get the tracked PID for a server on a port
+    GetServer {
+        /// Port to look up
+        port: u16,
+    },
+    /// Remove tracking for a server (use after killing it)
+    UntrackServer {
+        /// Port to untrack
+        port: u16,
+    },
 }
 
 /// Example topics for progressive discovery

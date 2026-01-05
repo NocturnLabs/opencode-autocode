@@ -2,45 +2,52 @@
 
 You are orchestrating parallel subagents to generate a production-grade project specification.
 
-## Process
+## Phase 1: Generate Blueprint (You do this directly)
 
-1. **Generate Blueprint First** (you do this directly):
+First, create the foundation:
 
-   - Project name
-   - Overview (5-10 sentences)
-   - Technology stack (frontend, backend, devops)
-   - Prerequisites
+- **Project name**: Descriptive, memorable name
+- **Overview**: 5-10 sentences explaining the project
+- **Technology stack**: Frontend, backend, database, devops choices
+- **Prerequisites**: Required tools, accounts, and knowledge
 
-2. **Invoke Subagents in Parallel**:
-   After generating the blueprint, invoke these subagents to complete the specification:
+## Phase 2: Invoke Subagents
 
-   ```
-   @spec-product Generate at least {{MIN_FEATURES}} core_features and user_experience sections for: {{IDEA}}
+After generating the blueprint, invoke these THREE subagents IN PARALLEL:
 
-   Blueprint context:
-   {{BLUEPRINT}}
-   ```
+```
+@spec-product Generate at least {{MIN_FEATURES}} core features and user experience sections for: {{IDEA}}
 
-   ```
-   @spec-architecture Generate the database_schema and api_endpoints sections for: {{IDEA}}
+Use the blueprint above as context.
+```
 
-   Blueprint context:
-   {{BLUEPRINT}}
-   ```
+```
+@spec-architecture Generate database schema with at least 8 tables and {{MIN_API_ENDPOINTS}} API endpoints for: {{IDEA}}
 
-   ```
-   @spec-quality Generate the security, testing_strategy, implementation_steps, success_criteria, and future_enhancements sections for: {{IDEA}}
+Use the blueprint above as context.
+```
 
-   Blueprint context:
-   {{BLUEPRINT}}
-   ```
+```
+@spec-quality Generate security, testing strategy, implementation steps, success criteria, and future enhancements for: {{IDEA}}
 
-3. **Aggregate Results**:
-   Combine all subagent outputs into a single valid XML document.
+Use the blueprint above as context.
+```
+
+## Phase 3: Aggregate and Validate
+
+Once all subagents have returned their sections:
+
+1. **Merge** all XML fragments into a single document
+2. **Self-validate** the output:
+   - Count features: must be >= {{MIN_FEATURES}}
+   - Count endpoints: must be >= {{MIN_API_ENDPOINTS}}
+   - Verify ALL closing tags are present
+   - Ensure no truncated content
 
 ## Output Format
 
-Output ONLY the complete XML specification:
+> [!CRITICAL]
+> Output ONLY the complete, valid XML specification. Do NOT include any explanation or commentary outside the XML tags.
 
 ```xml
 <project_specification>
@@ -50,12 +57,20 @@ Output ONLY the complete XML specification:
   <prerequisites>...</prerequisites>
 
   <!-- From @spec-product -->
-  <core_features>...</core_features>
+  <core_features>
+    <feature>
+      <name>Feature Name</name>
+      <description>...</description>
+    </feature>
+    <!-- MUST have {{MIN_FEATURES}}+ features -->
+  </core_features>
   <user_experience>...</user_experience>
 
   <!-- From @spec-architecture -->
   <database_schema>...</database_schema>
-  <api_endpoints>...</api_endpoints>
+  <api_endpoints>
+    <!-- MUST have {{MIN_API_ENDPOINTS}}+ endpoints -->
+  </api_endpoints>
 
   <!-- From @spec-quality -->
   <security>...</security>
@@ -79,5 +94,4 @@ Output ONLY the complete XML specification:
 
 ---
 
-Generate the blueprint now, then invoke subagents to complete the specification.
 ULTRATHINK

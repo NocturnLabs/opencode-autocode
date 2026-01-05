@@ -32,9 +32,19 @@ pub struct Database {
 
 impl Database {
     /// Open or create a database at the given path
+    ///
+    /// Enables WAL (Write-Ahead Logging) mode for better concurrency in parallel
+    /// worker scenarios. WAL mode allows multiple readers with a single writer
+    /// without locking contention.
     pub fn open(path: &Path) -> Result<Self> {
         let conn = Connection::open(path)
             .with_context(|| format!("Failed to open database: {}", path.display()))?;
+
+        // Set busy timeout to handle transient locks from parallel workers
+        conn.busy_timeout(std::time::Duration::from_millis(5000))?;
+
+        // Enable WAL mode for better concurrency (multiple readers, single writer)
+        conn.execute_batch("PRAGMA journal_mode=WAL;")?;
 
         let db = Self {
             conn: Arc::new(Mutex::new(conn)),

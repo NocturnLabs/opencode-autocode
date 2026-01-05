@@ -368,6 +368,7 @@ fn generate_opencode_json() -> String {
   },
   "mcp": {},
   "permission": {
+  "*": "allow",
     "bash": "allow",
     "edit": "allow"
   }

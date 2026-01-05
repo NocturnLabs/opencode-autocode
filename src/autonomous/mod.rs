@@ -40,6 +40,9 @@ pub fn run_parallel(
 
     let mut iteration = 0usize;
 
+    // Clear any lingering stop signal from a previous run
+    session::clear_stop_signal();
+
     loop {
         iteration += 1;
 
@@ -161,6 +164,9 @@ pub fn run(
         println!("\n→ Ctrl+C detected, stopping after current session...");
     })
     .ok();
+
+    // Clear any lingering stop signal from a previous run
+    session::clear_stop_signal();
 
     logger.separator();
     logger.info("OpenCode Supervisor starting");

@@ -361,6 +361,10 @@ pub fn run_supervisor_loop(
                         .mark_failing_with_error(&feature.description, Some(&error_msg))?;
                     println!("  → Feature marked as failing (will auto-fix next iteration)");
 
+                    // Discard uncommitted changes so the next attempt starts clean
+                    println!("  → Discarding uncommitted changes...");
+                    let _ = git::discard_changes(settings.verbose);
+
                     last_run_success = false;
                 }
             } else {

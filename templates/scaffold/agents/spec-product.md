@@ -15,21 +15,25 @@ Generate the `<core_features>` and `<user_experience>` XML sections based on the
 
 ## Requirements
 
-### Core Features ({{MIN_FEATURES}}+ features)
+### Core Features
 
-For each feature, include:
+> [!CRITICAL]
+> You MUST generate **at least 15 features**. Each feature must have:
+> - A clear `<name>` tag
+> - A detailed `<description>` tag
+> - 5-10 sub-features with implementation detail
+> - Error handling approach
+> - Edge cases to consider
 
-- 5-10 sub-features with implementation detail
-- Error handling approach
-- Edge cases
+**Count your features before outputting.** If you have fewer than 15, add more until the requirement is met.
 
 ### User Experience
 
 Include:
 
-- User flows (primary, secondary, admin journeys)
-- Accessibility (WCAG compliance, keyboard navigation)
-- Responsive design (mobile breakpoints, touch interactions)
+- **User flows**: Primary, secondary, and admin journeys
+- **Accessibility**: WCAG compliance, keyboard navigation, screen reader support
+- **Responsive design**: Mobile breakpoints, touch interactions, adaptive layouts
 
 ## Output Format
 
@@ -41,11 +45,15 @@ Output ONLY valid XML fragments. Use proper escaping:
 
 ```xml
 <core_features>
-  <feature_name>
-    - Sub-feature with implementation detail
-    - Error handling approach
-    - Edge case: [specific scenario]
-  </feature_name>
+  <feature>
+    <name>Feature 1</name>
+    <description>Detailed description with implementation approach, error handling, and edge cases.</description>
+  </feature>
+  <feature>
+    <name>Feature 2</name>
+    <description>...</description>
+  </feature>
+  <!-- Continue until you have AT LEAST 15 features -->
 </core_features>
 
 <user_experience>
@@ -54,3 +62,8 @@ Output ONLY valid XML fragments. Use proper escaping:
   <responsive_design>...</responsive_design>
 </user_experience>
 ```
+
+**Self-check before output:**
+- [ ] I have >= 15 `<feature>` elements
+- [ ] All `<feature>` tags have matching `</feature>` closing tags
+- [ ] Both `<core_features>` and `<user_experience>` are complete
