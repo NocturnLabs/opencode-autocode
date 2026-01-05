@@ -24,7 +24,7 @@ pub fn context_exists(config: &Config) -> bool {
     context_dir.exists() && context_dir.join("product.md").exists()
 }
 
-/// Create the conductor context directory structure
+// Create the conductor context directory structure
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Track Management
