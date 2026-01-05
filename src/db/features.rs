@@ -84,19 +84,7 @@ impl FeatureRepository {
         self.query_features(&conn, "SELECT * FROM features ORDER BY id")
     }
 
-    /// Get all passing features
-    pub fn list_passing(&self) -> Result<Vec<Feature>> {
-        let conn = self.conn.lock().unwrap();
-        self.query_features(&conn, "SELECT * FROM features WHERE passes = 1 ORDER BY id")
-    }
 
-    /// Get all remaining (non-passing) features
-    pub fn list_remaining(&self) -> Result<Vec<Feature>> {
-        let conn = self.conn.lock().unwrap();
-        self.query_features(&conn, "SELECT * FROM features WHERE passes = 0 ORDER BY id")
-    }
-
-    /// Count passing and remaining features
     pub fn count(&self) -> Result<(usize, usize)> {
         let conn = self.conn.lock().unwrap();
 
@@ -197,17 +185,13 @@ impl FeatureRepository {
         Ok(count > 0)
     }
 
-    /// Get passing feature descriptions as a set
-    pub fn get_passing_descriptions(&self) -> Result<std::collections::HashSet<String>> {
-        let features = self.list_passing()?;
-        Ok(features.into_iter().map(|f| f.description).collect())
-    }
+
 
     /// Helper to query features and load their steps
     fn query_features(&self, conn: &Connection, sql: &str) -> Result<Vec<Feature>> {
         let mut stmt = conn.prepare(sql).context("Failed to prepare query")?;
 
-        let feature_rows = stmt
+        let feature_iter = stmt
             .query_map([], |row| {
                 Ok((
                     row.get::<_, i64>(0)?,            // id
@@ -222,12 +206,26 @@ impl FeatureRepository {
 
         let mut features = Vec::new();
 
-        for row in feature_rows {
-            let (id, category, description, passes, verification_command, last_error) =
-                row.context("Failed to read feature row")?;
+        // Collect feature data first to release stmt borrow
+        let mut feature_data = Vec::new();
+        for feature in feature_iter {
+            feature_data.push(feature?);
+        }
 
+        // Now load steps for each feature
+        for (id, category, description, passes, verification_command, last_error) in feature_data {
             // Load steps for this feature
-            let steps = self.load_steps(conn, id)?;
+            let mut step_stmt = conn
+                .prepare(
+                    "SELECT step_text FROM feature_steps WHERE feature_id = ?1 ORDER BY step_order",
+                )
+                .context("Failed to prepare steps query")?;
+
+            let steps = step_stmt
+                .query_map(params![id], |row| row.get::<_, String>(0))
+                .context("Failed to query steps")?
+                .collect::<Result<Vec<_>, _>>()
+                .context("Failed to read steps")?;
 
             features.push(Feature {
                 id: Some(id),
@@ -241,23 +239,6 @@ impl FeatureRepository {
         }
 
         Ok(features)
-    }
-
-    /// Load steps for a feature
-    fn load_steps(&self, conn: &Connection, feature_id: i64) -> Result<Vec<String>> {
-        let mut stmt = conn
-            .prepare(
-                "SELECT step_text FROM feature_steps WHERE feature_id = ?1 ORDER BY step_order",
-            )
-            .context("Failed to prepare steps query")?;
-
-        let steps = stmt
-            .query_map(params![feature_id], |row| row.get::<_, String>(0))
-            .context("Failed to query steps")?
-            .collect::<Result<Vec<_>, _>>()
-            .context("Failed to read steps")?;
-
-        Ok(steps)
     }
 }
 
@@ -292,10 +273,9 @@ mod tests {
         let id = repo.insert(&feature).unwrap();
         assert!(id > 0);
 
-        let features = repo.list_all().unwrap();
-        assert_eq!(features.len(), 1);
-        assert_eq!(features[0].description, "Test feature");
-        assert_eq!(features[0].steps.len(), 2);
+        let (passing, remaining) = repo.count().unwrap();
+        assert_eq!(passing, 0);
+        assert_eq!(remaining, 1);
     }
 
     #[test]

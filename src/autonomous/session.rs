@@ -97,12 +97,12 @@ fn extract_cost(s: &str) -> Option<f64> {
 
 /// Result from a single OpenCode session
 #[derive(Debug)]
-#[allow(dead_code)]
+
 pub enum SessionResult {
     /// Session completed successfully, continue to next
     Continue,
     /// All tests passing, project complete
-    Complete,
+
     /// Error occurred, stop
     Error(String),
     /// Stop signal detected

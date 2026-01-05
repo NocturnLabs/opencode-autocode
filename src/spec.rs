@@ -4,7 +4,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Application specification - technology agnostic
-#[allow(dead_code)]
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppSpec {
     pub project_name: String,

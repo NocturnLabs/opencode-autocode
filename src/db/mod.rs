@@ -4,7 +4,7 @@
 //! Replaces the previous file-based tracking (feature_list.json).
 
 // Allow dead code for internal APIs that will be used by autonomous loop integration
-#![allow(dead_code)]
+
 
 pub mod features;
 pub mod knowledge;
@@ -88,15 +88,6 @@ impl Database {
         KnowledgeRepository::new(self.connection())
     }
 
-    /// Check if database exists at path
-    pub fn exists(path: &Path) -> bool {
-        path.exists()
-    }
-
-    /// Check if default database exists
-    pub fn default_exists() -> bool {
-        Self::exists(Path::new(DEFAULT_DB_PATH))
-    }
 
     // ============================================================
     // MCP-equivalent operations (replaces SQLite MCP server)

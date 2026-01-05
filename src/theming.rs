@@ -3,7 +3,7 @@
 //! Provides consistent colors, symbols, and box drawing characters
 //! across all interactive terminal displays.
 
-#![allow(dead_code)]
+
 
 use console::{style, StyledObject};
 
@@ -39,7 +39,7 @@ pub mod symbols {
     pub const ARROW: &str = "→";
     pub const BULLET: &str = "•";
     pub const INFO: &str = "ℹ";
-    pub const WARNING: &str = "⚠";
+
     pub const SPARKLE: &str = "✨";
 }
 
@@ -54,40 +54,13 @@ pub mod boxes {
     // Lines
     pub const HORIZONTAL: &str = "─";
     pub const VERTICAL: &str = "│";
-    pub const HORIZONTAL_BOLD: &str = "━";
+
 
     /// Create a horizontal line of specified width
     pub fn line(width: usize) -> String {
         HORIZONTAL.repeat(width)
     }
 
-    /// Create a bold horizontal line of specified width
-    pub fn bold_line(width: usize) -> String {
-        HORIZONTAL_BOLD.repeat(width)
-    }
-
-    /// Create a boxed header with rounded corners
-    pub fn header(title: &str, width: usize) -> String {
-        let inner_width = width.saturating_sub(2);
-        let padding = inner_width.saturating_sub(title.len());
-        let left_pad = padding / 2;
-        let right_pad = padding - left_pad;
-
-        format!(
-            "{}{}{}\n{}{}{}{}{}\n{}{}{}",
-            TOP_LEFT,
-            line(inner_width),
-            TOP_RIGHT,
-            VERTICAL,
-            " ".repeat(left_pad),
-            title,
-            " ".repeat(right_pad),
-            VERTICAL,
-            BOTTOM_LEFT,
-            line(inner_width),
-            BOTTOM_RIGHT
-        )
-    }
 }
 
 /// Styled output helpers

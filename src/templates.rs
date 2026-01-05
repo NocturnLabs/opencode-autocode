@@ -1,11 +1,11 @@
-#![allow(dead_code)]
+
 //! Template library for project scaffolding
 //!
 //! Provides pre-built templates for common project types.
 
 use anyhow::{bail, Result};
 use console::style;
-use dialoguer::{Input, Select};
+use dialoguer::Input;
 use std::path::Path;
 
 /// Embedded project templates
@@ -125,61 +125,7 @@ pub fn use_template(name: &str, output_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Interactive template selection
-pub fn select_template_interactive(output_dir: &Path) -> Result<()> {
-    let templates = get_templates();
 
-    println!("\n{}", style("📚 Template Library").cyan().bold());
-    println!(
-        "{}\n",
-        style("Select a project template to get started quickly.").dim()
-    );
-
-    let items: Vec<String> = templates
-        .iter()
-        .map(|t| format!("{} - {}", t.display_name, t.description))
-        .collect();
-
-    let selection = Select::new()
-        .with_prompt("Choose a template")
-        .items(&items)
-        .default(0)
-        .interact()?;
-
-    let template = &templates[selection];
-
-    // Get project name
-    let project_name: String = Input::new().with_prompt("Project name").interact_text()?;
-
-    // Get description
-    let description: String = Input::new()
-        .with_prompt("Brief description")
-        .interact_text()?;
-
-    // Fill in placeholders
-    let spec = template
-        .content
-        .replace("{{PROJECT_NAME}}", &project_name)
-        .replace("{{DESCRIPTION}}", &description);
-
-    // Validate
-    println!(
-        "\n{}",
-        style("─── Validating Specification ───").cyan().bold()
-    );
-    let validation = crate::validation::validate_spec(&spec, 0, 0)?;
-    validation.print();
-
-    // Scaffold
-    crate::scaffold::scaffold_with_spec_text(output_dir, &spec)?;
-
-    println!(
-        "\n{}",
-        style("✅ Project scaffolded from template!").green().bold()
-    );
-
-    Ok(())
-}
 
 #[cfg(test)]
 mod tests {

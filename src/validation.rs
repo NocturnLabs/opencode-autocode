@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+
 //! Output validation and diff generationty checks
 //!
 //! Validates generated project specifications for structural correctness
@@ -238,25 +238,6 @@ pub fn validate_spec(
     })
 }
 
-/// Generate a diff between two spec versions
-pub fn generate_diff(old_spec: &str, new_spec: &str) -> String {
-    use similar::{ChangeTag, TextDiff};
-
-    let diff = TextDiff::from_lines(old_spec, new_spec);
-    let mut output = String::new();
-
-    for change in diff.iter_all_changes() {
-        let sign = match change.tag() {
-            ChangeTag::Delete => "-",
-            ChangeTag::Insert => "+",
-            ChangeTag::Equal => " ",
-        };
-        output.push_str(&format!("{}{}", sign, change));
-    }
-
-    output
-}
-
 /// Print a colored diff
 pub fn print_diff(old_spec: &str, new_spec: &str) {
     use similar::{ChangeTag, TextDiff};
@@ -286,6 +267,8 @@ pub fn print_diff(old_spec: &str, new_spec: &str) {
         println!("{}", style("   (no changes)").dim());
     }
 }
+
+
 
 #[cfg(test)]
 mod tests {
@@ -362,12 +345,5 @@ mod tests {
         assert!(!result.errors.is_empty());
     }
 
-    #[test]
-    fn test_generate_diff() {
-        let old = "line1\nline2\nline3\n";
-        let new = "line1\nmodified\nline3\n";
-        let diff = generate_diff(old, new);
-        assert!(diff.contains("-line2"));
-        assert!(diff.contains("+modified"));
-    }
+
 }

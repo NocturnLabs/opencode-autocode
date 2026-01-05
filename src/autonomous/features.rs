@@ -1,7 +1,7 @@
 //! Feature list utilities for the autonomous loop
 
 use anyhow::Result;
-use std::collections::HashSet;
+
 use std::path::Path;
 
 use crate::db;
@@ -46,22 +46,8 @@ impl FeatureProgress {
 }
 
 /// Get descriptions of currently passing features from database
-#[allow(dead_code)]
-pub fn get_passing_feature_descriptions(db_path: &Path) -> Result<HashSet<String>> {
-    if !db_path.exists() {
-        return Ok(HashSet::new());
-    }
 
-    let database = db::Database::open(db_path)?;
-    let descriptions = database.features().get_passing_descriptions()?;
-    Ok(descriptions)
-}
 
-/// Detect newly completed features by comparing before/after sets
-#[allow(dead_code)]
-pub fn detect_newly_completed(before: &HashSet<String>, after: &HashSet<String>) -> Vec<String> {
-    after.difference(before).cloned().collect()
-}
 
 /// Get the first pending (not passing) feature from the database
 pub fn get_first_pending_feature(db_path: &Path) -> Result<Option<db::features::Feature>> {

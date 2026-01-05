@@ -219,18 +219,15 @@ fn slugify(s: &str) -> String {
 }
 
 /// Coordinator for parallel workers
-#[allow(dead_code)]
+
 pub struct Coordinator {
-    worker_count: usize,
-    base_path: PathBuf,
+
     merge_queue: Vec<WorkerResult>,
 }
 
 impl Coordinator {
-    pub fn new(worker_count: usize, base_path: PathBuf) -> Self {
+    pub fn new(_worker_count: usize, _base_path: PathBuf) -> Self {
         Self {
-            worker_count,
-            base_path,
             merge_queue: Vec::new(),
         }
     }
