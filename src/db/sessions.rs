@@ -65,16 +65,7 @@ pub struct SessionStats {
 
 #[cfg(test)]
 mod tests {
-
-    use crate::db::Database;
-    use tempfile::TempDir;
-
-    fn setup_test_db() -> (TempDir, Database) {
-        let temp_dir = TempDir::new().unwrap();
-        let db_path = temp_dir.path().join("test.db");
-        let db = Database::open(&db_path).unwrap();
-        (temp_dir, db)
-    }
+    use crate::db::test_utils::tests::setup_test_db;
 
     #[test]
     fn test_get_stats_empty() {

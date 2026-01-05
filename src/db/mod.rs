@@ -10,6 +10,8 @@ pub mod knowledge;
 pub mod meta;
 mod schema;
 mod sessions;
+#[cfg(test)]
+pub mod test_utils;
 
 // Re-export types used by main.rs
 pub use features::FeatureRepository;

@@ -23,6 +23,7 @@ mod templates;
 mod theming;
 mod tui;
 mod updater;
+mod utils;
 mod validation;
 
 use anyhow::Result;

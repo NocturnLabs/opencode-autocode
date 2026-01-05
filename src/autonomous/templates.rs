@@ -1,5 +1,6 @@
 use crate::config::Config;
 use crate::db::features::Feature;
+use crate::utils::write_file;
 use anyhow::Result;
 use std::io::{self, BufRead, Write};
 use std::path::Path;
@@ -29,10 +30,7 @@ pub fn generate_fix_template(feature: &Feature, error: &str, _db_path: &Path) ->
 
     // Write to active command file
     let target = Path::new(".opencode/command/auto-fix-active.md");
-    if let Some(parent) = target.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    std::fs::write(target, content)?;
+    write_file(target, &content)?;
     Ok(())
 }
 
@@ -92,10 +90,7 @@ The supervisor will automatically handle after your session:
     );
 
     let target = Path::new(".opencode/command/auto-continue-active.md");
-    if let Some(parent) = target.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    std::fs::write(target, content)?;
+    write_file(target, &content)?;
     Ok(())
 }
 
@@ -132,10 +127,7 @@ Please implement this enhancement for the current project.
 
     // Write to active command file
     let target = Path::new(".opencode/command/auto-enhance-active.md");
-    if let Some(parent) = target.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    std::fs::write(target, content)?;
+    write_file(target, &content)?;
 
     Ok(LoopAction::Continue)
 }

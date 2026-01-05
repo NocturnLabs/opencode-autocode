@@ -152,7 +152,7 @@ mod tests {
     /// We use this heuristic (text.len() / 4) to estimate token usage during tests.
     /// While not perfect, it helps us catch massive regressions in prompt size before they hit production.
     fn estimate_tokens(text: &str) -> usize {
-        (text.len() + 3) / 4
+        text.len().div_ceil(4)
     }
 
     /// We print these counts to stdout so developers can see the "context tax" of each template.
@@ -254,7 +254,7 @@ mod tests {
         ];
 
         for (name, content) in &commands_resolved {
-            let tokens = estimate_tokens(&content);
+            let tokens = estimate_tokens(content);
             println!(
                 "{:<30} {:>6} chars  ~{:>5} tokens",
                 name,

@@ -7,6 +7,7 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use crate::autonomous::git;
 use crate::db::features::Feature;
 
 /// Result of a worker completing a feature
@@ -69,13 +70,11 @@ pub fn create_worktree(
         let current = String::from_utf8_lossy(&output.stdout).trim().to_string();
         if current == branch_name {
             // We are on the branch we want to delete, must move off it first
-            let _ = Command::new("git").args(["checkout", "main"]).status();
+            git::checkout_branch("main")?;
         }
     }
 
-    let _ = Command::new("git")
-        .args(["branch", "-D", &branch_name])
-        .output();
+    git::delete_branch_force(&branch_name)?;
 
     // Create the worktree with a new branch
     let status = Command::new("git")
@@ -193,54 +192,31 @@ pub fn remove_worktree(worktree_path: &Path, _branch_name: &str) -> Result<()> {
 /// Rebase a branch onto main and fast-forward merge
 pub fn rebase_and_merge(branch_name: &str) -> Result<bool> {
     // 1. Stash any changes in main
-    let stash_output = Command::new("git")
-        .args(["stash", "push", "-m", "Auto-stash before parallel merge"])
-        .output();
+    let stashed = git::stash_push("Auto-stash before parallel merge")?;
 
-    let stashed = if let Ok(output) = stash_output {
-        String::from_utf8_lossy(&output.stdout).contains("Saved working directory and index state")
-    } else {
-        false
-    };
-
-    let status = Command::new("git")
-        .args(["checkout", "main"])
-        .status()
-        .context("Failed to checkout main")?;
-
-    if !status.success() {
+    if !git::checkout_branch("main")? {
         return Ok(false);
     }
 
     // 2. Rebase the feature branch onto main (this checks it out in the main repo)
-    let status = Command::new("git")
-        .args(["rebase", "main", branch_name])
-        .status()
-        .context("Failed to rebase")?;
-
-    if !status.success() {
-        // Abort the rebase if it failed
-        let _ = Command::new("git").args(["rebase", "--abort"]).status();
+    if !git::rebase(branch_name, "main")? {
         // ALWAYS return to main
-        let _ = Command::new("git").args(["checkout", "main"]).status();
+        git::checkout_branch("main")?;
         return Ok(false);
     }
 
     // 3. Checkout main again (rebase leaves you on the feature branch)
-    let _ = Command::new("git").args(["checkout", "main"]).status();
+    git::checkout_branch("main")?;
 
     // 4. Fast-forward merge
-    let status = Command::new("git")
-        .args(["merge", "--ff-only", branch_name])
-        .status()
-        .context("Failed to merge")?;
+    let success = git::merge_ff_only(branch_name)?;
 
     // 5. Pop stash if we stashed anything
     if stashed {
-        let _ = Command::new("git").args(["stash", "pop"]).status();
+        git::stash_pop().ok();
     }
 
-    Ok(status.success())
+    Ok(success)
 }
 
 /// Convert a description to a URL-safe slug
@@ -290,9 +266,7 @@ impl Coordinator {
                 if rebase_and_merge(&result.branch_name)? {
                     println!("  ✅ Merged successfully");
                     // Delete the merged branch
-                    let _ = std::process::Command::new("git")
-                        .args(["branch", "-d", &result.branch_name])
-                        .status();
+                    git::delete_branch(&result.branch_name).ok();
                     merged_count += 1;
                 } else {
                     println!("  ⚠️ Rebase failed, branch left for manual review");

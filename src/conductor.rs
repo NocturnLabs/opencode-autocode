@@ -8,11 +8,12 @@
 //! This module integrates with the existing feature_list.json workflow,
 //! adding persistent planning artifacts that survive across sessions.
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use std::fs;
 use std::path::Path;
 
 use crate::config::Config;
+use crate::utils::{read_file, write_file};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Context Management
@@ -91,8 +92,7 @@ pub struct PlanTask {
 
 /// Parse tasks from a plan.md file
 pub fn parse_plan(plan_path: &Path) -> Result<Vec<PlanTask>> {
-    let content = fs::read_to_string(plan_path)
-        .with_context(|| format!("Failed to read plan: {}", plan_path.display()))?;
+    let content = read_file(plan_path)?;
 
     let mut tasks = Vec::new();
 
@@ -135,7 +135,7 @@ pub fn get_next_task(tasks: &[PlanTask]) -> Option<&PlanTask> {
 
 /// Mark a task as complete in the plan file
 pub fn mark_task_complete(plan_path: &Path, line_number: usize) -> Result<()> {
-    let content = fs::read_to_string(plan_path)?;
+    let content = read_file(plan_path)?;
     let mut lines: Vec<String> = content.lines().map(String::from).collect();
 
     if line_number > 0 && line_number <= lines.len() {
@@ -145,7 +145,7 @@ pub fn mark_task_complete(plan_path: &Path, line_number: usize) -> Result<()> {
         }
     }
 
-    fs::write(plan_path, lines.join("\n") + "\n")?;
+    write_file(plan_path, &(lines.join("\n") + "\n"))?;
     Ok(())
 }
 

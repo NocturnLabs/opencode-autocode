@@ -7,6 +7,7 @@ use std::path::Path;
 
 use crate::communication::CommunicationChannel;
 use crate::db;
+use crate::utils::write_file;
 
 /// Embedded default app spec template
 const DEFAULT_APP_SPEC: &str = include_str!("../docs/examples/default_app_spec.md");
@@ -79,8 +80,7 @@ pub fn scaffold_custom(output_dir: &Path, spec_path: &Path) -> Result<()> {
         spec_path.exists(),
         "Spec path should exist before scaffolding"
     );
-    let spec_content = fs::read_to_string(spec_path)
-        .with_context(|| format!("Failed to read spec file: {}", spec_path.display()))?;
+    let spec_content = crate::utils::read_file(spec_path)?;
     scaffold_with_spec_text(output_dir, &spec_content)
 }
 
@@ -117,8 +117,7 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
 
     // Write app_spec.md inside .autocode/
     let spec_path = autocode_dir.join("app_spec.md");
-    fs::write(&spec_path, spec_content)
-        .with_context(|| format!("Failed to write app_spec.md: {}", spec_path.display()))?;
+    write_file(&spec_path, spec_content)?;
     println!("   📄 Created .autocode/app_spec.md");
 
     // Load config to get complexity targets
@@ -141,37 +140,21 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     let auto_init_content = resolve_includes(AUTO_INIT_TEMPLATE)
         .replace("{{MIN_FEATURES}}", &min_f.to_string())
         .replace("{{MIN_API_ENDPOINTS}}", &min_e.to_string());
-    fs::write(&auto_init_path, auto_init_content)
-        .with_context(|| format!("Failed to write auto-init.md: {}", auto_init_path.display()))?;
+    write_file(&auto_init_path, &auto_init_content)?;
     println!("   📄 Created .opencode/command/auto-init.md");
 
     let auto_continue_path = command_dir.join("auto-continue.md");
     let auto_continue_content = resolve_includes(AUTO_CONTINUE_TEMPLATE);
-    fs::write(&auto_continue_path, auto_continue_content).with_context(|| {
-        format!(
-            "Failed to write auto-continue.md: {}",
-            auto_continue_path.display()
-        )
-    })?;
+    write_file(&auto_continue_path, &auto_continue_content)?;
     println!("   📄 Created .opencode/command/auto-continue.md");
 
     let auto_enhance_path = command_dir.join("auto-enhance.md");
-    fs::write(&auto_enhance_path, AUTO_ENHANCE_TEMPLATE).with_context(|| {
-        format!(
-            "Failed to write auto-enhance.md: {}",
-            auto_enhance_path.display()
-        )
-    })?;
+    write_file(&auto_enhance_path, AUTO_ENHANCE_TEMPLATE)?;
     println!("   📄 Created .opencode/command/auto-enhance.md");
 
     // Write security allowlist inside .autocode/
     let allowlist_path = autocode_dir.join("security-allowlist.json");
-    fs::write(&allowlist_path, SECURITY_ALLOWLIST).with_context(|| {
-        format!(
-            "Failed to write security-allowlist.json: {}",
-            allowlist_path.display()
-        )
-    })?;
+    write_file(&allowlist_path, SECURITY_ALLOWLIST)?;
     println!("   📄 Created .autocode/security-allowlist.json");
 
     // Initialize SQLite database inside .autocode/
@@ -183,8 +166,7 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     // Write user configuration file inside .autocode/ (if not already configured)
     let config_path = autocode_dir.join("config.toml");
     if !config_path.exists() {
-        fs::write(&config_path, USER_CONFIG_TEMPLATE)
-            .with_context(|| format!("Failed to write config.toml: {}", config_path.display()))?;
+        write_file(&config_path, USER_CONFIG_TEMPLATE)?;
         println!("   ⚙️  Created .autocode/config.toml");
     } else {
         println!("   ⚙️  Using existing .autocode/config.toml");
@@ -192,36 +174,20 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
 
     // Write subagent definitions for parallel spec generation
     let spec_product_path = agent_dir.join("spec-product.md");
-    fs::write(&spec_product_path, SPEC_PRODUCT_AGENT).with_context(|| {
-        format!(
-            "Failed to write spec-product.md: {}",
-            spec_product_path.display()
-        )
-    })?;
+    write_file(&spec_product_path, SPEC_PRODUCT_AGENT)?;
     println!("   🤖 Created .opencode/agent/spec-product.md");
 
     let spec_arch_path = agent_dir.join("spec-architecture.md");
-    fs::write(&spec_arch_path, SPEC_ARCHITECTURE_AGENT).with_context(|| {
-        format!(
-            "Failed to write spec-architecture.md: {}",
-            spec_arch_path.display()
-        )
-    })?;
+    write_file(&spec_arch_path, SPEC_ARCHITECTURE_AGENT)?;
     println!("   🤖 Created .opencode/agent/spec-architecture.md");
 
     let spec_quality_path = agent_dir.join("spec-quality.md");
-    fs::write(&spec_quality_path, SPEC_QUALITY_AGENT).with_context(|| {
-        format!(
-            "Failed to write spec-quality.md: {}",
-            spec_quality_path.display()
-        )
-    })?;
+    write_file(&spec_quality_path, SPEC_QUALITY_AGENT)?;
     println!("   🤖 Created .opencode/agent/spec-quality.md");
 
     // Write coder subagent for dual-model architecture
     let coder_path = agent_dir.join("coder.md");
-    fs::write(&coder_path, CODER_AGENT)
-        .with_context(|| format!("Failed to write coder.md: {}", coder_path.display()))?;
+    write_file(&coder_path, CODER_AGENT)?;
     println!("   🤖 Created .opencode/agent/coder.md");
 
     // Initialize communication channel (minimal stub)
@@ -233,27 +199,20 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     let gitignore_path = output_dir.join(".gitignore");
     if !gitignore_path.exists() {
         let gitignore_content = generate_gitignore();
-        fs::write(&gitignore_path, gitignore_content)
-            .with_context(|| format!("Failed to write .gitignore: {}", gitignore_path.display()))?;
+        write_file(&gitignore_path, &gitignore_content)?;
         println!("   📝 Created .gitignore");
     }
 
     // Write opencode.json at project root (required by OpenCode)
     let opencode_json_path = output_dir.join("opencode.json");
     let opencode_json_content = generate_opencode_json();
-    fs::write(&opencode_json_path, opencode_json_content).with_context(|| {
-        format!(
-            "Failed to write opencode.json: {}",
-            opencode_json_path.display()
-        )
-    })?;
+    write_file(&opencode_json_path, &opencode_json_content)?;
     println!("   ⚙️  Created opencode.json");
 
     // Write AGENTS.md at project root
     let agents_md_path = output_dir.join("AGENTS.md");
     if !agents_md_path.exists() {
-        fs::write(&agents_md_path, AGENTS_MD_TEMPLATE)
-            .with_context(|| format!("Failed to write AGENTS.md: {}", agents_md_path.display()))?;
+        write_file(&agents_md_path, AGENTS_MD_TEMPLATE)?;
         println!("   📝 Created AGENTS.md");
     }
 

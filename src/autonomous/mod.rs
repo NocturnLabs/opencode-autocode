@@ -32,16 +32,11 @@ pub fn run_parallel(
     config_path: Option<&Path>,
     developer_mode: bool,
 ) -> Result<()> {
-    debug_logger::init(developer_mode);
+    let (config, settings) = init_session(developer_mode, config_path, limit)?;
     let logger = debug_logger::get();
-    let config = load_config(config_path)?;
-    let settings = settings::LoopSettings::from_config(&config, limit);
     let db_path = Path::new(&settings.database_file);
 
     let mut iteration = 0usize;
-
-    // Clear any lingering stop signal from a previous run
-    session::clear_stop_signal();
 
     loop {
         iteration += 1;
@@ -151,12 +146,8 @@ pub fn run(
     enhancement_mode: bool,
     target_feature_id: Option<i64>,
 ) -> Result<()> {
-    // Initialize debug logger
-    debug_logger::init(developer_mode);
+    let (config, settings) = init_session(developer_mode, config_path, limit)?;
     let logger = debug_logger::get();
-
-    let config = load_config(config_path)?;
-    let settings = LoopSettings::from_config(&config, limit);
 
     // Register Ctrl+C handler to create stop signal file
     ctrlc::set_handler(|| {
@@ -164,9 +155,6 @@ pub fn run(
         println!("\n→ Ctrl+C detected, stopping after current session...");
     })
     .ok();
-
-    // Clear any lingering stop signal from a previous run
-    session::clear_stop_signal();
 
     logger.separator();
     logger.info("OpenCode Supervisor starting");
@@ -235,4 +223,20 @@ fn load_config(config_path: Option<&Path>) -> Result<Config> {
         Some(path) => Config::load_from_file(path),
         None => Config::load(None),
     }
+}
+
+/// Initialize a session, loading config and setting up logging
+fn init_session(
+    developer_mode: bool,
+    config_path: Option<&Path>,
+    limit: Option<usize>,
+) -> Result<(Config, LoopSettings)> {
+    debug_logger::init(developer_mode);
+    let config = load_config(config_path)?;
+    let settings = settings::LoopSettings::from_config(&config, limit);
+
+    // Clear any lingering stop signal from a previous run
+    session::clear_stop_signal();
+
+    Ok((config, settings))
 }

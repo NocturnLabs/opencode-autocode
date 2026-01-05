@@ -17,4 +17,5 @@ pub mod templates;
 pub mod theming;
 pub mod tui;
 pub mod updater;
+pub mod utils;
 pub mod validation;
