@@ -10,11 +10,13 @@ All notable changes to this project will be documented in this file.
 - **Security & Validation**: Introduced a new security module for command validation and enforced read-only database queries for safety.
 - **Process Tracking**: Added CLI commands for tracking and managing background server processes.
 - **Scaffolding**: Added `AGENTS.md` template to project scaffolding and updated `opencode.json` with provider configurations.
+- **Generator Improvements**: Comprehensive overhaul of generator prompts and templates to support more flexible, complexity-based specifications and better structural validation.
 - **Database Concurrency**: Improved database reliability with enhanced concurrency handling.
 
 ### Changed
 
 - **Core Architecture**: Centralized session initialization and extracted shared utilities to improve codebase maintainability.
+- **Refactoring**: Significant code cleanup across the codebase, reducing duplication and improving clarity.
 - **Autonomous Runner**: Enhanced rebase safety with automated stashing and enabled configurable worktree database paths.
 - **Generation Prompts**: Refined agent architecture generation prompts to improve the quality and relevance of generated specifications.
 
