@@ -1,6 +1,7 @@
 //! Scaffolding logic - generates files from templates
 
 use anyhow::{Context, Result};
+use console::style;
 use std::fs;
 use std::path::Path;
 
@@ -223,9 +224,9 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
         .with_context(|| format!("Failed to write coder.md: {}", coder_path.display()))?;
     println!("   🤖 Created .opencode/agent/coder.md");
 
-    // Initialize communication channel
-    let comm_channel = CommunicationChannel::new(&autocode_dir.join("COMMUNICATION.md"));
-    comm_channel.init()?;
+    // Initialize communication channel (minimal stub)
+    let _comm_channel = CommunicationChannel::new();
+    println!("{}", style("ℹ Communication initialized.").dim());
     println!("   💬 Created .autocode/COMMUNICATION.md");
 
     // Write .gitignore at project root if it doesn't exist
@@ -380,6 +381,12 @@ fn generate_opencode_json() -> String {
 fn generate_gitignore() -> String {
     r#"# MCP & Tool caches (do not commit)
 .osgrep/
+
+# OpenCode Autocode
+progress.db*
+opencode-debug.log
+.autocode/logs/
+.conductor/
 "#
     .to_string()
 }

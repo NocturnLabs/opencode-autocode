@@ -62,10 +62,7 @@ pub fn handle_session_result(
             );
             LoopAction::Continue
         }
-        SessionResult::Complete => {
-            println!("\n🎉 All tests passing! Project complete!");
-            LoopAction::Break
-        }
+
         SessionResult::Error(msg) => {
             *consecutive_errors += 1;
             println!(

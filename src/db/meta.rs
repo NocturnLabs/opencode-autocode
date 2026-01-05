@@ -40,11 +40,4 @@ impl MetaRepository {
         .context("Failed to set metadata")?;
         Ok(())
     }
-
-    /// Delete a key
-    pub fn delete(&self, key: &str) -> Result<()> {
-        let conn = self.conn.lock().unwrap();
-        conn.execute("DELETE FROM meta WHERE key = ?1", params![key])?;
-        Ok(())
-    }
 }

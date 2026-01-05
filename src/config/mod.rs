@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 //! Configuration loading and management
 //!
 //! Loads configuration from `autocode.toml` at the project root,

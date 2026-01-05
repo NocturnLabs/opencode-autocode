@@ -19,7 +19,11 @@ pub struct WorkerResult {
 }
 
 /// Create a worktree for a feature, with shared config symlinked
-pub fn create_worktree(feature: &Feature, base_path: &Path) -> Result<(PathBuf, String)> {
+pub fn create_worktree(
+    feature: &Feature,
+    base_path: &Path,
+    config: &crate::config::Config,
+) -> Result<(PathBuf, String)> {
     // Check for git index lock to avoid hanging/contention
     let lock_file = base_path.join(".git/index.lock");
     if lock_file.exists() {
@@ -97,8 +101,17 @@ pub fn create_worktree(feature: &Feature, base_path: &Path) -> Result<(PathBuf, 
     }
 
     // Symlink the database file specifically
-    let db_files = ["progress.db", "progress.db-shm", "progress.db-wal"];
-    for filename in db_files {
+    let db_name = Path::new(&config.paths.database_file)
+        .file_name()
+        .unwrap_or_else(|| std::ffi::OsStr::new("progress.db"))
+        .to_string_lossy();
+
+    let db_files = [
+        db_name.to_string(),
+        format!("{}-shm", db_name),
+        format!("{}-wal", db_name),
+    ];
+    for filename in &db_files {
         let main_file = std::env::current_dir()?.join(".autocode").join(filename);
         let worktree_file = worktree_path.join(".autocode").join(filename);
 
@@ -166,10 +179,17 @@ pub fn remove_worktree(worktree_path: &Path, _branch_name: &str) -> Result<()> {
 
 /// Rebase a branch onto main and fast-forward merge
 pub fn rebase_and_merge(branch_name: &str) -> Result<bool> {
-    // 1. Ensure main is clean and selected
-    let _ = Command::new("git")
-        .args(["reset", "--hard", "HEAD"])
-        .status();
+    // 1. Stash any changes in main
+    let stash_output = Command::new("git")
+        .args(["stash", "push", "-m", "Auto-stash before parallel merge"])
+        .output();
+
+    let stashed = if let Ok(output) = stash_output {
+        String::from_utf8_lossy(&output.stdout).contains("Saved working directory and index state")
+    } else {
+        false
+    };
+
     let status = Command::new("git")
         .args(["checkout", "main"])
         .status()
@@ -202,6 +222,11 @@ pub fn rebase_and_merge(branch_name: &str) -> Result<bool> {
         .status()
         .context("Failed to merge")?;
 
+    // 5. Pop stash if we stashed anything
+    if stashed {
+        let _ = Command::new("git").args(["stash", "pop"]).status();
+    }
+
     Ok(status.success())
 }
 
@@ -219,18 +244,13 @@ fn slugify(s: &str) -> String {
 }
 
 /// Coordinator for parallel workers
-#[allow(dead_code)]
 pub struct Coordinator {
-    worker_count: usize,
-    base_path: PathBuf,
     merge_queue: Vec<WorkerResult>,
 }
 
 impl Coordinator {
-    pub fn new(worker_count: usize, base_path: PathBuf) -> Self {
+    pub fn new(_worker_count: usize, _base_path: PathBuf) -> Self {
         Self {
-            worker_count,
-            base_path,
             merge_queue: Vec::new(),
         }
     }
