@@ -368,6 +368,7 @@ fn generate_opencode_json() -> String {
   },
   "mcp": {},
   "permission": {
+  "*": "allow",
     "bash": "allow",
     "edit": "allow"
   }
@@ -381,6 +382,8 @@ fn generate_opencode_json() -> String {
 fn generate_gitignore() -> String {
     r#"# MCP & Tool caches (do not commit)
 .osgrep/
+.approach-cache/
+.vs-cache/
 
 # OpenCode Autocode
 progress.db*

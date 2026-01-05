@@ -47,3 +47,29 @@ fn create_feature_commit(feature_description: &str, verbose: bool) -> Result<()>
 
     Ok(())
 }
+
+/// Discard all uncommitted changes to reset the working directory
+/// Used when verification fails to give the next attempt a clean slate
+pub fn discard_changes(verbose: bool) -> Result<()> {
+    // Reset tracked files
+    let checkout = Command::new("git")
+        .args(["checkout", "."])
+        .status()
+        .context("Failed to run git checkout")?;
+
+    // Remove untracked files
+    let clean = Command::new("git")
+        .args(["clean", "-fd"])
+        .status()
+        .context("Failed to run git clean")?;
+
+    if checkout.success() && clean.success() {
+        if verbose {
+            println!("✓ Discarded uncommitted changes");
+        }
+    } else if verbose {
+        println!("→ Warning: Could not fully discard changes");
+    }
+
+    Ok(())
+}

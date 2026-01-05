@@ -10,6 +10,38 @@ This file serves as a guide for OpenCode autonomous agents. It describes the pro
 - `tests/`: Test suite.
 - `docs/`: Documentation.
 
+## Database Schema
+
+The project uses SQLite for progress tracking. The database is located at `.autocode/progress.db`.
+
+### features table
+```sql
+CREATE TABLE features (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category TEXT NOT NULL,
+    description TEXT NOT NULL UNIQUE,  -- Feature description (use this, NOT "name")
+    passes INTEGER DEFAULT 0,          -- Pass count (0 = failing, >=1 = passing)
+    verification_command TEXT,         -- Command to verify the feature
+    last_error TEXT,                   -- Last error message if verification failed
+    created_at TEXT,
+    updated_at TEXT
+);
+```
+
+> **IMPORTANT**: There is NO `name` column. Use `description` to identify features.
+
+### Useful queries
+```sql
+-- Get feature by ID
+SELECT id, description, verification_command FROM features WHERE id = ?;
+
+-- List all failing features
+SELECT id, description, last_error FROM features WHERE passes = 0;
+
+-- Mark feature as passing
+UPDATE features SET passes = passes + 1 WHERE id = ?;
+```
+
 ## Coding Patterns
 
 - **Language**: [Specify Language, e.g., Rust, TypeScript]

@@ -105,4 +105,28 @@ impl KnowledgeRepository {
         conn.execute("DELETE FROM knowledge WHERE key = ?1", params![key])?;
         Ok(())
     }
+
+    /// Track a server process by port and PID
+    /// Convenience wrapper for common use case of tracking started servers
+    pub fn track_server(&self, port: u16, pid: u32) -> Result<()> {
+        let key = format!("server_port_{}_pid", port);
+        let description = format!("Dev server on port {}", port);
+        self.set(&key, &pid.to_string(), "servers", Some(&description))
+    }
+
+    /// Get the tracked PID for a server on a given port
+    pub fn get_tracked_server(&self, port: u16) -> Result<Option<u32>> {
+        let key = format!("server_port_{}_pid", port);
+        if let Some(knowledge) = self.get(&key)? {
+            Ok(knowledge.value.parse().ok())
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Remove tracking for a server (call after killing it)
+    pub fn untrack_server(&self, port: u16) -> Result<()> {
+        let key = format!("server_port_{}_pid", port);
+        self.delete(&key)
+    }
 }

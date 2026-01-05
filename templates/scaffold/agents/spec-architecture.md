@@ -15,19 +15,21 @@ Generate the `<database_schema>` and `<api_endpoints>` XML sections based on the
 
 ## Requirements
 
-### Database Schema (10+ tables)
+### Database Schema
 
-For each table:
+> [!IMPORTANT]
+> Generate **at least 8 tables**. For each table:
+> - Column definitions with types and constraints
+> - Indexes for frequently queried columns
+> - Foreign key relationships to other tables
 
-- Column definitions with types and constraints
-- Indexes
-- Foreign key relationships
+### API Endpoints
 
-### API Endpoints (30+ endpoints)
+> [!CRITICAL]
+> You MUST generate **at least 30 API endpoints**. Organize by resource:
+> - METHOD /path — description [auth: required|public]
 
-Organized by resource category:
-
-- METHOD /path — description [auth: required|public]
+**Count your endpoints before outputting.** If fewer than 30, add more until requirement is met.
 
 ## Output Format
 
@@ -36,21 +38,33 @@ Output ONLY valid XML fragments. Use proper escaping.
 ```xml
 <database_schema>
   <tables>
-    <table_name>
-      - column_name: type, constraints, purpose
-      - indexes: [index definitions]
-      - foreign_keys: [relationships]
-    </table_name>
+    <table name="users">
+      <column name="id" type="UUID" constraints="PRIMARY KEY"/>
+      <column name="email" type="VARCHAR(255)" constraints="UNIQUE NOT NULL"/>
+      <!-- more columns -->
+      <indexes>
+        <index columns="email" type="UNIQUE"/>
+      </indexes>
+    </table>
+    <!-- At least 8 tables -->
   </tables>
   <relationships>
-    - Table A → Table B (one-to-many)
+    <relationship from="orders" to="users" type="many-to-one"/>
   </relationships>
 </database_schema>
 
 <api_endpoints>
-  <resource_category>
-    - GET /path — description [auth: required]
-    - POST /path — description [auth: required]
-  </resource_category>
+  <category name="Users">
+    <endpoint method="GET" path="/api/users" auth="required">List all users</endpoint>
+    <endpoint method="POST" path="/api/users" auth="required">Create a user</endpoint>
+    <!-- more endpoints -->
+  </category>
+  <!-- Continue until you have AT LEAST 30 endpoints across all categories -->
 </api_endpoints>
 ```
+
+**Self-check before output:**
+- [ ] I have >= 8 `<table>` elements
+- [ ] I have >= 30 `<endpoint>` elements
+- [ ] All tags have matching closing tags
+- [ ] Both `<database_schema>` and `<api_endpoints>` are complete

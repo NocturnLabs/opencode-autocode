@@ -32,9 +32,19 @@ pub struct Database {
 
 impl Database {
     /// Open or create a database at the given path
+    ///
+    /// Enables WAL (Write-Ahead Logging) mode for better concurrency in parallel
+    /// worker scenarios. WAL mode allows multiple readers with a single writer
+    /// without locking contention.
     pub fn open(path: &Path) -> Result<Self> {
         let conn = Connection::open(path)
             .with_context(|| format!("Failed to open database: {}", path.display()))?;
+
+        // Set busy timeout to handle transient locks from parallel workers
+        conn.busy_timeout(std::time::Duration::from_millis(5000))?;
+
+        // Enable WAL mode for better concurrency (multiple readers, single writer)
+        conn.execute_batch("PRAGMA journal_mode=WAL;")?;
 
         let db = Self {
             conn: Arc::new(Mutex::new(conn)),
@@ -91,8 +101,17 @@ impl Database {
     // MCP-equivalent operations (replaces SQLite MCP server)
     // ============================================================
 
-    /// Execute a read-only SELECT query, returns formatted output
+    /// Execute a read-only SELECT query, returns formatted output.
+    /// This function enforces read-only mode by rejecting any non-SELECT statements.
     pub fn read_query(&self, sql: &str) -> Result<String> {
+        // Security: Only allow SELECT statements to prevent accidental mutation
+        let sql_trimmed = sql.trim().to_uppercase();
+        if !sql_trimmed.starts_with("SELECT") && !sql_trimmed.starts_with("PRAGMA") {
+            anyhow::bail!(
+                "read_query only allows SELECT/PRAGMA statements. Use 'db exec' for modifications."
+            );
+        }
+
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(sql)?;
         let column_count = stmt.column_count();

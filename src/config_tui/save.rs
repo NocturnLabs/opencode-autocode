@@ -39,6 +39,7 @@ default = "{}"      # Spec generation
 autonomous = "{}"   # Vibe loop coding
 reasoning = "{}"    # Complex planning
 enhancement = "{}"  # Enhancement discovery
+fixer = "{}"        # Malformed XML repair
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Autonomous Loop - Control vibe loop behavior
@@ -126,12 +127,41 @@ colored_output = {}
 verbose = {}
 show_progress = {}
 spec_preview_lines = {}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Communication - Agent-user communication channel
+# ─────────────────────────────────────────────────────────────────────────────
+[communication]
+enabled = {}
+file_path = "{}"
+auto_ask_on_error = {}
+check_interval_sessions = {}
+max_pending_questions = {}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Features - Feature tracking configuration
+# ─────────────────────────────────────────────────────────────────────────────
+[features]
+require_verification_command = {}
+narrow_test_min_steps = {}
+narrow_test_max_steps = {}
+comprehensive_test_min_steps = {}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Scaffolding - Project creation settings
+# ─────────────────────────────────────────────────────────────────────────────
+[scaffolding]
+git_init = {}
+output_dir = "{}"
+create_opencode_dir = {}
+create_scripts_dir = {}
 "#,
         // Models
         config.models.default,
         config.models.autonomous,
         config.models.reasoning,
         config.models.enhancement,
+        config.models.fixer,
         // Autonomous
         config.autonomous.max_iterations,
         config.autonomous.delay_between_sessions,
@@ -188,6 +218,22 @@ spec_preview_lines = {}
         config.ui.verbose,
         config.ui.show_progress,
         config.ui.spec_preview_lines,
+        // Communication
+        config.communication.enabled,
+        config.communication.file_path,
+        config.communication.auto_ask_on_error,
+        config.communication.check_interval_sessions,
+        config.communication.max_pending_questions,
+        // Features
+        config.features.require_verification_command,
+        config.features.narrow_test_min_steps,
+        config.features.narrow_test_max_steps,
+        config.features.comprehensive_test_min_steps,
+        // Scaffolding
+        config.scaffolding.git_init,
+        config.scaffolding.output_dir,
+        config.scaffolding.create_opencode_dir,
+        config.scaffolding.create_scripts_dir,
     )
 }
 
@@ -225,6 +271,7 @@ fn format_opencode_json(config: &Config) -> String {
     }}
   }},
   "permission": {{
+    "*": "allow",
     "bash": "allow",
     "edit": "allow"
   }}

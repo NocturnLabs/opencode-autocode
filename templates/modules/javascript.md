@@ -67,7 +67,7 @@ Before marking a feature as passing, verify imports are correct:
 
 ```bash
 #!/bin/bash
-# init.sh with port conflict prevention
+# init.sh with port conflict prevention and PID tracking
 
 DEFAULT_PORT=8000
 PORT=$DEFAULT_PORT
@@ -86,10 +86,39 @@ PORT=$(find_free_port $DEFAULT_PORT)
 echo "Starting server on port $PORT"
 export PORT
 
-# Start the server (adjust based on tech stack)
+# Start the server and capture PID
 bun run dev --port $PORT &
-# Or: bun start --port $PORT
-# Or: python3 -m http.server $PORT
+SERVER_PID=$!
 
-echo "Server running at http://localhost:$PORT"
+echo "Server running at http://localhost:$PORT (PID: $SERVER_PID)"
+
+# IMPORTANT: Save PID to knowledge DB for safe cleanup
+opencode-autocode db knowledge set "server_port_${PORT}_pid" "$SERVER_PID" --category servers --description "Dev server on port $PORT"
 ```
+
+---
+
+## Server Cleanup: Only Kill What You Started
+
+> [!CAUTION]
+> **NEVER run `pkill python` or `killall node`.** This can kill processes belonging to other projects.
+
+**Safe cleanup using tracked PIDs:**
+
+```bash
+# Get the tracked PID for port 8000
+TRACKED_PID=$(opencode-autocode db knowledge get server_port_8000_pid 2>/dev/null | grep -oP '(?<=value: )\d+')
+
+if [ -n "$TRACKED_PID" ] && kill -0 "$TRACKED_PID" 2>/dev/null; then
+    echo "Killing server on port 8000 (PID: $TRACKED_PID)"
+    kill "$TRACKED_PID"
+    # Remove from knowledge DB
+    opencode-autocode db knowledge delete server_port_8000_pid
+else
+    echo "No tracked server found for port 8000 (or already stopped)"
+fi
+```
+
+**Rule of thumb:**
+- If port is in use and NOT in your knowledge DB → find another port.
+- If port is in use and IS in your knowledge DB → kill using tracked PID.

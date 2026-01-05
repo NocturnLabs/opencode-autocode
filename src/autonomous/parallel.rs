@@ -100,11 +100,24 @@ pub fn create_worktree(
             .with_context(|| "Failed to create .autocode dir in worktree".to_string())?;
     }
 
-    // Symlink the database file specifically
-    let db_name = Path::new(&config.paths.database_file)
+    // Symlink the database file using the configured path (not hardcoded .autocode/)
+    let db_path = Path::new(&config.paths.database_file);
+    let db_name = db_path
         .file_name()
         .unwrap_or_else(|| std::ffi::OsStr::new("progress.db"))
         .to_string_lossy();
+    let db_parent = db_path.parent().unwrap_or(Path::new(".autocode"));
+
+    // Create parent directory in worktree for the database
+    let worktree_db_parent = worktree_path.join(db_parent);
+    if !worktree_db_parent.exists() {
+        std::fs::create_dir_all(&worktree_db_parent).with_context(|| {
+            format!(
+                "Failed to create db parent dir in worktree: {}",
+                worktree_db_parent.display()
+            )
+        })?;
+    }
 
     let db_files = [
         db_name.to_string(),
@@ -112,8 +125,8 @@ pub fn create_worktree(
         format!("{}-wal", db_name),
     ];
     for filename in &db_files {
-        let main_file = std::env::current_dir()?.join(".autocode").join(filename);
-        let worktree_file = worktree_path.join(".autocode").join(filename);
+        let main_file = std::env::current_dir()?.join(db_parent).join(filename);
+        let worktree_file = worktree_path.join(db_parent).join(filename);
 
         if main_file.exists() && !worktree_file.exists() {
             #[cfg(unix)]

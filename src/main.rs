@@ -340,7 +340,7 @@ fn handle_db_command(action: &DbAction) -> Result<()> {
                 features.len()
             );
 
-            let summary = regression::run_regression_check(&features, None, false)?;
+            let summary = regression::run_regression_check(&features, None, false, None)?;
             regression::report_results(&summary);
 
             if summary.automated_failed > 0 {
@@ -446,6 +446,21 @@ fn handle_db_command(action: &DbAction) -> Result<()> {
                 cli::KnowledgeAction::Delete { key } => {
                     repo.delete(key)?;
                     println!("🗑️ Fact '{}' deleted.", key);
+                }
+                cli::KnowledgeAction::TrackServer { port, pid } => {
+                    repo.track_server(*port, *pid)?;
+                    println!("✅ Tracking server on port {} (PID: {})", port, pid);
+                }
+                cli::KnowledgeAction::GetServer { port } => {
+                    if let Some(pid) = repo.get_tracked_server(*port)? {
+                        println!("port={}  pid={}", port, pid);
+                    } else {
+                        println!("No server tracked on port {}", port);
+                    }
+                }
+                cli::KnowledgeAction::UntrackServer { port } => {
+                    repo.untrack_server(*port)?;
+                    println!("🗑️ Untracked server on port {}", port);
                 }
             }
             Ok(())

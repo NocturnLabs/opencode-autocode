@@ -38,10 +38,15 @@ pub fn classify_verification_failure(error: &str) -> VerificationFailure {
     }
 
     if lower.contains("cannot find")
+        || lower.contains("cannot find package")
         || lower.contains("no such file")
         || lower.contains("file not found")
         || lower.contains("enoent")
     {
+        // Distinguish between missing test files and missing dependencies
+        if lower.contains("package") || lower.contains("module") {
+            return VerificationFailure::CommandError;
+        }
         return VerificationFailure::TestFileMissing;
     }
 
