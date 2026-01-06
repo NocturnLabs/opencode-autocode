@@ -13,6 +13,7 @@ pub struct LoopSettings {
     pub session_timeout: u32,
     pub auto_commit: bool,
     pub verbose: bool,
+    pub dual_model_enabled: bool,
 }
 
 impl LoopSettings {
@@ -33,6 +34,7 @@ impl LoopSettings {
             session_timeout: config.autonomous.session_timeout_minutes,
             auto_commit: config.autonomous.auto_commit,
             verbose: config.ui.verbose,
+            dual_model_enabled: true,
         }
     }
 }

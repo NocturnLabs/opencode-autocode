@@ -32,7 +32,7 @@ pub fn run_parallel(
     config_path: Option<&Path>,
     developer_mode: bool,
 ) -> Result<()> {
-    let (config, settings) = init_session(developer_mode, config_path, limit)?;
+    let (config, settings) = init_session(developer_mode, config_path, limit, false)?;
     let logger = debug_logger::get();
     let db_path = Path::new(&settings.database_file);
 
@@ -146,7 +146,7 @@ pub fn run(
     enhancement_mode: bool,
     target_feature_id: Option<i64>,
 ) -> Result<()> {
-    let (config, settings) = init_session(developer_mode, config_path, limit)?;
+    let (config, settings) = init_session(developer_mode, config_path, limit, single_model)?;
     let logger = debug_logger::get();
 
     // Register Ctrl+C handler to create stop signal file
@@ -230,10 +230,12 @@ fn init_session(
     developer_mode: bool,
     config_path: Option<&Path>,
     limit: Option<usize>,
+    single_model: bool,
 ) -> Result<(Config, LoopSettings)> {
     debug_logger::init(developer_mode);
     let config = load_config(config_path)?;
-    let settings = settings::LoopSettings::from_config(&config, limit);
+    let mut settings = settings::LoopSettings::from_config(&config, limit);
+    settings.dual_model_enabled = !single_model;
 
     // Clear any lingering stop signal from a previous run
     session::clear_stop_signal();

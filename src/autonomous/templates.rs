@@ -8,21 +8,36 @@ use std::path::Path;
 use super::settings::{LoopAction, LoopSettings};
 
 /// Generate a standard fix template
-pub fn generate_fix_template(feature: &Feature, error: &str, _db_path: &Path) -> Result<()> {
+pub fn generate_fix_template(
+    feature: &Feature,
+    error: &str,
+    _db_path: &Path,
+    dual_model: bool,
+) -> Result<()> {
     // Read template
     let template_path = Path::new("templates/commands/auto-fix.md");
     let template = if template_path.exists() {
         std::fs::read_to_string(template_path)?
     } else {
         // Fallback
-        "# Regression Fix\nFix {{failing_feature}}\nError: {{error_message}}".to_string()
+        "# Regression Fix\nFix {{failing_feature}}\nError: {{error_message}}\n\n{{dual_model_instructions}}\n\n{{explore_instructions}}".to_string()
     };
+
+    let dual_model_instructions = if dual_model {
+        "\n> **Dual Model**: Delegate code changes to `@coder`."
+    } else {
+        ""
+    };
+
+    let explore_msg = "Use `@explore` to understand the failure context.";
 
     // Replace variables
     let content = template
         .replace("{{failing_feature}}", &feature.description)
         .replace("{{error_message}}", error)
         .replace("{{current_feature}}", "latest changes")
+        .replace("{{dual_model_instructions}}", dual_model_instructions)
+        .replace("{{explore_instructions}}", explore_msg)
         .replace(
             "{{verification_command}}",
             feature.verification_command.as_deref().unwrap_or("unknown"),
@@ -36,7 +51,15 @@ pub fn generate_fix_template(feature: &Feature, error: &str, _db_path: &Path) ->
 
 /// Generate a minimal continue template with feature context injected by supervisor.
 /// This removes LLM responsibility for querying the database.
-pub fn generate_continue_template(feature: &Feature) -> Result<()> {
+/// Generate a minimal continue template with feature context injected by supervisor.
+/// This removes LLM responsibility for querying the database.
+pub fn generate_continue_template(feature: &Feature, dual_model: bool) -> Result<()> {
+    let dual_model_section = if dual_model {
+        "\n## Dual Model Architecture\nYou are the **Reasoning Agent**. Plan the solution and delegate implementation to `@coder`.\n"
+    } else {
+        ""
+    };
+
     let content = format!(
         r#"# Implement Feature
 
@@ -47,14 +70,15 @@ Implement this feature completely:
 
 ## Acceptance Criteria
 {}
-
+{}
 ## What You Do
-1. Implement the feature with production-quality code
-2. Write necessary tests if applicable
-3. **VERIFY** that the verification command below is still correct for your implementation.
-4. If the command changed (e.g. new test file path), you **MUST** update it in the database:
+1. **Use `@explore` to understand the codebase context.** 
+2. Implement the feature with production-quality code.
+3. Write necessary tests if applicable.
+4. **VERIFY** that the verification command below is still correct for your implementation.
+5. If the command changed (e.g. new test file path), you **MUST** update it in the database:
    `opencode-autocode db exec "UPDATE features SET verification_command = 'your-new-command' WHERE id = {}"`
-5. Output `===SESSION_COMPLETE===` when implementation is done
+6. Output `===SESSION_COMPLETE===` when implementation is done
 
 ## What Supervisor Does (NOT YOU)
 The supervisor will automatically handle after your session:
@@ -82,6 +106,7 @@ The supervisor will automatically handle after your session:
                 .collect::<Vec<_>>()
                 .join("\n")
         },
+        dual_model_section,
         feature.id.unwrap_or(0),
         feature
             .verification_command

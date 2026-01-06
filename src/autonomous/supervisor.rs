@@ -234,7 +234,10 @@ pub fn run_supervisor_loop(
 
                     if let Some(feature) = feature_opt {
                         active_feature = Some(feature.clone());
-                        templates::generate_continue_template(&feature)?;
+                        templates::generate_continue_template(
+                            &feature,
+                            settings.dual_model_enabled,
+                        )?;
                         println!(
                             "📋 Feature #{}: {}",
                             feature.id.unwrap_or(0),
@@ -260,7 +263,12 @@ pub fn run_supervisor_loop(
                 active_feature = Some(feature.clone());
 
                 // Generate dynamic auto-fix template
-                templates::generate_fix_template(&feature, &error, db_path)?;
+                templates::generate_fix_template(
+                    &feature,
+                    &error,
+                    db_path,
+                    settings.dual_model_enabled,
+                )?;
                 "auto-fix-active".to_string()
             }
         };

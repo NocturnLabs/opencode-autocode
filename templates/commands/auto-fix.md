@@ -7,6 +7,8 @@
 You have broken a previously passing feature. You are now in **REGRESSION FIX MODE**.
 You CANNOT proceed to new features until you fix the regression you introduced.
 
+{{dual_model_instructions}}
+
 ## The Situation
 
 1. **Failing Feature**: `{{failing_feature}}`
@@ -20,10 +22,11 @@ You CANNOT proceed to new features until you fix the regression you introduced.
 
 ## Your Mission
 
-1. Analyze the error above.
-2. Fix the regression in `{{failing_feature}}`.
-3. Verify the fix using the project's test suite or the specific verification command: `{{verification_command}}`.
-4. Ensure you do NOT break the current feature `{{current_feature}}` while fixing the regression.
+1. {{explore_instructions}}
+2. Analyze the error above.
+3. Fix the regression in `{{failing_feature}}`.
+4. Verify the fix using the project's test suite or the specific verification command: `{{verification_command}}`.
+5. Ensure you do NOT break the current feature `{{current_feature}}` while fixing the regression.
 
 ## Critical Rules
 
