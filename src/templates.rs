@@ -3,9 +3,9 @@
 //! Provides pre-built templates for common project types.
 
 use anyhow::{bail, Result};
-use console::style;
-use dialoguer::Input;
 use std::path::Path;
+
+use crate::tui::prompts::input;
 
 /// Embedded project templates
 const WEB_APP_TEMPLATE: &str = include_str!("../templates/projects/web-app-fullstack.md");
@@ -49,27 +49,17 @@ pub fn get_templates() -> Vec<Template> {
 pub fn list_templates() {
     let templates = get_templates();
 
-    println!("\n{}", style("📚 Available Templates").cyan().bold());
-    println!("{}", style("─".repeat(50)).dim());
+    println!("\n📚 Available Templates");
+    println!("{}", "─".repeat(50));
 
     for template in &templates {
-        println!(
-            "\n  {} {}",
-            style(template.display_name).green().bold(),
-            style(format!("({})", template.name)).dim()
-        );
-        println!("    {}", style(template.description).dim());
+        println!("\n  {} ({})", template.display_name, template.name);
+        println!("    {}", template.description);
     }
 
-    println!("\n{}", style("─".repeat(50)).dim());
-    println!(
-        "{}",
-        style("Use: opencode-autocode templates use <name>").dim()
-    );
-    println!(
-        "{}",
-        style("Or run with -i for interactive selection").dim()
-    );
+    println!("\n{}", "─".repeat(50));
+    println!("Use: opencode-autocode templates use <name>");
+    println!("Or run with -i for interactive selection");
 }
 
 /// Get a template by name
@@ -82,26 +72,20 @@ pub fn use_template(name: &str, output_dir: &Path) -> Result<()> {
     let template = match get_template_by_name(name) {
         Some(t) => t,
         None => {
-            println!("{} Template '{}' not found.", style("Error:").red(), name);
+            println!("Error: Template '{}' not found.", name);
             println!("\nAvailable templates:");
             list_templates();
             bail!("Template not found: {}", name);
         }
     };
 
-    println!(
-        "\n{} {}",
-        style("Using template:").cyan(),
-        style(template.display_name).green().bold()
-    );
+    println!("\nUsing template: {}", template.display_name);
 
     // Get project name
-    let project_name: String = Input::new().with_prompt("Project name").interact_text()?;
+    let project_name = input("Project name", None)?;
 
     // Get description
-    let description: String = Input::new()
-        .with_prompt("Brief description")
-        .interact_text()?;
+    let description = input("Brief description", None)?;
 
     // Fill in placeholders
     let spec = template
@@ -116,10 +100,7 @@ pub fn use_template(name: &str, output_dir: &Path) -> Result<()> {
     // Scaffold
     crate::scaffold::scaffold_with_spec_text(output_dir, &spec)?;
 
-    println!(
-        "\n{}",
-        style("✅ Project scaffolded from template!").green().bold()
-    );
+    println!("\n✅ Project scaffolded from template!");
 
     Ok(())
 }

@@ -1,46 +1,33 @@
 //! Manual mode - step-by-step spec creation
 
 use anyhow::Result;
-use console::style;
-use dialoguer::{Confirm, Input, MultiSelect, Select};
 use std::path::Path;
 
 use crate::scaffold::scaffold_from_spec;
 use crate::spec::{AppSpec, Feature, Priority, TechStack};
-use crate::tui::inputs::read_multiline;
+use crate::tui::prompts::{confirm, input, multiline_input, print_error, print_success, select};
 
 /// Run manual step-by-step spec creation
 pub fn run_manual_mode(output_dir: &Path) -> Result<()> {
-    println!(
-        "\n{}",
-        style("─── Manual Spec Creation ───").yellow().bold()
-    );
+    println!("\n─── Manual Spec Creation ───");
 
     let spec = collect_spec_details()?;
     display_summary(&spec);
 
-    if Confirm::new()
-        .with_prompt("Generate plugin files?")
-        .default(true)
-        .interact()?
-    {
+    if confirm("Generate plugin files?", true)? {
         scaffold_from_spec(output_dir, &spec)?;
     } else {
-        println!("{}", style("Cancelled.").red());
+        print_error("Cancelled.");
     }
 
     Ok(())
 }
 
 fn collect_spec_details() -> Result<AppSpec> {
-    let project_name: String = Input::new().with_prompt("Project name").interact_text()?;
-    let overview: String = read_multiline("Brief description")?;
+    let project_name = input("Project name", None)?;
+    let overview = multiline_input("Brief description")?;
 
-    let technology = if Confirm::new()
-        .with_prompt("Define technology stack?")
-        .default(true)
-        .interact()?
-    {
+    let technology = if confirm("Define technology stack?", true)? {
         Some(collect_tech_stack()?)
     } else {
         None
@@ -61,24 +48,18 @@ fn collect_spec_details() -> Result<AppSpec> {
 }
 
 fn collect_features() -> Result<Vec<Feature>> {
-    println!("\n{}", style("Add Features").yellow().bold());
-    println!(
-        "{}",
-        style("(Enter features one at a time, empty to finish)").dim()
-    );
+    println!("\nAdd Features");
+    println!("(Enter features one at a time, empty to finish)");
 
     let mut features = Vec::new();
     loop {
-        let name: String = Input::new()
-            .with_prompt("Feature name (empty to finish)")
-            .allow_empty(true)
-            .interact_text()?;
+        let name = input("Feature name (empty to finish)", Some(""))?;
 
         if name.is_empty() {
             break;
         }
 
-        let description: String = read_multiline("Description")?;
+        let description = multiline_input("Description")?;
         let priority = select_priority()?;
 
         features.push(Feature {
@@ -88,17 +69,13 @@ fn collect_features() -> Result<Vec<Feature>> {
             sub_features: Vec::new(),
         });
 
-        println!("{} Feature added!", style("✓").green());
+        print_success("Feature added!");
     }
     Ok(features)
 }
 
 fn select_priority() -> Result<Priority> {
-    let idx = Select::new()
-        .with_prompt("Priority")
-        .items(["Critical", "High", "Medium", "Low"])
-        .default(2)
-        .interact()?;
+    let idx = select("Priority", &["Critical", "High", "Medium", "Low"], 2)?;
 
     Ok(match idx {
         0 => Priority::Critical,
@@ -109,18 +86,12 @@ fn select_priority() -> Result<Priority> {
 }
 
 fn collect_success_criteria() -> Result<Vec<String>> {
-    println!("\n{}", style("Success Criteria").yellow().bold());
-    println!(
-        "{}",
-        style("(Enter criteria one at a time, empty to finish)").dim()
-    );
+    println!("\nSuccess Criteria");
+    println!("(Enter criteria one at a time, empty to finish)");
 
     let mut criteria = Vec::new();
     loop {
-        let criterion: String = Input::new()
-            .with_prompt("Criterion (empty to finish)")
-            .allow_empty(true)
-            .interact_text()?;
+        let criterion = input("Criterion (empty to finish)", Some(""))?;
 
         if criterion.is_empty() {
             break;
@@ -131,33 +102,24 @@ fn collect_success_criteria() -> Result<Vec<String>> {
 }
 
 fn display_summary(spec: &AppSpec) {
-    println!(
-        "\n{}",
-        style("═══════════════════════════════════════════════════").cyan()
-    );
-    println!("{}", style("  Summary").cyan().bold());
-    println!(
-        "{}",
-        style("═══════════════════════════════════════════════════").cyan()
-    );
-    println!("  Project: {}", style(&spec.project_name).green());
-    println!("  Features: {}", style(spec.features.len()).yellow());
-    println!(
-        "  Criteria: {}",
-        style(spec.success_criteria.len()).yellow()
-    );
+    println!("\n═══════════════════════════════════════════════════");
+    println!("  Summary");
+    println!("═══════════════════════════════════════════════════");
+    println!("  Project: {}", spec.project_name);
+    println!("  Features: {}", spec.features.len());
+    println!("  Criteria: {}", spec.success_criteria.len());
     println!();
 }
 
 fn collect_tech_stack() -> Result<TechStack> {
     let languages = collect_with_other(
-        "Languages (space to select)",
+        "Languages",
         &["Rust", "TypeScript", "JavaScript", "Python", "Go", "Other"],
         "Other languages (comma-separated)",
     )?;
 
     let frameworks = collect_with_other(
-        "Frameworks (space to select)",
+        "Frameworks",
         &[
             "React", "Next.js", "Vue", "Svelte", "Express", "Actix", "Axum", "FastAPI", "Django",
             "Gin", "Other",
@@ -173,19 +135,19 @@ fn collect_tech_stack() -> Result<TechStack> {
 }
 
 fn collect_with_other(prompt: &str, options: &[&str], other_prompt: &str) -> Result<Vec<String>> {
-    let indices = MultiSelect::new()
-        .with_prompt(prompt)
-        .items(options)
-        .interact()?;
+    // Simplified: just prompt for comma-separated list
+    println!("\n{} (pick from: {})", prompt, options.join(", "));
+    let selection = input("Enter your choices (comma-separated)", Some(""))?;
 
-    let mut items: Vec<String> = indices.iter().map(|&i| options[i].to_string()).collect();
+    let mut items: Vec<String> = selection
+        .split(',')
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect();
 
-    if items.contains(&"Other".to_string()) {
-        items.retain(|s| s != "Other");
-        let custom: String = Input::new()
-            .with_prompt(other_prompt)
-            .allow_empty(true)
-            .interact_text()?;
+    if items.iter().any(|s| s.eq_ignore_ascii_case("other")) {
+        items.retain(|s| !s.eq_ignore_ascii_case("other"));
+        let custom = input(other_prompt, Some(""))?;
         for item in custom.split(',') {
             let item = item.trim();
             if !item.is_empty() {

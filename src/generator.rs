@@ -46,22 +46,20 @@ pub fn generate_spec_from_idea<F>(
     testing_preference: Option<&str>,
     model: Option<&str>,
     use_subagents: bool,
+    config: &Config,
     mut on_output: F,
 ) -> Result<String>
 where
     F: FnMut(&str),
 {
-    // Load config
-    let config = Config::load(None).unwrap_or_default();
-
     let mut prompt = if use_subagents {
-        build_subagent_prompt(idea, testing_preference, &config)
+        build_subagent_prompt(idea, testing_preference, config)
     } else {
-        build_generation_prompt(idea, testing_preference, &config)
+        build_generation_prompt(idea, testing_preference, config)
     };
 
     // Check if opencode is available
-    let opencode_path = which_opencode(&config)?;
+    let opencode_path = which_opencode(config)?;
     let model_to_use = model.unwrap_or(&config.models.default);
 
     // Initial message
@@ -222,19 +220,17 @@ pub fn refine_spec_from_idea<F>(
     current_spec: &str,
     refinement: &str,
     model: Option<&str>,
+    config: &Config,
     mut on_output: F,
 ) -> Result<String>
 where
     F: FnMut(&str),
 {
-    // Load config
-    let config = Config::load(None).unwrap_or_default();
-
     // Build the refinement prompt
     let prompt = build_refine_prompt(current_spec, refinement);
 
     // Check if opencode is available
-    let opencode_path = which_opencode(&config)?;
+    let opencode_path = which_opencode(config)?;
 
     let model_to_use = model.unwrap_or(&config.models.default);
     on_output(&format!(

@@ -1,5 +1,4 @@
 use anyhow::{Context, Result};
-use console::style;
 use self_update::cargo_crate_version;
 
 /// Check for updates and print a notification if one is available.
@@ -49,17 +48,9 @@ pub fn update() -> Result<()> {
         .context("Failed to update binary")?;
 
     if status.updated() {
-        println!(
-            "{}",
-            style(format!(
-                "✅ Successfully updated to version {}!",
-                status.version()
-            ))
-            .green()
-            .bold()
-        );
+        println!("✅ Successfully updated to version {}!", status.version());
     } else {
-        println!("{}", style("Already up to date.").green());
+        println!("Already up to date.");
     }
 
     Ok(())
