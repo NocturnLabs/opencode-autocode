@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.7.0] - 2026-01-05
+## [0.8.1] - 2026-01-05
+
+### Fixed
+
+- **Supervisor Robustness**:
+  - Fixed "ghost feature" tracking where the wrong feature was sometimes verified after a session.
+  - Added automated Git discard/stash on verification failure to ensure the next iteration starts from a clean state.
+  - Improved logging for security-blocked commands and manual verification requirements.
+
+## [0.8.0] - 2026-01-05
 
 ### Added
 

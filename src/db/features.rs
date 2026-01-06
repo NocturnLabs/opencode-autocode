@@ -89,7 +89,7 @@ impl FeatureRepository {
 
         let passing: i32 = conn
             .query_row(
-                "SELECT COUNT(*) FROM features WHERE passes = 1",
+                "SELECT COUNT(*) FROM features WHERE passes != 0",
                 [],
                 |row| row.get(0),
             )

@@ -193,6 +193,9 @@ pub fn run_supervisor_loop(
         // 1. Determine Action (Supervisor Logic) — check this before printing header
         let action = determine_action(db_path, config, target_feature_id)?;
 
+        // State for verification after session
+        let mut active_feature = None;
+
         // Exit early if all features are complete (don't print a ghost session)
         if matches!(action, SupervisorAction::Stop) && !enhancement_mode {
             logger.info("Supervisor: All features complete.");
@@ -230,6 +233,7 @@ pub fn run_supervisor_loop(
                     };
 
                     if let Some(feature) = feature_opt {
+                        active_feature = Some(feature.clone());
                         templates::generate_continue_template(&feature)?;
                         println!(
                             "📋 Feature #{}: {}",
@@ -253,6 +257,8 @@ pub fn run_supervisor_loop(
                 println!("🚨 REGRESSION DETECTED: {}", feature.description);
                 println!("→ Switching to auto-fix mode...");
 
+                active_feature = Some(feature.clone());
+
                 // Generate dynamic auto-fix template
                 templates::generate_fix_template(&feature, &error, db_path)?;
                 "auto-fix-active".to_string()
@@ -261,13 +267,6 @@ pub fn run_supervisor_loop(
 
         println!("→ Running: opencode run --command /{}", command_name);
         println!();
-
-        // 2. Get the feature the agent SHOULD be working on (for verification after session)
-        let target_feature = if let Some(id) = target_feature_id {
-            features::get_feature_by_id(db_path, id)?
-        } else {
-            features::get_first_pending_feature(db_path)?
-        };
 
         // 3. Run Session
         let result = session::execute_opencode_session(
@@ -280,7 +279,7 @@ pub fn run_supervisor_loop(
         )?;
 
         // 4. Supervisor Verification (agent does NOT mark-pass, we do it)
-        if let Some(feature) = target_feature {
+        if let Some(feature) = active_feature {
             println!("🔍 Supervisor: Verifying feature...");
             println!("   Feature: {}", feature.description);
 
@@ -309,6 +308,10 @@ pub fn run_supervisor_loop(
                     let db = crate::db::Database::open(db_path)?;
                     db.features().mark_passing(&feature.description)?;
                     println!("  ✓ Marked as passing in DB");
+                    logger.info(&format!(
+                        "Verification PASSED for '{}'",
+                        feature.description
+                    ));
 
                     // NEW: Mark in Conductor plan if active track matches
                     if let Some(track) = conductor::get_active_track(config)? {
@@ -327,8 +330,21 @@ pub fn run_supervisor_loop(
 
                     // Commit if needed
                     if settings.auto_commit {
-                        let _ =
-                            git::commit_completed_feature(&feature.description, settings.verbose);
+                        match git::commit_completed_feature(&feature.description, settings.verbose)
+                        {
+                            Ok(_) => {
+                                logger.info(&format!(
+                                    "Auto-committed changes for '{}'",
+                                    feature.description
+                                ));
+                            }
+                            Err(e) => {
+                                logger.error(&format!(
+                                    "Failed to commit changes for '{}': {}",
+                                    feature.description, e
+                                ));
+                            }
+                        }
                     }
 
                     // Notify webhook
@@ -360,10 +376,27 @@ pub fn run_supervisor_loop(
                     db.features()
                         .mark_failing_with_error(&feature.description, Some(&error_msg))?;
                     println!("  → Feature marked as failing (will auto-fix next iteration)");
+                    logger.info(&format!(
+                        "Verification FAILED for '{}'",
+                        feature.description
+                    ));
 
                     // Discard uncommitted changes so the next attempt starts clean
                     println!("  → Discarding uncommitted changes...");
-                    let _ = git::discard_changes(settings.verbose);
+                    match git::discard_changes(settings.verbose) {
+                        Ok(_) => {
+                            logger.info(&format!(
+                                "Discarded uncommitted changes for '{}'",
+                                feature.description
+                            ));
+                        }
+                        Err(e) => {
+                            logger.error(&format!(
+                                "Failed to discard changes for '{}': {}",
+                                feature.description, e
+                            ));
+                        }
+                    }
 
                     last_run_success = false;
                 }
