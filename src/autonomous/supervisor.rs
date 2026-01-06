@@ -278,137 +278,171 @@ pub fn run_supervisor_loop(
             logger,
         )?;
 
-        // 4. Supervisor Verification (agent does NOT mark-pass, we do it)
-        if let Some(feature) = active_feature {
-            println!("🔍 Supervisor: Verifying feature...");
-            println!("   Feature: {}", feature.description);
+        // 4. Supervisor Verification (only if session didn't crash)
+        // Check result ref to avoid move (needed for handle_session_result later)
+        let session_ok = matches!(&result, session::SessionResult::Continue);
 
-            if let Some(cmd) = &feature.verification_command {
-                // Use security-validated command runner
-                let output = match security::run_verified_command(cmd, &config.security, None) {
-                    Ok(out) => out,
-                    Err(e) => {
-                        println!("  🚫 Security: Command blocked");
-                        println!("     {}", e);
-                        last_run_success = false;
+        if session_ok {
+            if let Some(feature) = active_feature {
+                println!("🔍 Supervisor: Verifying feature...");
+                println!("   Feature: {}", feature.description);
+
+                if let Some(cmd) = &feature.verification_command {
+                    // Use security-validated command runner
+                    let output = match security::run_verified_command(cmd, &config.security, None) {
+                        Ok(out) => out,
+                        Err(e) => {
+                            println!("  🚫 Security: Command blocked");
+                            println!("     {}", e);
+                            last_run_success = false;
+                            let db = crate::db::Database::open(db_path)?;
+                            db.features().mark_failing_with_error(
+                                &feature.description,
+                                Some(&format!("Security blocked: {}", e)),
+                            )?;
+                            continue;
+                        }
+                    };
+
+                    if output.status.success() {
+                        println!("  ✅ Verification PASSED!");
+                        last_run_success = true;
+
+                        // Mark as passing
+                        let db = crate::db::Database::open(db_path)?;
+                        db.features().mark_passing(&feature.description)?;
+                        println!("  ✓ Marked as passing in DB");
+                        logger.info(&format!(
+                            "Verification PASSED for '{}'",
+                            feature.description
+                        ));
+
+                        // NEW: Mark in Conductor plan if active track matches
+                        if let Some(track) = conductor::get_active_track(config)? {
+                            let plan_path = track.path.join("plan.md");
+                            if let Ok(tasks) = conductor::parse_plan(&plan_path) {
+                                if let Some(task) = conductor::get_next_task(&tasks) {
+                                    // Only mark if the description matches or it's the next logical task
+                                    let _ =
+                                        conductor::mark_task_complete(&plan_path, task.line_number);
+                                    println!(
+                                        "  ✓ Marked task complete in plan.md: {}",
+                                        task.description
+                                    );
+                                }
+                            }
+                        }
+
+                        // Commit if needed
+                        if settings.auto_commit {
+                            match git::commit_completed_feature(
+                                &feature.description,
+                                settings.verbose,
+                            ) {
+                                Ok(_) => {
+                                    logger.info(&format!(
+                                        "Auto-committed changes for '{}'",
+                                        feature.description
+                                    ));
+                                }
+                                Err(e) => {
+                                    logger.error(&format!(
+                                        "Failed to commit changes for '{}': {}",
+                                        feature.description, e
+                                    ));
+                                }
+                            }
+                        }
+
+                        // Notify webhook
+                        let progress = FeatureProgress::load_from_db(db_path)?;
+                        let _ = webhook::notify_feature_complete(
+                            config,
+                            &feature,
+                            iteration,
+                            progress.passing,
+                            progress.total(),
+                        );
+                    } else {
+                        println!("  ❌ Verification FAILED");
+                        println!("     Command: {}", cmd);
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        let stdout = String::from_utf8_lossy(&output.stdout);
+                        let error_msg = if !stderr.is_empty() {
+                            println!("     Error: {}", stderr.lines().next().unwrap_or(""));
+                            stderr.to_string()
+                        } else if !stdout.is_empty() {
+                            // Some test frameworks output to stdout
+                            stdout.to_string()
+                        } else {
+                            "Verification command failed with no output".to_string()
+                        };
+
+                        // STASH PROTOCOL: Capture diff to verify what failed, then clean up
+                        println!("  → Stashing failed attempt to capture context...");
+                        let stash_msg = format!("autocode-failure-{}", feature.description);
+                        let mut diff_context = String::new();
+
+                        // 1. Try to stash
+                        match git::stash_push(&stash_msg) {
+                            Ok(true) => {
+                                // 2. If stashed, get the diff
+                                if let Ok(diff) = git::stash_show_latest() {
+                                    if !diff.is_empty() {
+                                        // Limit diff size to avoid huge context
+                                        let truncated_diff = if diff.len() > 10000 {
+                                            format!("{}\n... (truncated)", &diff[..10000])
+                                        } else {
+                                            diff
+                                        };
+                                        diff_context = format!(
+                                            "\n\n### Failed Implementation Diff:\n```diff\n{}\n```",
+                                            truncated_diff
+                                        );
+                                    }
+                                }
+                                // 3. Drop the stash (we have the diff string, and we want clean slate)
+                                let _ = git::stash_drop();
+                                println!("  ✓ Stashed and captured diff for context");
+                            }
+                            Ok(false) => {
+                                // Nothing to stash (no changes made or empty)
+                                let _ = git::discard_changes(settings.verbose);
+                            }
+                            Err(e) => {
+                                logger.error(&format!("Stash failed: {}", e));
+                                let _ = git::discard_changes(settings.verbose);
+                            }
+                        }
+
+                        // Update the error message with the diff context
+                        let final_error_msg = format!("{}{}", error_msg, diff_context);
+
+                        // Mark as failing with error context for auto-fix
                         let db = crate::db::Database::open(db_path)?;
                         db.features().mark_failing_with_error(
                             &feature.description,
-                            Some(&format!("Security blocked: {}", e)),
+                            Some(&final_error_msg),
                         )?;
-                        continue;
+
+                        println!("  → Feature marked as failing (will auto-fix next iteration with failure diff)");
+                        logger.info(&format!(
+                            "Verification FAILED for '{}'",
+                            feature.description
+                        ));
+
+                        last_run_success = false;
                     }
-                };
-
-                if output.status.success() {
-                    println!("  ✅ Verification PASSED!");
-                    last_run_success = true;
-
-                    // Mark as passing
-                    let db = crate::db::Database::open(db_path)?;
-                    db.features().mark_passing(&feature.description)?;
-                    println!("  ✓ Marked as passing in DB");
-                    logger.info(&format!(
-                        "Verification PASSED for '{}'",
-                        feature.description
-                    ));
-
-                    // NEW: Mark in Conductor plan if active track matches
-                    if let Some(track) = conductor::get_active_track(config)? {
-                        let plan_path = track.path.join("plan.md");
-                        if let Ok(tasks) = conductor::parse_plan(&plan_path) {
-                            if let Some(task) = conductor::get_next_task(&tasks) {
-                                // Only mark if the description matches or it's the next logical task
-                                let _ = conductor::mark_task_complete(&plan_path, task.line_number);
-                                println!(
-                                    "  ✓ Marked task complete in plan.md: {}",
-                                    task.description
-                                );
-                            }
-                        }
-                    }
-
-                    // Commit if needed
-                    if settings.auto_commit {
-                        match git::commit_completed_feature(&feature.description, settings.verbose)
-                        {
-                            Ok(_) => {
-                                logger.info(&format!(
-                                    "Auto-committed changes for '{}'",
-                                    feature.description
-                                ));
-                            }
-                            Err(e) => {
-                                logger.error(&format!(
-                                    "Failed to commit changes for '{}': {}",
-                                    feature.description, e
-                                ));
-                            }
-                        }
-                    }
-
-                    // Notify webhook
-                    let progress = FeatureProgress::load_from_db(db_path)?;
-                    let _ = webhook::notify_feature_complete(
-                        config,
-                        &feature,
-                        iteration,
-                        progress.passing,
-                        progress.total(),
-                    );
                 } else {
-                    println!("  ❌ Verification FAILED");
-                    println!("     Command: {}", cmd);
-                    let stderr = String::from_utf8_lossy(&output.stderr);
-                    let stdout = String::from_utf8_lossy(&output.stdout);
-                    let error_msg = if !stderr.is_empty() {
-                        println!("     Error: {}", stderr.lines().next().unwrap_or(""));
-                        stderr.to_string()
-                    } else if !stdout.is_empty() {
-                        // Some test frameworks output to stdout
-                        stdout.to_string()
-                    } else {
-                        "Verification command failed with no output".to_string()
-                    };
-
-                    // Mark as failing with error context for auto-fix
-                    let db = crate::db::Database::open(db_path)?;
-                    db.features()
-                        .mark_failing_with_error(&feature.description, Some(&error_msg))?;
-                    println!("  → Feature marked as failing (will auto-fix next iteration)");
-                    logger.info(&format!(
-                        "Verification FAILED for '{}'",
-                        feature.description
-                    ));
-
-                    // Discard uncommitted changes so the next attempt starts clean
-                    println!("  → Discarding uncommitted changes...");
-                    match git::discard_changes(settings.verbose) {
-                        Ok(_) => {
-                            logger.info(&format!(
-                                "Discarded uncommitted changes for '{}'",
-                                feature.description
-                            ));
-                        }
-                        Err(e) => {
-                            logger.error(&format!(
-                                "Failed to discard changes for '{}': {}",
-                                feature.description, e
-                            ));
-                        }
-                    }
-
+                    println!("  ❌ No verification command (manual check required)");
                     last_run_success = false;
+                    // If we don't have a command, we mark it as failing to avoid infinite loop
+                    let db = crate::db::Database::open(db_path)?;
+                    db.features().mark_failing_with_error(
+                        &feature.description,
+                        Some("No verification command produced by agent"),
+                    )?;
                 }
-            } else {
-                println!("  ❌ No verification command (manual check required)");
-                last_run_success = false;
-                // If we don't have a command, we mark it as failing to avoid infinite loop
-                let db = crate::db::Database::open(db_path)?;
-                db.features().mark_failing_with_error(
-                    &feature.description,
-                    Some("No verification command produced by agent"),
-                )?;
             }
         }
 

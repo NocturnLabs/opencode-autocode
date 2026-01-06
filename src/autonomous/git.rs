@@ -98,7 +98,8 @@ pub fn checkout_branch(branch: &str) -> Result<bool> {
 /// Stash current changes with a message, return true if anything was stashed
 pub fn stash_push(message: &str) -> Result<bool> {
     let output = Command::new("git")
-        .args(["stash", "push", "-m", message])
+        // Use -u to include untracked files (newly created files)
+        .args(["stash", "push", "-u", "-m", message])
         .output()
         .context("Failed to run git stash push")?;
 
@@ -114,6 +115,25 @@ pub fn stash_pop() -> Result<bool> {
         .context("Failed to run git stash pop")?;
 
     Ok(status.success())
+}
+
+/// Show the diff of the latest stash (stash@{0})
+pub fn stash_show_latest() -> Result<String> {
+    let output = Command::new("git")
+        .args(["stash", "show", "-p", "stash@{0}"])
+        .output()
+        .context("Failed to run git stash show")?;
+
+    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+}
+
+/// Drop the latest stash
+pub fn stash_drop() -> Result<()> {
+    Command::new("git")
+        .args(["stash", "drop"])
+        .output()
+        .context("Failed to run git stash drop")?;
+    Ok(())
 }
 
 /// Rebase a branch onto target (usually "main"), return true if successful

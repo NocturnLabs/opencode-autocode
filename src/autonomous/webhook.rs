@@ -156,6 +156,28 @@ fn create_new_message<S: WebhookSender>(
     Ok(())
 }
 
+/// Escape a string for safe inclusion in JSON
+/// Handlebars HTML-escapes by default, but that's not the same as JSON escaping.
+/// This function properly escapes JSON special characters.
+fn escape_json_string(s: &str) -> String {
+    s.chars()
+        .flat_map(|c| match c {
+            '"' => vec!['\\', '"'],
+            '\\' => vec!['\\', '\\'],
+            '\n' => vec!['\\', 'n'],
+            '\r' => vec!['\\', 'r'],
+            '\t' => vec!['\\', 't'],
+            '\x08' => vec!['\\', 'b'],
+            '\x0C' => vec!['\\', 'f'],
+            c if c.is_control() => {
+                // Escape other control characters as \uXXXX
+                format!("\\u{:04x}", c as u32).chars().collect()
+            }
+            c => vec![c],
+        })
+        .collect()
+}
+
 fn build_webhook_payload(
     feature: &Feature,
     session_number: usize,
@@ -178,20 +200,20 @@ fn build_webhook_payload(
 
     // Visual progress bar
     let bar_len = 20;
-    // Clippy fix: progress_percent is already usize (u64 cast to usize elsewhere or implied) - checking context
-    // Actually progress_percent comes from earlier calculation. Let's see.
-    // Wait, the error said `progress_percent as usize` is unnecessary.
-    // And `render_template` takes `&str` and we passed `&template_content` where `template_content` is `&str` (from include_str!).
-
     let filled = (progress_percent * bar_len) / 100;
     let empty = bar_len - filled;
     let progress_bar = format!("{}{}", "█".repeat(filled), "░".repeat(empty));
 
-    // Prepare template data
+    // Prepare template data with JSON-escaped strings
+    // SECURITY: All user-controlled strings must be JSON-escaped to prevent
+    // malformed JSON from special characters like newlines, quotes, backslashes
     let mut data = std::collections::HashMap::new();
-    data.insert("feature_name", feature.description.clone());
-    data.insert("feature_category", capitalize_first(&feature.category));
-    data.insert("project_name", project_name);
+    data.insert("feature_name", escape_json_string(&feature.description));
+    data.insert(
+        "feature_category",
+        escape_json_string(&capitalize_first(&feature.category)),
+    );
+    data.insert("project_name", escape_json_string(&project_name));
     data.insert("timestamp", timestamp);
     data.insert("session_number", session_number.to_string());
     data.insert("progress_current", current_passing.to_string());
@@ -208,10 +230,9 @@ fn build_webhook_payload(
 
     // Embed the template directly into the binary
     let template_content = include_str!("../../templates/notifications/webhook.json");
-    // Fallback logic is no longer needed since inclusion is verified at compile time
 
     handlebars
-        .render_template(template_content, &data) // Clippy fix: remove &
+        .render_template(template_content, &data)
         .context("Failed to render webhook template")
 }
 
