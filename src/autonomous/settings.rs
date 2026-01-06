@@ -1,6 +1,6 @@
 //! Settings and result handling for the autonomous loop
 
-use crate::config::Config;
+use crate::config::{Config, McpConfig};
 
 /// Settings extracted from config for the main loop
 pub struct LoopSettings {
@@ -14,6 +14,7 @@ pub struct LoopSettings {
     pub auto_commit: bool,
     pub verbose: bool,
     pub dual_model_enabled: bool,
+    pub mcp: McpConfig,
 }
 
 impl LoopSettings {
@@ -35,6 +36,7 @@ impl LoopSettings {
             auto_commit: config.autonomous.auto_commit,
             verbose: config.ui.verbose,
             dual_model_enabled: true,
+            mcp: config.mcp.clone(),
         }
     }
 }

@@ -175,6 +175,10 @@ pub fn run(
         }
     ));
     logger.info(&format!(
+        "MCP: {} required tools configured",
+        settings.mcp.required_tools.len()
+    ));
+    logger.info(&format!(
         "Max iterations: {}",
         if settings.max_iterations == usize::MAX {
             "unlimited".to_string()
