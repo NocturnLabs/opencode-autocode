@@ -11,6 +11,7 @@ use std::path::{Path, PathBuf};
 
 pub mod autonomous;
 pub mod environment;
+pub mod mcp_loader;
 pub mod project;
 
 pub use autonomous::{AgentConfig, AlternativeApproachesConfig, AutonomousConfig, ConductorConfig};

@@ -1,13 +1,12 @@
 //! Generated mode - AI creates spec from idea
 
 use anyhow::Result;
-use console::style;
 use std::io::Write;
 use std::path::Path;
 
 use crate::generator::generate_spec_from_idea;
+use crate::tui::prompts::{confirm, multiline_input, print_error, print_info};
 
-use super::inputs::read_multiline;
 use super::manual::run_manual_mode;
 use super::validation::run_validation_loop;
 
@@ -17,15 +16,9 @@ pub fn run_generated_mode(
     config: &crate::config::Config,
     use_subagents: bool,
 ) -> Result<()> {
-    println!("\n{}", style("─── AI Spec Generation ───").yellow().bold());
-    println!(
-        "{}",
-        style("Describe your project and AI will create a comprehensive spec.").dim()
-    );
-    println!(
-        "{}",
-        style(format!("Using model: {}", config.models.default)).dim()
-    );
+    println!("\n─── AI Spec Generation ───");
+    print_info("Describe your project and AI will create a comprehensive spec.");
+    println!("Using model: {}", config.models.default);
 
     // Use model from config directly (config was set before generation)
     let model = Some(config.models.default.as_str());
@@ -41,31 +34,23 @@ pub fn run_generated_mode(
     let testing_pref = prompt_for_testing_preference()?;
 
     let mut spec_text =
-        match generate_initial_spec(&idea, testing_pref.as_deref(), model, use_subagents) {
+        match generate_initial_spec(&idea, testing_pref.as_deref(), model, use_subagents, config) {
             Ok(spec) => spec,
             Err(e) => return handle_generation_error(e, output_dir),
         };
 
-    run_validation_loop(
-        output_dir,
-        &mut spec_text,
-        Some(config.models.default.clone()),
-        config.ui.spec_preview_lines,
-    )
+    run_validation_loop(output_dir, &mut spec_text, config)
 }
 
 fn prompt_for_idea() -> Result<String> {
-    read_multiline("Describe your project idea")
+    multiline_input("Describe your project idea")
 }
 
 fn prompt_for_testing_preference() -> Result<Option<String>> {
     use std::io::{self, BufRead};
 
     println!();
-    print!(
-        "{}: ",
-        style("Testing framework preference (optional, press Enter to let AI decide)").blue()
-    );
+    print!("Testing framework preference (optional, press Enter to let AI decide): ");
     let _ = std::io::stdout().flush();
 
     let stdin = io::stdin();
@@ -83,31 +68,23 @@ fn generate_initial_spec(
     testing_pref: Option<&str>,
     model: Option<&str>,
     use_subagents: bool,
+    config: &crate::config::Config,
 ) -> Result<String> {
     print!("\x1B[2K\r");
     let _ = std::io::stdout().flush();
 
-    println!(
-        "\n{}",
-        style("─────────────────────────────────────────────").dim()
-    );
+    println!("\n─────────────────────────────────────────────");
 
-    generate_spec_from_idea(idea, testing_pref, model, use_subagents, |msg| {
+    generate_spec_from_idea(idea, testing_pref, model, use_subagents, config, |msg| {
         print!("{}", msg);
         let _ = std::io::stdout().flush();
     })
 }
 
 fn handle_generation_error(e: anyhow::Error, output_dir: &Path) -> Result<()> {
-    use dialoguer::Confirm;
+    print_error(&format!("{}", e));
 
-    println!("\n{} {}", style("Error:").red().bold(), e);
-
-    if Confirm::new()
-        .with_prompt("Switch to manual mode?")
-        .default(true)
-        .interact()?
-    {
+    if confirm("Switch to manual mode?", true)? {
         run_manual_mode(output_dir)
     } else {
         Ok(())

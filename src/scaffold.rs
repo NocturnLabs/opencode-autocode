@@ -1,7 +1,6 @@
 //! Scaffolding logic - generates files from templates
 
 use anyhow::{Context, Result};
-use console::style;
 use std::fs;
 use std::path::Path;
 
@@ -190,7 +189,7 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
 
     // Initialize communication channel (minimal stub)
     let _comm_channel = CommunicationChannel::new();
-    println!("{}", style("ℹ Communication initialized.").dim());
+    println!("ℹ Communication initialized.");
     println!("   💬 Created .autocode/COMMUNICATION.md");
 
     // Write .gitignore at project root if it doesn't exist
@@ -225,71 +224,37 @@ pub fn scaffold_from_spec(output_dir: &Path, spec: &crate::spec::AppSpec) -> Res
 
 /// Preview what files would be created without actually creating them
 pub fn preview_scaffold(output_dir: &Path) {
-    use console::style;
-
     let autocode_dir = output_dir.join(".autocode");
     let opencode_dir = output_dir.join(".opencode");
     let command_dir = opencode_dir.join("command");
 
-    println!(
-        "\n{}",
-        style("📋 Preview: Files that would be created")
-            .cyan()
-            .bold()
-    );
-    println!("{}", style("─".repeat(50)).dim());
+    println!("\n📋 Preview: Files that would be created");
+    println!("{}", "─".repeat(50));
 
     // Directories
-    println!("\n{}", style("Directories:").yellow());
-    println!("   📁 {}", style(autocode_dir.display()).dim());
-    println!("   📁 {}", style(opencode_dir.display()).dim());
-    println!("   📁 {}", style(command_dir.display()).dim());
+    println!("\nDirectories:");
+    println!("   📁 {}", autocode_dir.display());
+    println!("   📁 {}", opencode_dir.display());
+    println!("   📁 {}", command_dir.display());
 
     // Files
-    println!("\n{}", style("Files:").yellow());
+    println!("\nFiles:");
+    println!("   📄 {}", autocode_dir.join("app_spec.md").display());
+    println!("   📄 {}", command_dir.join("auto-init.md").display());
+    println!("   📄 {}", command_dir.join("auto-continue.md").display());
+    println!("   📄 {}", command_dir.join("auto-enhance.md").display());
     println!(
         "   📄 {}",
-        style(autocode_dir.join("app_spec.md").display()).green()
+        autocode_dir.join("security-allowlist.json").display()
     );
-    println!(
-        "   📄 {}",
-        style(command_dir.join("auto-init.md").display()).green()
-    );
-    println!(
-        "   📄 {}",
-        style(command_dir.join("auto-continue.md").display()).green()
-    );
-    println!(
-        "   📄 {}",
-        style(command_dir.join("auto-enhance.md").display()).green()
-    );
-    println!(
-        "   📄 {}",
-        style(autocode_dir.join("security-allowlist.json").display()).green()
-    );
-    println!(
-        "   🗃️  {}",
-        style(autocode_dir.join("progress.db").display()).green()
-    );
-    println!(
-        "   ⚙️  {}",
-        style(autocode_dir.join("config.toml").display()).green()
-    );
-    println!(
-        "   ⚙️  {}",
-        style(output_dir.join("opencode.json").display()).green()
-    );
-    println!(
-        "   📝 {}",
-        style(output_dir.join("AGENTS.md").display()).green()
-    );
+    println!("   🗃️  {}", autocode_dir.join("progress.db").display());
+    println!("   ⚙️  {}", autocode_dir.join("config.toml").display());
+    println!("   ⚙️  {}", output_dir.join("opencode.json").display());
+    println!("   📝 {}", output_dir.join("AGENTS.md").display());
 
-    println!("\n{}", style("─".repeat(50)).dim());
-    println!("{}", style("Total: 3 directories, 8 files").cyan());
-    println!(
-        "{}",
-        style("Run without --dry-run to create these files.").dim()
-    );
+    println!("\n{}", "─".repeat(50));
+    println!("Total: 3 directories, 8 files");
+    println!("Run without --dry-run to create these files.");
 }
 
 /// Generate the opencode.json content with default MCP settings

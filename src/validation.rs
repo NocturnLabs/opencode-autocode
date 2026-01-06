@@ -4,12 +4,11 @@
 //! and quality metrics before scaffolding.
 
 use anyhow::Result;
-use console::style;
 use quick_xml::events::Event;
 use quick_xml::Reader;
 
 /// Result of validating a spec
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct ValidationResult {
     pub is_valid: bool,
     pub errors: Vec<String>,
@@ -18,7 +17,7 @@ pub struct ValidationResult {
 }
 
 /// Statistics about the spec
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct SpecStats {
     pub has_project_name: bool,
     pub has_overview: bool,
@@ -35,27 +34,27 @@ impl ValidationResult {
     /// Print the validation result in a user-friendly format
     pub fn print(&self) {
         if self.is_valid {
-            println!("{}", style("✅ Spec validation passed").green().bold());
+            println!("✅ Spec validation passed");
         } else {
-            println!("{}", style("❌ Spec validation failed").red().bold());
+            println!("❌ Spec validation failed");
         }
 
         if !self.errors.is_empty() {
-            println!("\n{}", style("Errors:").red());
+            println!("\nErrors:");
             for err in &self.errors {
                 println!("   ❌ {}", err);
             }
         }
 
         if !self.warnings.is_empty() {
-            println!("\n{}", style("Warnings:").yellow());
+            println!("\nWarnings:");
             for warn in &self.warnings {
                 println!("   ⚠️  {}", warn);
             }
         }
 
         // Print stats
-        println!("\n{}", style("Spec Statistics:").cyan());
+        println!("\nSpec Statistics:");
         println!(
             "   Project Name: {}",
             bool_icon(self.stats.has_project_name)
@@ -270,17 +269,17 @@ pub fn print_diff(old_spec: &str, new_spec: &str) {
 
     let diff = TextDiff::from_lines(old_spec, new_spec);
 
-    println!("\n{}", style("─── Changes ───").cyan().bold());
+    println!("\n─── Changes ───");
 
     let mut has_changes = false;
     for change in diff.iter_all_changes() {
         match change.tag() {
             ChangeTag::Delete => {
-                print!("{}", style(format!("-{}", change)).red());
+                print!("-{}", change);
                 has_changes = true;
             }
             ChangeTag::Insert => {
-                print!("{}", style(format!("+{}", change)).green());
+                print!("+{}", change);
                 has_changes = true;
             }
             ChangeTag::Equal => {
@@ -290,7 +289,7 @@ pub fn print_diff(old_spec: &str, new_spec: &str) {
     }
 
     if !has_changes {
-        println!("{}", style("   (no changes)").dim());
+        println!("   (no changes)");
     }
 }
 

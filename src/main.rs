@@ -118,7 +118,7 @@ fn main() -> Result<()> {
             Commands::Update => match updater::update() {
                 Ok(_) => Ok(()),
                 Err(e) => {
-                    eprintln!("{} Failed to update: {}", console::style("❌").red(), e);
+                    eprintln!("❌ Failed to update: {}", e);
                     std::process::exit(1);
                 }
             },
@@ -127,7 +127,7 @@ fn main() -> Result<()> {
 
     // Handle flag-based modes
     match cli.mode()? {
-        Mode::Config => config_tui::run_config_tui(),
+        Mode::Config => config_tui::run_config_tui(None).map(|_| ()),
         Mode::Default => {
             if cli.dry_run {
                 println!("🔍 Dry run mode - no files will be created");
@@ -156,10 +156,8 @@ fn main() -> Result<()> {
             // We print a banner if found.
             if let Ok(Some(new_version)) = updater::check_for_update() {
                 println!(
-                    "\n{} A new version is available: {} (Run '{}' to upgrade)\n",
-                    console::style("🚀").green(),
-                    console::style(new_version).bold(),
-                    console::style("opencode-autocode update").yellow()
+                    "\n🚀 A new version is available: {} (Run 'opencode-autocode update' to upgrade)\n",
+                    new_version
                 );
             }
 
