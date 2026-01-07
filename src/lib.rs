@@ -9,6 +9,7 @@ pub mod conductor;
 pub mod config;
 pub mod config_tui;
 pub mod db;
+pub mod docs;
 pub mod generator;
 pub mod regression;
 pub mod scaffold;
