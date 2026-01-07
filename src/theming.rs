@@ -42,6 +42,8 @@ pub mod boxes {
     pub const BOTTOM_RIGHT: &str = "╯";
     pub const HORIZONTAL: &str = "─";
     pub const VERTICAL: &str = "│";
+    pub const LEFT_T: &str = "├";
+    pub const RIGHT_T: &str = "┤";
 
     /// Create a horizontal line of specified width
     pub fn line(width: usize) -> String {

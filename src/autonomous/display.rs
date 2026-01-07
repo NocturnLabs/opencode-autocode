@@ -33,9 +33,9 @@ pub fn display_banner(
 
     println!(
         "{}{}{}",
-        crate::theming::accent(boxes::VERTICAL),
+        crate::theming::accent(boxes::LEFT_T),
         crate::theming::accent(boxes::line(width - 2)),
-        crate::theming::accent(boxes::VERTICAL)
+        crate::theming::accent(boxes::RIGHT_T)
     );
 
     // Info rows

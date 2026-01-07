@@ -24,7 +24,7 @@ pub fn DbStatsView(props: &DbStatsProps) -> impl Into<AnyElement<'static>> {
         View(
             flex_direction: FlexDirection::Column,
             border_style: BorderStyle::Round,
-            border_color: Color::Blue,
+            border_color: Color::Magenta,
             width: 60,
             padding: 1,
             margin_top: 1,
@@ -36,7 +36,7 @@ pub fn DbStatsView(props: &DbStatsProps) -> impl Into<AnyElement<'static>> {
                 justify_content: JustifyContent::Center,
                 margin_bottom: 1,
             ) {
-                Text(content: "✨ Database Statistics", weight: Weight::Bold, color: Color::Blue)
+                Text(content: "✨ Database Statistics", weight: Weight::Bold, color: Color::Magenta)
             }
 
             // Progress Bar Section
