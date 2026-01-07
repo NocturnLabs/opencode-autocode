@@ -21,7 +21,9 @@ pub fn display_banner(
 
     // Title with sparkle
     let title = "OpenCode Autonomous Agent";
-    let padding = width - 4 - title.len() - 3; // -4 for borders/spaces, -3 for sparkle
+    // Width breakdown: │ (1) + space (1) + ✨ (2 visual) + space (1) + title + padding + space (1) + │ (1)
+    // Total fixed chars: 7, but the emoji counts as 1 in len() but displays as 2
+    let padding = width - 6 - title.len() - 2; // -6 for borders/spaces, -2 for sparkle visual width
     println!(
         "{} {} {} {}{}",
         crate::theming::accent(boxes::VERTICAL),
