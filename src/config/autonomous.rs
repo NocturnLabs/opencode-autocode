@@ -15,6 +15,8 @@ pub struct AutonomousConfig {
     pub log_level: String,
     /// Session timeout in minutes (0 = no timeout)
     pub session_timeout_minutes: u32,
+    /// Idle timeout in seconds (0 = no timeout)
+    pub idle_timeout_seconds: u32,
     /// Auto-commit after feature completion
     pub auto_commit: bool,
 }
@@ -26,6 +28,7 @@ impl Default for AutonomousConfig {
             max_iterations: 0,
             log_level: "DEBUG".to_string(),
             session_timeout_minutes: 15,
+            idle_timeout_seconds: 600,
             auto_commit: true,
         }
     }

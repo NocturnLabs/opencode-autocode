@@ -20,6 +20,7 @@ pub trait CommandRunner: Send + Sync {
         log_level: &str,
         session_id: Option<&str>,
         timeout_minutes: u32,
+        idle_timeout_seconds: u32,
         logger: &DebugLogger,
     ) -> Result<SessionResult>;
 
@@ -48,6 +49,7 @@ impl CommandRunner for RealCommandRunner {
         log_level: &str,
         session_id: Option<&str>,
         timeout_minutes: u32,
+        idle_timeout_seconds: u32,
         logger: &DebugLogger,
     ) -> Result<SessionResult> {
         session::execute_opencode_session(
@@ -56,6 +58,7 @@ impl CommandRunner for RealCommandRunner {
             log_level,
             session_id,
             timeout_minutes,
+            idle_timeout_seconds,
             logger,
         )
     }
@@ -127,6 +130,7 @@ pub mod mock {
             _log_level: &str,
             _session_id: Option<&str>,
             _timeout_minutes: u32,
+            _idle_timeout_seconds: u32,
             _logger: &DebugLogger,
         ) -> Result<SessionResult> {
             *self.session_call_count.lock().unwrap() += 1;
@@ -187,13 +191,13 @@ mod tests {
 
         // First session call
         let result1 = runner
-            .execute_session("cmd", "model", "info", None, 0, &logger)
+            .execute_session("cmd", "model", "info", None, 0, 0, &logger)
             .unwrap();
         assert!(matches!(result1, SessionResult::Continue));
 
         // Second session call
         let result2 = runner
-            .execute_session("cmd", "model", "info", None, 0, &logger)
+            .execute_session("cmd", "model", "info", None, 0, 0, &logger)
             .unwrap();
         assert!(matches!(result2, SessionResult::Error(_)));
 
@@ -219,7 +223,7 @@ mod tests {
 
         // Should return Continue by default
         let result = runner
-            .execute_session("cmd", "model", "info", None, 0, &logger)
+            .execute_session("cmd", "model", "info", None, 0, 0, &logger)
             .unwrap();
         assert!(matches!(result, SessionResult::Continue));
 

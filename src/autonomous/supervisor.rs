@@ -167,6 +167,7 @@ pub fn run_supervisor_loop(
             &settings.log_level,
             None,
             settings.session_timeout,
+            settings.idle_timeout,
             logger,
         )?;
 

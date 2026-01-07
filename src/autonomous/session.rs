@@ -36,6 +36,7 @@ pub fn execute_opencode_session(
     log_level: &str,
     session_id: Option<&str>,
     timeout_minutes: u32,
+    idle_timeout_seconds: u32,
     logger: &DebugLogger,
 ) -> Result<SessionResult> {
     if stop_signal_exists() {
@@ -57,11 +58,7 @@ pub fn execute_opencode_session(
         ],
     );
 
-    if timeout_minutes > 0 {
-        execute_with_timeout(&mut cmd, timeout_minutes, logger)
-    } else {
-        execute_synchronously(&mut cmd, logger)
-    }
+    execute_with_timeout(&mut cmd, timeout_minutes, idle_timeout_seconds, logger)
 }
 
 /// Check if stop signal file exists
@@ -122,17 +119,31 @@ fn is_feature_complete_signal(line: &str) -> bool {
 fn execute_with_timeout(
     cmd: &mut Command,
     timeout_minutes: u32,
+    idle_timeout_seconds: u32,
     logger: &DebugLogger,
 ) -> Result<SessionResult> {
-    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
     use std::sync::mpsc;
     use std::sync::Arc;
+    use std::time::{SystemTime, UNIX_EPOCH};
 
-    let timeout_secs = timeout_minutes as u64 * 60;
+    let timeout_secs = if timeout_minutes > 0 {
+        timeout_minutes as u64 * 60
+    } else {
+        u64::MAX // Effectively unlimited
+    };
+
+    // Effective idle timeout (0 means disabled)
+    let idle_enabled = idle_timeout_seconds > 0;
+
     println!("→ Session timeout: {} minutes", timeout_minutes);
+    if idle_enabled {
+        println!("→ Idle timeout: {} seconds", idle_timeout_seconds);
+    }
+
     logger.debug(&format!(
-        "Session timeout set to {} minutes",
-        timeout_minutes
+        "Session timeout: {}m, Idle timeout: {}s",
+        timeout_minutes, idle_timeout_seconds
     ));
 
     // Capture stdout and stderr
@@ -149,14 +160,33 @@ fn execute_with_timeout(
     let (tx, rx) = mpsc::channel::<String>();
     let feature_completed = Arc::new(AtomicBool::new(false));
 
-    // Spawn thread to read stdout with feature detection
+    // Last activity timestamp (Unix timestamp in seconds)
+    // Initialized to now
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    let last_activity = Arc::new(AtomicU64::new(now));
+
+    // Spawn thread to read stdout with feature detection & activity tracking
     let tx_stdout = tx.clone();
     let feature_completed_stdout = Arc::clone(&feature_completed);
+    let last_activity_stdout = Arc::clone(&last_activity);
+
     let stdout_handle = stdout.map(|s| {
         thread::spawn(move || {
             let reader = BufReader::new(s);
             let mut lines = Vec::new();
             for line in reader.lines().map_while(Result::ok) {
+                // Update activity timestamp
+                if idle_enabled {
+                    let now = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs();
+                    last_activity_stdout.store(now, Ordering::Relaxed);
+                }
+
                 println!("{}", line);
 
                 // Check for feature completion signal
@@ -173,12 +203,22 @@ fn execute_with_timeout(
         })
     });
 
-    // Spawn thread to read stderr
+    // Spawn thread to read stderr with activity tracking
+    let last_activity_stderr = Arc::clone(&last_activity);
     let stderr_handle = stderr.map(|s| {
         thread::spawn(move || {
             let reader = BufReader::new(s);
             let mut lines = Vec::new();
             for line in reader.lines().map_while(Result::ok) {
+                // Update activity timestamp
+                if idle_enabled {
+                    let now = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs();
+                    last_activity_stderr.store(now, Ordering::Relaxed);
+                }
+
                 eprintln!("{}", line);
                 lines.push(line);
             }
@@ -209,6 +249,9 @@ fn execute_with_timeout(
 
         match child.try_wait() {
             Ok(Some(status)) => {
+                // Process finished naturally - handle output collection ...
+                // Reusing exit logic below loop for cleaner flow
+
                 // Wait for output threads to finish
                 if let Some(handle) = stdout_handle {
                     if let Ok(lines) = handle.join() {
@@ -242,6 +285,7 @@ fn execute_with_timeout(
                 break;
             }
             Ok(None) => {
+                // 1. Hard Timeout Check
                 if start.elapsed().as_secs() > timeout_secs {
                     println!();
                     println!("⏱ Session timeout reached ({} minutes)", timeout_minutes);
@@ -251,6 +295,28 @@ fn execute_with_timeout(
                     ));
                     terminate_child(&mut child);
                     return Ok(SessionResult::Error("session timeout".to_string()));
+                }
+
+                // 2. Idle Timeout Check
+                if idle_enabled {
+                    let current_time = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs();
+                    let last = last_activity.load(Ordering::Relaxed);
+                    if current_time > last + idle_timeout_seconds as u64 {
+                        println!();
+                        println!(
+                            "💤 Idle timeout reached (no output for {} seconds)",
+                            idle_timeout_seconds
+                        );
+                        logger.error(&format!(
+                            "Idle timeout after {} seconds of silence",
+                            idle_timeout_seconds
+                        ));
+                        terminate_child(&mut child);
+                        return Ok(SessionResult::Error("idle timeout".to_string()));
+                    }
                 }
 
                 if stop_signal_exists() {
@@ -273,85 +339,6 @@ fn execute_with_timeout(
     // If we terminated for isolation, still return Continue so supervisor can verify
     if terminated_for_isolation {
         return Ok(SessionResult::Continue);
-    }
-
-    if stop_signal_exists() {
-        logger.info("Stop signal detected after session");
-        return Ok(SessionResult::Stopped);
-    }
-
-    Ok(SessionResult::Continue)
-}
-
-fn execute_synchronously(cmd: &mut Command, logger: &DebugLogger) -> Result<SessionResult> {
-    // Capture stdout and stderr
-    cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
-
-    let mut child = cmd.spawn().context("Failed to spawn opencode command")?;
-
-    // Take ownership of stdout/stderr for reading
-    let stdout = child.stdout.take();
-    let stderr = child.stderr.take();
-
-    // Spawn threads to read output
-    let logger_enabled = logger.is_enabled();
-    let stdout_handle = stdout.map(|s| {
-        thread::spawn(move || {
-            let reader = BufReader::new(s);
-            let mut lines = Vec::new();
-            for line in reader.lines().map_while(Result::ok) {
-                println!("{}", line);
-                lines.push(line);
-            }
-            lines
-        })
-    });
-
-    let stderr_handle = stderr.map(|s| {
-        thread::spawn(move || {
-            let reader = BufReader::new(s);
-            let mut lines = Vec::new();
-            for line in reader.lines().map_while(Result::ok) {
-                eprintln!("{}", line);
-                lines.push(line);
-            }
-            lines
-        })
-    });
-
-    let status = child
-        .wait()
-        .context("Failed to wait for opencode command")?;
-
-    // Wait for output threads and log
-    if let Some(handle) = stdout_handle {
-        if let Ok(lines) = handle.join() {
-            if logger_enabled {
-                for line in lines {
-                    logger.log_output("stdout", &line);
-                }
-            }
-        }
-    }
-    if let Some(handle) = stderr_handle {
-        if let Ok(lines) = handle.join() {
-            if logger_enabled {
-                for line in lines {
-                    logger.log_output("stderr", &line);
-                }
-            }
-        }
-    }
-
-    println!();
-    let exit_code = status.code().unwrap_or(-1);
-    println!("→ OpenCode exited with code: {}", exit_code);
-    logger.info(&format!("OpenCode exited with code: {}", exit_code));
-
-    if !status.success() {
-        let err_msg = format!("exit code {}", exit_code);
-        logger.error(&format!("Session failed: {}", err_msg));
-        return Ok(SessionResult::Error(err_msg));
     }
 
     if stop_signal_exists() {
