@@ -157,7 +157,7 @@ pub fn display_final_status(passing: usize, total: usize, developer_mode: bool) 
 }
 
 /// Display token usage statistics after a session
-pub fn display_token_stats(stats: &super::session::TokenStats) {
+pub fn display_token_stats(stats: &super::stats::TokenStats) {
     println!();
     println!(
         "{}{}{}",

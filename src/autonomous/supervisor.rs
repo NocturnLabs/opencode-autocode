@@ -21,6 +21,7 @@ use super::display;
 use super::features;
 use super::session;
 use super::settings::{handle_session_result, LoopAction, LoopSettings};
+use super::stats;
 use super::templates;
 use super::verifier::{
     handle_verification_failure, handle_verification_success, run_verification, VerificationResult,
@@ -213,7 +214,7 @@ pub fn run_supervisor_loop(
         }
 
         // Display token usage
-        if let Some(ref stats) = session::fetch_token_stats() {
+        if let Some(ref stats) = stats::fetch_token_stats() {
             display::display_token_stats(stats);
         }
 

@@ -12,6 +12,7 @@ pub mod parallel;
 pub mod security;
 mod session;
 mod settings;
+mod stats;
 pub mod supervisor;
 pub mod templates;
 pub mod verification;
