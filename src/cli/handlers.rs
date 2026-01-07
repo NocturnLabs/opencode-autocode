@@ -192,14 +192,10 @@ fn handle_reset(output_dir: &std::path::Path) -> Result<()> {
         );
     }
 
-    println!("🔄 Resetting project...");
+    println!("🔄 Resetting project (preserving database)...");
 
-    // Clean up stale files
+    // Clean up ONLY temporary/signal files - PRESERVE the .db!
     let files_to_remove = [
-        output_dir.join(".autocode/progress.db"),
-        output_dir.join(".autocode/progress.db-shm"),
-        output_dir.join(".autocode/progress.db-wal"),
-        output_dir.join("feature_list.json"),
         output_dir.join(".opencode-signal"),
         output_dir.join(".opencode-stop"),
     ];
@@ -276,7 +272,7 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
         DbAction::Export { output } => {
             let output_path = output
                 .clone()
-                .unwrap_or_else(|| PathBuf::from("feature_list_export.json"));
+                .unwrap_or_else(|| PathBuf::from("feature_list.json"));
 
             let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
             if !db_path.exists() {

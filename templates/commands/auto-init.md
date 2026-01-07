@@ -33,28 +33,33 @@ Read `app_spec.md` in your working directory. Understand:
 **CRITICAL: Break down the specification into SEPARATE, testable features.** Based on your analysis of `app_spec.md` (which defines approximately **{{SPEC_FEATURE_COUNT}}** features and **{{SPEC_ENDPOINT_COUNT}}** API endpoints), insert ALL required features into the database.
 
 > [!TIP]
-> **If there are many features (e.g., >20), you can insert them in batches of 10.**
+> **Use batch INSERT to minimize tool calls. Insert 10-50 features per command.**
 
 ```bash
-opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Feature description', 0, 'bun test -- --grep \"feature\"')"
+opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES
+  ('functional', 'Feature 1 description', 0, 'bun test -- --grep \"feature1\"'),
+  ('functional', 'Feature 2 description', 0, 'bun test -- --grep \"feature2\"'),
+  ('functional', 'Feature 3 description', 0, 'bun test -- --grep \"feature3\"')"
 ```
 
-#### Example: Game Project with 9 Core Features
+#### Example: Game Project with 9 Core Features (SINGLE BATCH)
 
 ```bash
-# DON'T: One vague feature
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Implement the game', 0, 'cargo build')"
+# ✅ DO: Batch insert all features in ONE command
+opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES
+  ('functional', 'Hero entity spawns and renders as red square', 0, 'cargo test test_hero_spawn'),
+  ('functional', 'Hero moves upward automatically at constant speed', 0, 'cargo test test_hero_movement'),
+  ('functional', 'Weapon system fires projectiles automatically', 0, 'cargo test test_weapon_firing'),
+  ('functional', 'Zombie enemies spawn and move toward hero', 0, 'cargo test test_zombie_spawn'),
+  ('functional', 'Collision detection between projectiles and zombies', 0, 'cargo test test_collision'),
+  ('functional', 'Gate entities modify weapon properties on contact', 0, 'cargo test test_gate_effects'),
+  ('functional', 'SQLite database persists high scores', 0, 'cargo test test_score_persistence'),
+  ('style', 'UI displays current score and weapon stats', 0, 'cargo test test_ui_display'),
+  ('style', 'Audio plays on weapon fire and gate contact', 0, 'cargo test test_audio')"
 
-# DO: Separate testable features
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Hero entity spawns and renders as red square', 0, 'cargo test test_hero_spawn')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Hero moves upward automatically at constant speed', 0, 'cargo test test_hero_movement')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Weapon system fires projectiles automatically', 0, 'cargo test test_weapon_firing')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Zombie enemies spawn and move toward hero', 0, 'cargo test test_zombie_spawn')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Collision detection between projectiles and zombies', 0, 'cargo test test_collision')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Gate entities modify weapon properties on contact', 0, 'cargo test test_gate_effects')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'SQLite database persists high scores', 0, 'cargo test test_score_persistence')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'UI displays current score and weapon stats', 0, 'cargo test test_ui_display')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'Audio plays on weapon fire and gate contact', 0, 'cargo test test_audio')"
+# ❌ DON'T: Insert one by one (floods tool calls)
+# opencode-autocode db exec "INSERT ... VALUES ('functional', 'Feature 1', ...)"
+# opencode-autocode db exec "INSERT ... VALUES ('functional', 'Feature 2', ...)"
 ```
 
 #### Requirements
@@ -62,10 +67,15 @@ opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'Audio play
 | Rule             | Description                                                            |
 | ---------------- | ---------------------------------------------------------------------- |
 | **Granularity**  | Each feature = ONE testable behavior. Not "implement the app".         |
-| **Count**        | Insert ALL **{{SPEC_FEATURE_COUNT}}** features defined in the spec.       |
+| **Count**        | **MINIMUM 200 features** for comprehensive coverage. Cover every requirement exhaustively. |
+| **Depth**        | At least **25 features MUST have 10+ testing steps** for thorough validation. |
 | **Categories**   | Mix `functional` (logic) and `style` (UI/UX)                           |
 | **Passes**       | ALL start with `passes = 0`                                            |
 | **Verification** | Project-appropriate commands (e.g. `npm test`, `pytest`, `cargo test`) |
+
+> [!IMPORTANT]
+> **IT IS CATASTROPHIC TO REMOVE OR EDIT FEATURES IN FUTURE SESSIONS.**
+> Features can ONLY be marked as passing. Never remove, never edit descriptions, never modify testing steps.
 
 > [!TIP] > **Use standard test runners:**
 >

@@ -43,6 +43,9 @@ pub fn generate_fix_template(
             feature.verification_command.as_deref().unwrap_or("unknown"),
         );
 
+    // Resolve includes (e.g. core/database.md)
+    let content = crate::scaffold::resolve_includes(&content);
+
     // Write to active command file
     let target = Path::new(".opencode/command/auto-fix-active.md");
     write_file(target, &content)?;
@@ -71,6 +74,20 @@ Implement this feature completely:
 ## Acceptance Criteria
 {}
 {}
+
+## 🛑 MANDATORY: GET YOUR BEARINGS
+1. Read `app_spec.md` to refresh context.
+2. Run `opencode-autocode db stats` to see overall progress.
+3. **REGRESSION CHECK**: Run 1-2 of the features marked as passing to verify they still work.
+4. If you find ANY regressions, fix them BEFORE starting the new feature.
+
+## 🚀 MINIMAL WORK SESSION
+Your goal is to be **FAST**. 
+1. Implement **ONLY** Feature #{}.
+2. Verify it end-to-end.
+3. Output `===SESSION_COMPLETE===` immediately.
+Do not over-engineer or explore unrelated files.
+
 ## What You Do
 1. **Use `@explore` to understand the codebase context.** 
 2. Implement the feature with production-quality code.
@@ -107,6 +124,7 @@ The supervisor will automatically handle after your session:
                 .join("\n")
         },
         dual_model_section,
+        feature.id.unwrap_or(0),
         feature.id.unwrap_or(0),
         feature
             .verification_command

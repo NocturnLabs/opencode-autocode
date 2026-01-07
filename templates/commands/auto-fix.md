@@ -34,6 +34,12 @@ You CANNOT proceed to new features until you fix the regression you introduced.
 - **DO** modify the implementation code to satisfy the original requirements.
 - **DO** run `opencode-autocode db check` frequently to verify your fix.
 
+{{INCLUDE core/database.md}}
+
+> [!IMPORTANT]
+> **LEARN FROM MISTAKES**: If this error was caused by an environment quirk (e.g. "vitest doesn't support --grep"), you MUST save this to the Knowledge Base so you don't repeat it!
+> `opencode-autocode db knowledge set QUIRK_TEST "Use -t instead of --grep for vitest" --category quirks`
+
 ## Output
 
 When you have fixed the regression, declare completion by updating `task.md` and notifying the user.

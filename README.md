@@ -55,7 +55,7 @@ opencode-autocode vibe --developer
 This tool is built for high-performance autonomous coding:
 
 - **Core**: [Rust](https://www.rust-lang.org/) (Edition 2021) for type safety, speed, and concurrency.
-- **TUI**: [Ratatui](https://ratatui.rs/) + Crossterm for the interactive dashboard.
+- **TUI**: [iocraft](https://github.com/mitchmindtree/iocraft) for the reactive, phase-based interactive setup and configuration.
 - **Database**: SQLite (via `rusqlite`) for ACID-compliant session state and resumption.
 - **Templating**: Handlebars for logic-free, maintainable command templates.
 - **Agent Protocol**: Dual-model architecture separating Reasoning (Planning) from Autonomy (Coding).

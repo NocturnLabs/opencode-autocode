@@ -1399,8 +1399,6 @@ main.rs
 | Crate         | Version | Purpose                                 |
 | ------------- | ------- | --------------------------------------- |
 | `clap`        | 4.5.53  | CLI argument parsing with derive macros |
-| `ratatui`     | 0.30.0  | TUI framework (unused in current impl)  |
-| `crossterm`   | 0.29    | Terminal manipulation                   |
 | `serde`       | 1.0.228 | Serialization framework                 |
 | `serde_json`  | 1.0.148 | JSON serialization                      |
 | `toml`        | 0.9.10  | TOML config parsing                     |
