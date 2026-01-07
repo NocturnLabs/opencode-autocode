@@ -9,7 +9,7 @@ pub mod features;
 pub mod knowledge;
 pub mod meta;
 mod schema;
-mod sessions;
+pub mod sessions;
 #[cfg(test)]
 pub mod test_utils;
 

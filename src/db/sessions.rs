@@ -56,7 +56,7 @@ impl SessionRepository {
 }
 
 /// Session statistics summary
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct SessionStats {
     pub total_sessions: usize,
     pub completed_sessions: usize,

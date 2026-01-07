@@ -14,6 +14,7 @@ use crate::scaffold;
 use crate::templates;
 use crate::tui;
 use crate::updater;
+use iocraft::prelude::*;
 
 use super::{Cli, Commands, DbAction, ExampleTopic, Mode, TemplateAction};
 
@@ -310,30 +311,14 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
             // Session stats
             let session_stats = db.sessions().get_stats()?;
 
-            println!("\n📊 Database Statistics");
-            println!("═══════════════════════════════════════");
-            println!();
-            println!("Features:");
-            println!("  Total:     {}", total);
-            println!(
-                "  Passing:   {} ({:.1}%)",
-                passing,
-                if total > 0 {
-                    passing as f64 / total as f64 * 100.0
-                } else {
-                    0.0
-                }
-            );
-            println!("  Remaining: {}", remaining);
-            println!();
-            println!("Sessions:");
-            println!("  Total:             {}", session_stats.total_sessions);
-            println!("  Completed:         {}", session_stats.completed_sessions);
-            println!(
-                "  Features completed: {}",
-                session_stats.total_features_completed
-            );
-            println!();
+            // Render the component to stdout
+            element!(crate::tui::stats::DbStatsView(
+                total: total,
+                passing: passing,
+                remaining: remaining,
+                session_stats: session_stats
+            ))
+            .print();
 
             Ok(())
         }
