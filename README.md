@@ -9,7 +9,7 @@ A Rust CLI that scaffolds autonomous coding projects for [OpenCode](https://gith
 
 ## Documentation
 
-- [Architecture Overview](ARCHITECTURE.md) - High-level system design and data flow.
+- [Architecture Overview](ARCHITECTURE.md) - Detailed modules (Supervisor, Decision, Verifier, Runner).
 - [Development Guide](docs/DEVELOPMENT.md) - Developer onboarding and contribution guidelines.
 - [Contributing](CONTRIBUTING.md) - Code standards and PR process.
 
@@ -42,6 +42,7 @@ opencode-autocode vibe --developer
 - **Dashboard Webhooks**: Real-time Discord/Slack dashboard that updates a single message with project status and progress bars.  
   ![Discord Dashboard](assets/discord-dashboard.png)
 - **MCP Native**: First-class support for Model Context Protocol tools like `osgrep`, `chrome-devtools`, and `sequential-thinking`.
+- **Idle Timeout**: Robust hang detection that kills sessions if they stop outputting logs for >10 minutes (configurable).
 - **Port Conflict Prevention**: Automatic detection and resolution of port conflicts before starting servers or tests.
 - **Module Verification**: Validates ES6 import/export consistency to prevent ReferenceErrors at runtime.
 - **Progressive Discovery**: Modular template system that reduces context window usage by ~80%.
@@ -120,7 +121,8 @@ log_dir = "$HOME/.local/share/opencode/log"
 [autonomous]
 delay_between_sessions = 5       # Seconds to wait
 max_iterations = 0               # 0 = Run until complete
-session_timeout_minutes = 60     # Kill hung sessions after N minutes
+session_timeout_minutes = 15     # Kill hung sessions after N minutes
+idle_timeout_seconds = 600       # Kill if silent for N seconds (10m)
 auto_commit = true               # Commit to Git on feature completion
 log_level = "DEBUG"              # Logging verbosity
 

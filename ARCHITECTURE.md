@@ -11,7 +11,12 @@ This document outlines the high-level architecture of the `opencode-autocode` CL
 | Module        | Responsibility                                                                     |
 | :------------ | :--------------------------------------------------------------------------------- |
 | `main.rs`     | Entry point, CLI argument parsing, and command routing.                            |
-| `autonomous/` | The "Vibe Loop" engine. Manages sessions, retries, and automated progression.      |
+| `autonomous/` | The "Vibe Loop" engine. Contains the following sub-modules:                        |
+| &nbsp;&nbsp;`supervisor.rs` | Main loop management, retries, and high-level orchestration.         |
+| &nbsp;&nbsp;`decision.rs`   | Logic for determining the next action (e.g., should we fix or continue?). |
+| &nbsp;&nbsp;`verifier.rs`   | Handles "Run Verification" step, parsing output and ensuring correctness.|
+| &nbsp;&nbsp;`runner.rs`     | `CommandRunner` trait abstraction for executing shell commands (mockable).|
+| &nbsp;&nbsp;`session.rs`    | Handles execution of `opencode` with robust timeout/idle monitoring.     |
 | `scaffold/`   | Generates project structures and OpenCode command templates from specs.            |
 | `conductor/`  | Context-driven planning. Manages `.conductor/` context and per-feature `tracks/`.  |
 | `templates/`  | The Progressive Discovery template system. Minimalist, modular markdown templates. |

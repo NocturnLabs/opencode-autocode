@@ -140,8 +140,8 @@
         "type": "process",
         "description": "Manage git worktrees for concurrent feature implementation.",
         "metadata": {
-            "action": "git worktree add",
-            "symlinks": ["progress.db", ".conductor/", "autocode.toml"]
+          "action": "git worktree add",
+          "symlinks": ["progress.db", ".conductor/", "autocode.toml"]
         }
       },
       "type": "custom",
@@ -192,9 +192,14 @@
         "type": "process",
         "description": "Inject feature context & verification command into `auto-continue.md`",
         "metadata": {
-            "template": "templates/commands/auto-continue.md",
-            "injected": ["{{feature_id}}", "{{steps}}", "{{verification_cmd}}", "{{dual_model_prompts}}"],
-            "output": ".opencode/command/auto-continue-active.md"
+          "template": "templates/commands/auto-continue.md",
+          "injected": [
+            "{{feature_id}}",
+            "{{steps}}",
+            "{{verification_cmd}}",
+            "{{dual_model_prompts}}"
+          ],
+          "output": ".opencode/command/auto-continue-active.md"
         }
       },
       "type": "custom",
@@ -231,7 +236,7 @@
       "data": {
         "label": "@coder Subagent",
         "type": "agent",
-        "description": "Dumb but fast coding agent that implements the plan blindly."
+        "description": "Coding agent implementing the plan. Monitored for idle hangs (10m timeout)."
       },
       "type": "custom",
       "width": 280,
@@ -255,7 +260,7 @@
       "data": {
         "label": "Run Verification",
         "type": "process",
-        "description": "Supervisor executes the stored verification command (Security Sandboxed)."
+        "description": "Verifier module parses output and checks exit codes (Sandboxed)."
       },
       "type": "custom",
       "width": 280,
@@ -285,7 +290,7 @@
       "width": 280,
       "height": 127
     },
-     {
+    {
       "id": "node_gen_fix",
       "position": { "x": 1820, "y": 1050 },
       "data": {
@@ -293,9 +298,9 @@
         "type": "process",
         "description": "Inject error log, diff, and context into `auto-fix.md`",
         "metadata": {
-            "template": "templates/commands/auto-fix.md",
-            "injected": ["{{error_log}}", "{{git_diff}}", "{{prev_cmd}}"],
-            "output": ".opencode/command/auto-fix-active.md"
+          "template": "templates/commands/auto-fix.md",
+          "injected": ["{{error_log}}", "{{git_diff}}", "{{prev_cmd}}"],
+          "output": ".opencode/command/auto-fix-active.md"
         }
       },
       "type": "custom",
@@ -388,51 +393,242 @@
     }
   ],
   "edges": [
-    { "id": "e0", "source": "node_0", "target": "node_1", "type": "smoothstep" },
-    { "id": "e1", "source": "node_1", "target": "node_2", "label": "Scaffold", "type": "smoothstep" },
-    { "id": "e3", "source": "node_3", "target": "node_4", "label": "--interactive (AI)", "type": "smoothstep" },
-    { "id": "e4", "source": "node_4", "target": "node_5", "type": "smoothstep" },
-    { "id": "e5", "source": "node_5", "target": "node_6", "type": "smoothstep" },
-    { "id": "e6", "source": "node_6", "target": "node_7", "label": "Fail", "type": "smoothstep" },
-    { "id": "e7", "source": "node_7", "target": "node_6", "type": "smoothstep" },
-    { "id": "e8", "source": "node_6", "target": "node_8", "label": "Valid", "type": "smoothstep" },
-    { "id": "e9", "source": "node_1", "target": "node_9", "label": "vibe", "type": "smoothstep" },
-    
-    { "id": "e_vibe_parallel", "source": "node_9", "target": "node_parallel", "type": "smoothstep" },
-    { "id": "e_parallel_yes", "source": "node_parallel", "target": "node_coordinator", "label": "Yes", "type": "smoothstep" },
-    { "id": "e_parallel_no", "source": "node_parallel", "target": "node_reg_check", "label": "No", "type": "smoothstep" },
-    
-    { "id": "e_reg_fail", "source": "node_reg_check", "target": "node_gen_fix", "label": "Fail", "type": "smoothstep", "style": { "stroke": "#e74c3c", "strokeWidth": 2 } },
-    { "id": "e_reg_pass", "source": "node_reg_check", "target": "node_10", "label": "Pass", "type": "smoothstep" },
-    
-    { "id": "e_fix_sess", "source": "node_gen_fix", "target": "node_fix_session", "type": "smoothstep" },
-    { "id": "e_fix_vfy", "source": "node_fix_session", "target": "node_13", "type": "smoothstep" },
-    
-    { "id": "e10", "source": "node_10", "target": "node_11", "type": "smoothstep" },
-    { "id": "e11", "source": "node_11", "target": "node_gen_continue", "type": "smoothstep" },
-    
-    { "id": "e_gen_dual", "source": "node_gen_continue", "target": "node_dual_model", "type": "smoothstep" },
-    
-    { "id": "e_dual_yes", "source": "node_dual_model", "target": "node_reasoning", "label": "Yes", "type": "smoothstep" },
-    { "id": "e_dual_no", "source": "node_dual_model", "target": "node_single_session", "label": "No", "type": "smoothstep" },
-    
-    { "id": "e_reason_coder", "source": "node_reasoning", "target": "node_coder", "label": "Delegates", "type": "smoothstep" },
-    { "id": "e_coder_vfy", "source": "node_coder", "target": "node_13", "type": "smoothstep" },
-    { "id": "e_single_vfy", "source": "node_single_session", "target": "node_13", "type": "smoothstep" },
-    
-    { "id": "e_vfy_res", "source": "node_13", "target": "node_14", "type": "smoothstep" },
-    
-    { "id": "e_pass", "source": "node_14", "target": "node_15", "label": "Pass", "type": "smoothstep", "animated": true },
-    { "id": "e_fail", "source": "node_14", "target": "node_stash", "label": "Fail", "type": "smoothstep", "style": { "stroke": "#e74c3c" } },
-    
-    { "id": "e_stash_retry", "source": "node_stash", "target": "node_16", "type": "smoothstep" },
-    { "id": "e_retry_fix", "source": "node_16", "target": "node_gen_fix", "label": "Auto-Fix", "type": "smoothstep", "style": { "stroke": "#e74c3c" } },
-    
-    { "id": "e18", "source": "node_1", "target": "node_17", "label": "--config", "type": "smoothstep" },
-    { "id": "e19", "source": "node_17", "target": "node_19", "type": "smoothstep" },
-    { "id": "e20", "source": "node_1", "target": "node_18", "label": "Utils", "type": "smoothstep" },
-    
-    { "id": "e_scaf_opt", "source": "node_2", "target": "node-1767699483291", "type": "smoothstep" },
-    { "id": "e_opt_meth", "source": "node-1767699483291", "target": "node_3", "type": "smoothstep" }
+    {
+      "id": "e0",
+      "source": "node_0",
+      "target": "node_1",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e1",
+      "source": "node_1",
+      "target": "node_2",
+      "label": "Scaffold",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e3",
+      "source": "node_3",
+      "target": "node_4",
+      "label": "--interactive (AI)",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e4",
+      "source": "node_4",
+      "target": "node_5",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e5",
+      "source": "node_5",
+      "target": "node_6",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e6",
+      "source": "node_6",
+      "target": "node_7",
+      "label": "Fail",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e7",
+      "source": "node_7",
+      "target": "node_6",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e8",
+      "source": "node_6",
+      "target": "node_8",
+      "label": "Valid",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e9",
+      "source": "node_1",
+      "target": "node_9",
+      "label": "vibe",
+      "type": "smoothstep"
+    },
+
+    {
+      "id": "e_vibe_parallel",
+      "source": "node_9",
+      "target": "node_parallel",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e_parallel_yes",
+      "source": "node_parallel",
+      "target": "node_coordinator",
+      "label": "Yes",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e_parallel_no",
+      "source": "node_parallel",
+      "target": "node_reg_check",
+      "label": "No",
+      "type": "smoothstep"
+    },
+
+    {
+      "id": "e_reg_fail",
+      "source": "node_reg_check",
+      "target": "node_gen_fix",
+      "label": "Fail",
+      "type": "smoothstep",
+      "style": { "stroke": "#e74c3c", "strokeWidth": 2 }
+    },
+    {
+      "id": "e_reg_pass",
+      "source": "node_reg_check",
+      "target": "node_10",
+      "label": "Pass",
+      "type": "smoothstep"
+    },
+
+    {
+      "id": "e_fix_sess",
+      "source": "node_gen_fix",
+      "target": "node_fix_session",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e_fix_vfy",
+      "source": "node_fix_session",
+      "target": "node_13",
+      "type": "smoothstep"
+    },
+
+    {
+      "id": "e10",
+      "source": "node_10",
+      "target": "node_11",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e11",
+      "source": "node_11",
+      "target": "node_gen_continue",
+      "type": "smoothstep"
+    },
+
+    {
+      "id": "e_gen_dual",
+      "source": "node_gen_continue",
+      "target": "node_dual_model",
+      "type": "smoothstep"
+    },
+
+    {
+      "id": "e_dual_yes",
+      "source": "node_dual_model",
+      "target": "node_reasoning",
+      "label": "Yes",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e_dual_no",
+      "source": "node_dual_model",
+      "target": "node_single_session",
+      "label": "No",
+      "type": "smoothstep"
+    },
+
+    {
+      "id": "e_reason_coder",
+      "source": "node_reasoning",
+      "target": "node_coder",
+      "label": "Delegates",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e_coder_vfy",
+      "source": "node_coder",
+      "target": "node_13",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e_single_vfy",
+      "source": "node_single_session",
+      "target": "node_13",
+      "type": "smoothstep"
+    },
+
+    {
+      "id": "e_vfy_res",
+      "source": "node_13",
+      "target": "node_14",
+      "type": "smoothstep"
+    },
+
+    {
+      "id": "e_pass",
+      "source": "node_14",
+      "target": "node_15",
+      "label": "Pass",
+      "type": "smoothstep",
+      "animated": true
+    },
+    {
+      "id": "e_fail",
+      "source": "node_14",
+      "target": "node_stash",
+      "label": "Fail",
+      "type": "smoothstep",
+      "style": { "stroke": "#e74c3c" }
+    },
+
+    {
+      "id": "e_stash_retry",
+      "source": "node_stash",
+      "target": "node_16",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e_retry_fix",
+      "source": "node_16",
+      "target": "node_gen_fix",
+      "label": "Auto-Fix",
+      "type": "smoothstep",
+      "style": { "stroke": "#e74c3c" }
+    },
+
+    {
+      "id": "e18",
+      "source": "node_1",
+      "target": "node_17",
+      "label": "--config",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e19",
+      "source": "node_17",
+      "target": "node_19",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e20",
+      "source": "node_1",
+      "target": "node_18",
+      "label": "Utils",
+      "type": "smoothstep"
+    },
+
+    {
+      "id": "e_scaf_opt",
+      "source": "node_2",
+      "target": "node-1767699483291",
+      "type": "smoothstep"
+    },
+    {
+      "id": "e_opt_meth",
+      "source": "node-1767699483291",
+      "target": "node_3",
+      "type": "smoothstep"
+    }
   ]
 }

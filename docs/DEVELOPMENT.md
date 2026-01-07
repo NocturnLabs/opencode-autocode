@@ -31,12 +31,17 @@ cargo run -- --interactive
 ```
 
 ### 3. Testing
-
-We use a 3-tier testing strategy:
-
-- **Unit Tests**: Fast, internal logic (`cargo test`).
+ 
+We use a comprehensive testing strategy:
+ 
+- **Unit Tests**: Fast, internal logic (`cargo test`). Includes mocked `CommandRunner` tests.
 - **Integration Tests**: File system and CLI entry points (`cargo test --test integration`).
 - **Regression Tests**: Real-world feature verification (`make regression`).
+
+To run the full suite:
+```bash
+cargo test --workspace
+```
 
 ## Working with Templates
 
