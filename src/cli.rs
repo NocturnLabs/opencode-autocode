@@ -43,6 +43,10 @@ pub struct Cli {
     #[arg(long)]
     pub no_subagents: bool,
 
+    /// Reset project: clean up stale files and re-scaffold using existing app_spec.md
+    #[arg(long)]
+    pub reset: bool,
+
     /// Verbose output
     #[arg(short, long)]
     pub verbose: bool,
@@ -302,6 +306,8 @@ pub enum Mode {
     Interactive,
     /// Configure settings
     Config,
+    /// Reset: clean up and re-scaffold with existing app_spec.md
+    Reset,
 }
 
 impl Cli {
@@ -310,6 +316,9 @@ impl Cli {
         // Check exclusive flags
         if self.config {
             return Ok(Mode::Config);
+        }
+        if self.reset {
+            return Ok(Mode::Reset);
         }
         if self.default {
             return Ok(Mode::Default);
@@ -342,6 +351,7 @@ mod tests {
             output: None,
             dry_run: false,
             no_subagents: false,
+            reset: false,
             verbose: false,
         }
     }

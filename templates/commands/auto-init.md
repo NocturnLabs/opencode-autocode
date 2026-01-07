@@ -8,7 +8,12 @@
 > [!IMPORTANT] > **DO NOT modify the configuration file (`autocode.toml` or `.autocode/config.toml`).**
 > Your task is to set up the project structure and database, NOT to reconfigure the agent models or settings.
 
+> [!CAUTION]
+> **DO NOT create `feature_list.json`.** All features MUST be stored in the SQLite database (`.autocode/progress.db`).
+> Use `opencode-autocode db exec "INSERT INTO features ..."` to add features. File-based tracking is deprecated.
+
 This is the FIRST session. Set up the foundation for all future sessions.
+
 
 ### STEP 1: Read Project Specification
 

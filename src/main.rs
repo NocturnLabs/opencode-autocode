@@ -150,6 +150,48 @@ fn main() -> Result<()> {
             print_next_steps(&output_dir);
             Ok(())
         }
+        Mode::Reset => {
+            let spec_path = output_dir.join(".autocode/app_spec.md");
+            if !spec_path.exists() {
+                anyhow::bail!(
+                    "Cannot reset: .autocode/app_spec.md not found in {}",
+                    output_dir.display()
+                );
+            }
+
+            println!("🔄 Resetting project...");
+
+            // Clean up stale files
+            let files_to_remove = [
+                output_dir.join(".autocode/progress.db"),
+                output_dir.join(".autocode/progress.db-shm"),
+                output_dir.join(".autocode/progress.db-wal"),
+                output_dir.join("feature_list.json"),
+                output_dir.join(".opencode-signal"),
+                output_dir.join(".opencode-stop"),
+            ];
+            for path in &files_to_remove {
+                if path.exists() {
+                    std::fs::remove_file(path)?;
+                    println!("   🗑️  Removed {}", path.display());
+                }
+            }
+
+            // Remove .opencode/command directory to get fresh templates
+            let command_dir = output_dir.join(".opencode/command");
+            if command_dir.exists() {
+                std::fs::remove_dir_all(&command_dir)?;
+                println!("   🗑️  Removed {}", command_dir.display());
+            }
+
+            // Re-scaffold with existing spec
+            println!("   📄 Re-scaffolding with existing spec...");
+            scaffold::scaffold_custom(&output_dir, &spec_path)?;
+
+            println!("\n✅ Reset complete! Project is ready for a fresh run.");
+            println!("   Run 'opencode-autocode vibe' to start the autonomous loop.");
+            Ok(())
+        }
         Mode::Interactive => {
             // Check for updates in the background (mocked by just running it here before TUI)
             // We use a non-blocking check or just a quick check with short timeout? 'updater::check_for_update' handles it.
