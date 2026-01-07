@@ -359,8 +359,16 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
                 );
             }
             let db = db::Database::open(&db_path)?;
-            let affected = db.write_query(sql)?;
-            println!("{} row(s) affected", affected);
+
+            // Auto-detect SELECT and redirect to read_query
+            let trimmed = sql.trim().to_uppercase();
+            if trimmed.starts_with("SELECT") || trimmed.starts_with("PRAGMA") {
+                let output = db.read_query(sql)?;
+                print!("{}", output);
+            } else {
+                let affected = db.write_query(sql)?;
+                println!("{} row(s) affected", affected);
+            }
             Ok(())
         }
         DbAction::Check { path: _ } => {

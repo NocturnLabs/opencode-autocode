@@ -2,15 +2,22 @@
 
 Features are tracked in `.autocode/progress.db`. Use the CLI:
 
-```bash
-# Query features
-opencode-autocode db query "SELECT id, description FROM features WHERE passes = 0 ORDER BY id LIMIT 1"
+> [!IMPORTANT]
+> - **`db query`** = SELECT (read data)
+> - **`db exec`** = INSERT, UPDATE, DELETE (write data)
+> 
+> Using `db exec` for SELECT will return "0 row(s) affected" instead of data!
 
-# Count remaining
+```bash
+# ✅ READ features (use db query)
+opencode-autocode db query "SELECT id, description FROM features WHERE passes = 0 ORDER BY id LIMIT 1"
 opencode-autocode db query "SELECT COUNT(*) FROM features WHERE passes = 0"
 
-# Mark feature as passing (after verification)
-opencode-autocode db mark-pass X
+# ✅ WRITE to database (use db exec)
+opencode-autocode db exec "UPDATE features SET verification_command = 'new cmd' WHERE id = 1"
+
+# ❌ WRONG - this returns "0 rows affected" instead of data
+# opencode-autocode db exec "SELECT * FROM features"
 ```
 
 **YOU CAN ONLY CHANGE THE `passes` FIELD. NEVER delete or edit feature descriptions.**
