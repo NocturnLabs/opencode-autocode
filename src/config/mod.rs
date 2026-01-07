@@ -182,6 +182,7 @@ mod tests {
         assert_eq!(config.models.default, "opencode/glm-4.7-free");
         assert_eq!(config.models.autonomous, "opencode/minimax-m2.1-free");
         assert_eq!(config.autonomous.delay_between_sessions, 5);
+        assert_eq!(config.autonomous.session_timeout_minutes, 15);
         assert_eq!(config.agent.max_retry_attempts, 3);
         assert!(config.alternative_approaches.enabled);
         assert_eq!(config.ui.spec_preview_lines, 25);

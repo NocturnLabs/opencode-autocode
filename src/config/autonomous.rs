@@ -25,7 +25,7 @@ impl Default for AutonomousConfig {
             delay_between_sessions: 5,
             max_iterations: 0,
             log_level: "DEBUG".to_string(),
-            session_timeout_minutes: 60,
+            session_timeout_minutes: 15,
             auto_commit: true,
         }
     }
