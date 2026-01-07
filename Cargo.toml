@@ -2,7 +2,7 @@
 members = ["tests/regression"]
 
 [package]
-name = "opencode-autocode"
+name = "opencode-forger"
 version = "0.8.2"
 edition = "2021"
 description = "Scaffold autonomous coding plugin for OpenCode"
@@ -11,7 +11,7 @@ license = "MIT"
 
 
 [[bin]]
-name = "opencode-autocode"
+name = "opencode-forger"
 path = "src/main.rs"
 
 [dependencies]

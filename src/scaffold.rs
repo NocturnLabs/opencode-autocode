@@ -27,7 +27,7 @@ const CORE_MCP_GUIDE: &str = include_str!("../templates/core/mcp_guide.md");
 const SECURITY_ALLOWLIST: &str = include_str!("../templates/scripts/security-allowlist.json");
 
 /// Embedded user configuration template
-const USER_CONFIG_TEMPLATE: &str = include_str!("../templates/autocode-user.toml");
+const USER_CONFIG_TEMPLATE: &str = include_str!("../templates/forger-user.toml");
 
 /// Embedded subagent templates for parallel spec generation
 const SPEC_PRODUCT_AGENT: &str = include_str!("../templates/scaffold/agents/spec-product.md");
@@ -90,15 +90,15 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
         "Output dir cannot be empty"
     );
 
-    // Create .autocode parent directory for all autocode-managed files
-    let autocode_dir = output_dir.join(".autocode");
+    // Create .forger parent directory for all forger-managed files
+    let forger_dir = output_dir.join(".forger");
     let opencode_dir = output_dir.join(".opencode");
     let command_dir = opencode_dir.join("command"); // OpenCode expects this at .opencode/command
 
-    fs::create_dir_all(&autocode_dir).with_context(|| {
+    fs::create_dir_all(&forger_dir).with_context(|| {
         format!(
-            "Failed to create .autocode directory: {}",
-            autocode_dir.display()
+            "Failed to create .forger directory: {}",
+            forger_dir.display()
         )
     })?;
     fs::create_dir_all(&command_dir).with_context(|| {
@@ -113,10 +113,10 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     fs::create_dir_all(&agent_dir)
         .with_context(|| format!("Failed to create agent directory: {}", agent_dir.display()))?;
 
-    // Write app_spec.md inside .autocode/
-    let spec_path = autocode_dir.join("app_spec.md");
+    // Write app_spec.md inside .forger/
+    let spec_path = forger_dir.join("app_spec.md");
     write_file(&spec_path, spec_content)?;
-    println!("   📄 Created .autocode/app_spec.md");
+    println!("   📄 Created .forger/app_spec.md");
 
     // Load config
     let _config = crate::config::Config::load(None).unwrap_or_default();
@@ -148,24 +148,24 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     write_file(&auto_enhance_path, AUTO_ENHANCE_TEMPLATE)?;
     println!("   📄 Created .opencode/command/auto-enhance.md");
 
-    // Write security allowlist inside .autocode/
-    let allowlist_path = autocode_dir.join("security-allowlist.json");
+    // Write security allowlist inside .forger/
+    let allowlist_path = forger_dir.join("security-allowlist.json");
     write_file(&allowlist_path, SECURITY_ALLOWLIST)?;
-    println!("   📄 Created .autocode/security-allowlist.json");
+    println!("   📄 Created .forger/security-allowlist.json");
 
-    // Initialize SQLite database inside .autocode/
-    let db_path = autocode_dir.join("progress.db");
+    // Initialize SQLite database inside .forger/
+    let db_path = forger_dir.join("progress.db");
     db::Database::open(&db_path)
         .with_context(|| format!("Failed to initialize database: {}", db_path.display()))?;
-    println!("   🗃️  Created .autocode/progress.db");
+    println!("   🗃️  Created .forger/progress.db");
 
-    // Write user configuration file inside .autocode/ (if not already configured)
-    let config_path = autocode_dir.join("config.toml");
+    // Write user configuration file inside .forger/ (if not already configured)
+    let config_path = forger_dir.join("config.toml");
     if !config_path.exists() {
         write_file(&config_path, USER_CONFIG_TEMPLATE)?;
-        println!("   ⚙️  Created .autocode/config.toml");
+        println!("   ⚙️  Created .forger/config.toml");
     } else {
-        println!("   ⚙️  Using existing .autocode/config.toml");
+        println!("   ⚙️  Using existing .forger/config.toml");
     }
 
     // Write subagent definitions for parallel spec generation
@@ -218,7 +218,7 @@ pub fn scaffold_from_spec(output_dir: &Path, spec: &crate::spec::AppSpec) -> Res
 
 /// Preview what files would be created without actually creating them
 pub fn preview_scaffold(output_dir: &Path) {
-    let autocode_dir = output_dir.join(".autocode");
+    let forger_dir = output_dir.join(".forger");
     let opencode_dir = output_dir.join(".opencode");
     let command_dir = opencode_dir.join("command");
 
@@ -227,22 +227,22 @@ pub fn preview_scaffold(output_dir: &Path) {
 
     // Directories
     println!("\nDirectories:");
-    println!("   📁 {}", autocode_dir.display());
+    println!("   📁 {}", forger_dir.display());
     println!("   📁 {}", opencode_dir.display());
     println!("   📁 {}", command_dir.display());
 
     // Files
     println!("\nFiles:");
-    println!("   📄 {}", autocode_dir.join("app_spec.md").display());
+    println!("   📄 {}", forger_dir.join("app_spec.md").display());
     println!("   📄 {}", command_dir.join("auto-init.md").display());
     println!("   📄 {}", command_dir.join("auto-continue.md").display());
     println!("   📄 {}", command_dir.join("auto-enhance.md").display());
     println!(
         "   📄 {}",
-        autocode_dir.join("security-allowlist.json").display()
+        forger_dir.join("security-allowlist.json").display()
     );
-    println!("   🗃️  {}", autocode_dir.join("progress.db").display());
-    println!("   ⚙️  {}", autocode_dir.join("config.toml").display());
+    println!("   🗃️  {}", forger_dir.join("progress.db").display());
+    println!("   ⚙️  {}", forger_dir.join("config.toml").display());
     println!("   ⚙️  {}", output_dir.join("opencode.json").display());
     println!("   📝 {}", output_dir.join("AGENTS.md").display());
 
@@ -257,8 +257,8 @@ fn generate_opencode_json() -> String {
     r#"{
   "$schema": "https://opencode.ai/config.json",
   "instructions": [
-    ".autocode/config.toml",
-    ".autocode/app_spec.md"
+    ".forger/config.toml",
+    ".forger/app_spec.md"
   ],
   "provider": {
     "google": {
@@ -301,10 +301,10 @@ fn generate_gitignore() -> String {
 .approach-cache/
 .vs-cache/
 
-# OpenCode Autocode
+# OpenCode Forger
 progress.db*
 opencode-debug.log
-.autocode/logs/
+.forger/logs/
 .conductor/
 "#
     .to_string()

@@ -103,7 +103,7 @@ pub fn run(cli: Cli) -> Result<()> {
             // Check for updates
             if let Ok(Some(new_version)) = updater::check_for_update() {
                 println!(
-                    "\n🚀 A new version is available: {} (Run 'opencode-autocode update' to upgrade)\n",
+                    "\n🚀 A new version is available: {} (Run 'opencode-forger update' to upgrade)\n",
                     new_version
                 );
             }
@@ -185,10 +185,10 @@ fn handle_templates(action: &TemplateAction, output_dir: &std::path::Path) -> Re
 }
 
 fn handle_reset(output_dir: &std::path::Path) -> Result<()> {
-    let spec_path = output_dir.join(".autocode/app_spec.md");
+    let spec_path = output_dir.join(".forger/app_spec.md");
     if !spec_path.exists() {
         anyhow::bail!(
-            "Cannot reset: .autocode/app_spec.md not found in {}",
+            "Cannot reset: .forger/app_spec.md not found in {}",
             output_dir.display()
         );
     }
@@ -219,7 +219,7 @@ fn handle_reset(output_dir: &std::path::Path) -> Result<()> {
     scaffold::scaffold_custom(output_dir, &spec_path)?;
 
     println!("\n✅ Reset complete! Project is ready for a fresh run.");
-    println!("   Run 'opencode-autocode vibe' to start the autonomous loop.");
+    println!("   Run 'opencode-forger vibe' to start the autonomous loop.");
     Ok(())
 }
 
@@ -241,7 +241,7 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
             let _db = db::Database::open(&db_path)?;
             println!("✅ Database initialized successfully!");
             println!("\n📋 Next steps:");
-            println!("   1. Run 'opencode-autocode db migrate feature_list.json' to import existing features");
+            println!("   1. Run 'opencode-forger db migrate feature_list.json' to import existing features");
             Ok(())
         }
         DbAction::Migrate { json_path } => {
@@ -505,8 +505,8 @@ fn handle_example(topic: &ExampleTopic) -> Result<()> {
         ExampleTopic::Db { insert, query } => {
             if !insert && !query {
                 println!("# Database examples (use --insert or --query for specific details)");
-                println!("opencode-autocode example db --insert");
-                println!("opencode-autocode example db --query");
+                println!("opencode-forger example db --insert");
+                println!("opencode-forger example db --query");
                 return Ok(());
             }
 
@@ -559,7 +559,7 @@ fn print_next_steps(output_dir: &std::path::Path) {
     println!("   Output directory: {}", output_dir.display());
     println!("\n📋 Next steps:");
     println!("   1. cd {}", output_dir.display());
-    println!("   2. opencode-autocode --config  # Configure settings");
-    println!("   3. opencode-autocode example   # See agent-centric examples and guides");
-    println!("   4. opencode-autocode vibe      # Start autonomous loop");
+    println!("   2. opencode-forger --config  # Configure settings");
+    println!("   3. opencode-forger example   # See agent-centric examples and guides");
+    println!("   4. opencode-forger vibe      # Start autonomous loop");
 }

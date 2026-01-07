@@ -88,7 +88,7 @@ pub fn run_parallel(
 
             // Spawn worker thread
             let handle = std::thread::spawn(move || {
-                let status = std::process::Command::new("opencode-autocode")
+                let status = std::process::Command::new("opencode-forger")
                     .args([
                         "vibe",
                         "--limit",

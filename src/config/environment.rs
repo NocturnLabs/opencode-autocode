@@ -18,7 +18,7 @@ pub struct SecurityConfig {
 impl Default for SecurityConfig {
     fn default() -> Self {
         Self {
-            allowlist_file: ".autocode/security-allowlist.json".to_string(),
+            allowlist_file: ".forger/security-allowlist.json".to_string(),
             enforce_allowlist: true,
             blocked_patterns: vec![
                 "rm -rf /".to_string(),
@@ -97,7 +97,7 @@ impl Default for CommunicationConfig {
     fn default() -> Self {
         Self {
             enabled: true,
-            file_path: ".autocode/COMMUNICATION.md".to_string(),
+            file_path: ".forger/COMMUNICATION.md".to_string(),
             auto_ask_on_error: true,
             check_interval_sessions: 1,
             max_pending_questions: 5,
@@ -126,7 +126,7 @@ impl Default for McpConfig {
     fn default() -> Self {
         Self {
             // Empty by default - users configure their available MCPs
-            // See autocode.toml for example tools with repo links
+            // See forger.toml for example tools with repo links
             priority_order: vec![],
             // Empty by default - spec generator populates for web projects
             required_tools: vec![],

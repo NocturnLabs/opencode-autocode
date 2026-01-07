@@ -1,14 +1,14 @@
-# Contributing to OpenCode Autocode
+# Contributing to OpenCode Forger
 
-Thank you for your interest in contributing to `opencode-autocode`! This document provides guidelines for contributing to this project.
+Thank you for your interest in contributing to `opencode-forger`! This document provides guidelines for contributing to this project.
 
 ## Development Setup
 
 1.  **Install Rust:** Ensure you have the latest stable version of Rust installed (via [rustup](https://rustup.rs/)).
 2.  **Clone the Repository:**
     ```bash
-    git clone https://github.com/nocturnlabs/opencode-autocode.git
-    cd opencode-autocode
+    git clone https://github.com/nocturnlabs/opencode-forger.git
+    cd opencode-forger
     ```
 3.  **Build the Project:**
     ```bash

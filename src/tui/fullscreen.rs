@@ -197,7 +197,7 @@ fn InteractiveSetup(
                 align_items: AlignItems::Center,
             ) {
                 Text(
-                    content: "✨ OpenCode Autocode - Interactive Setup",
+                    content: "✨ OpenCode Forger - Interactive Setup",
                     weight: Weight::Bold,
                     color: Color::Cyan,
                 )
@@ -554,7 +554,7 @@ pub fn run_fullscreen_spec_review(
 }
 
 pub fn run_interactive(output_dir: &Path, use_subagents: bool) -> Result<()> {
-    let config_path = output_dir.join(".autocode/config.toml");
+    let config_path = output_dir.join(".forger/config.toml");
     let has_existing_config = config_path.exists();
 
     // Run fullscreen TUI for mode selection

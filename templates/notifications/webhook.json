@@ -27,7 +27,7 @@
         }
       ],
       "footer": {
-        "text": "Last Updated: {{timestamp}} • OpenCode Autocode"
+        "text": "Last Updated: {{timestamp}} • OpenCode Forger"
       },
       "thumbnail": {
         "url": "https://raw.githubusercontent.com/NocturnLabs/.github/main/assets/opencode-icon.png"

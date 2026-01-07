@@ -87,20 +87,20 @@ pub fn create_worktree(
         anyhow::bail!("git worktree add failed for feature {}", feature_id);
     }
 
-    // Ensure .autocode directory exists in worktree before symlinking database files
-    let worktree_autocode_dir = worktree_path.join(".autocode");
-    if !worktree_autocode_dir.exists() {
-        std::fs::create_dir_all(&worktree_autocode_dir)
-            .with_context(|| "Failed to create .autocode dir in worktree".to_string())?;
+    // Ensure .forger directory exists in worktree before symlinking database files
+    let worktree_forger_dir = worktree_path.join(".forger");
+    if !worktree_forger_dir.exists() {
+        std::fs::create_dir_all(&worktree_forger_dir)
+            .with_context(|| "Failed to create .forger dir in worktree".to_string())?;
     }
 
-    // Symlink the database file using the configured path (not hardcoded .autocode/)
+    // Symlink the database file using the configured path (not hardcoded .forger/)
     let db_path = Path::new(&config.paths.database_file);
     let db_name = db_path
         .file_name()
         .unwrap_or_else(|| std::ffi::OsStr::new("progress.db"))
         .to_string_lossy();
-    let db_parent = db_path.parent().unwrap_or(Path::new(".autocode"));
+    let db_parent = db_path.parent().unwrap_or(Path::new(".forger"));
 
     // Create parent directory in worktree for the database
     let worktree_db_parent = worktree_path.join(db_parent);
@@ -133,9 +133,9 @@ pub fn create_worktree(
         }
     }
 
-    // Also symlink autocode.toml if it exists
-    let main_config = std::env::current_dir()?.join("autocode.toml");
-    let worktree_config = worktree_path.join("autocode.toml");
+    // Also symlink forger.toml if it exists
+    let main_config = std::env::current_dir()?.join("forger.toml");
+    let worktree_config = worktree_path.join("forger.toml");
     if main_config.exists() && !worktree_config.exists() {
         #[cfg(unix)]
         std::os::unix::fs::symlink(&main_config, &worktree_config).ok();

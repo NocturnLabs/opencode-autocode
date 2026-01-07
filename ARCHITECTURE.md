@@ -1,10 +1,10 @@
-# Architecture: OpenCode Autocode
+# Architecture: OpenCode Forger
 
-This document outlines the high-level architecture of the `opencode-autocode` CLI tool.
+This document outlines the high-level architecture of the `opencode-forger` CLI tool.
 
 ## Overview
 
-`opencode-autocode` bridges the gap between high-level requirements and implementation by automating the "Vibe Loop". It uses a stateful approach with SQLite for persistence and a modular template system for efficient AI prompting.
+`opencode-forger` bridges the gap between high-level requirements and implementation by automating the "Vibe Loop". It uses a stateful approach with SQLite for persistence and a modular template system for efficient AI prompting.
 
 ## Core Modules
 
@@ -84,7 +84,7 @@ The `@coder` subagent is defined in `.opencode/agent/coder.md` and scaffolded au
 
 ## Key Directories
 
-- `.autocode/`: Stores `config.toml`, `progress.db`, and `app_spec.md`.
+- `.forger/`: Stores `config.toml`, `progress.db`, and `app_spec.md`.
 - `.opencode/command/`: Stores target-specific command templates for OpenCode.
 - `.opencode/agent/`: Stores subagent definitions (including `coder.md`).
 - `.conductor/`: Stores product and technical context.

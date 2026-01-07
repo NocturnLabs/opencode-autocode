@@ -58,7 +58,7 @@ pub fn list_templates() {
     }
 
     println!("\n{}", "─".repeat(50));
-    println!("Use: opencode-autocode templates use <name>");
+    println!("Use: opencode-forger templates use <name>");
     println!("Or run with -i for interactive selection");
 }
 

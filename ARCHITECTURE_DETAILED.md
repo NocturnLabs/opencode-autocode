@@ -1,14 +1,14 @@
-# Crate Name: opencode-autocode
+# Crate Name: opencode-forger
 
 Version: 0.5.1  
-Repository: NocturnLabs/opencode-autocode  
+Repository: NocturnLabs/opencode-forger  
 Documentation Generated: 2026-01-04
 
 ---
 
 ## Executive Summary
 
-`opencode-autocode` is a Rust CLI tool that scaffolds and runs autonomous coding projects using the OpenCode AI system. It implements the **"Vibe Loop"** — an automated workflow that iteratively implements, tests, and verifies features until a project specification is complete.
+`opencode-forger` is a Rust CLI tool that scaffolds and runs autonomous coding projects using the OpenCode AI system. It implements the **"Vibe Loop"** — an automated workflow that iteratively implements, tests, and verifies features until a project specification is complete.
 
 The crate provides:
 
@@ -81,7 +81,7 @@ graph TD
 
 **Purpose**: Library root — exposes all modules for testing  
 **Public API**: 17 re-exported modules  
-**Location**: [lib.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/lib.rs)
+**Location**: [lib.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/lib.rs)
 
 ```rust
 pub mod autonomous;
@@ -106,7 +106,7 @@ pub mod validation;
 
 ## Entry Point: main.rs
 
-**Location**: [main.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/main.rs) (509 lines)
+**Location**: [main.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/main.rs) (509 lines)
 
 ### Function: main
 
@@ -178,7 +178,7 @@ fn handle_db_command(action: &DbAction) -> Result<()>
 
 ## Autonomous Module
 
-**Location**: [autonomous/mod.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/autonomous/mod.rs) (797 lines)  
+**Location**: [autonomous/mod.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/autonomous/mod.rs) (797 lines)  
 **Purpose**: The **Vibe Loop** engine — manages autonomous coding sessions.
 
 ### Submodule Hierarchy
@@ -237,7 +237,7 @@ run()
 │  └─ main::main() [Commands::Vibe]
 ├─ Calls:
 │  ├─ debug_logger::init() - Initialize developer logging
-│  ├─ load_config() - Load autocode.toml
+│  ├─ load_config() - Load forger.toml
 │  ├─ LoopSettings::from_config() - Parse settings
 │  ├─ ctrlc::set_handler() - Set Ctrl+C handler
 │  ├─ display::display_banner() - Show startup info
@@ -253,7 +253,7 @@ run()
 **Execution Flow**:
 
 1. Initialize debug logging if `developer_mode`
-2. Load configuration from `autocode.toml`
+2. Load configuration from `forger.toml`
 3. Build `LoopSettings` with iteration limits, delays
 4. Register Ctrl+C handler for clean shutdown
 5. Display startup banner
@@ -394,7 +394,7 @@ enum VerificationFailure {
 
 ## Session Execution Module
 
-**Location**: [autonomous/session.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/autonomous/session.rs) (455 lines)
+**Location**: [autonomous/session.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/autonomous/session.rs) (455 lines)
 
 ### Struct: TokenStats
 
@@ -499,7 +499,7 @@ fn execute_with_timeout(
 
 ## Parallel Execution Module
 
-**Location**: [autonomous/parallel.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/autonomous/parallel.rs) (292 lines)
+**Location**: [autonomous/parallel.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/autonomous/parallel.rs) (292 lines)
 
 ### Struct: WorkerResult
 
@@ -533,7 +533,7 @@ pub fn create_worktree(
 
 1. Generate branch name from feature description (slugified)
 2. Create worktree: `git worktree add -b <branch> <path>`
-3. Symlink shared config files (`.autocode/`, `autocode.toml`)
+3. Symlink shared config files (`.forger/`, `forger.toml`)
 4. Return `(worktree_path, branch_name)`
 
 ---
@@ -579,7 +579,7 @@ pub struct Coordinator {
 
 ## Database Module
 
-**Location**: [db/mod.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/db/mod.rs) (281 lines)
+**Location**: [db/mod.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/db/mod.rs) (281 lines)
 
 ### Module Structure
 
@@ -609,7 +609,7 @@ pub struct Database {
 | Method | Signature | Purpose |
 |--------|-----------|---------|
 | `open` | `(path: &Path) -> Result<Self>` | Open/create database |
-| `open_default` | `() -> Result<Self>` | Open `.autocode/progress.db` |
+| `open_default` | `() -> Result<Self>` | Open `.forger/progress.db` |
 | `init_schema` | `(&self) -> Result<()>` | Run migrations |
 | `features` | `(&self) -> FeatureRepository` | Get feature repo |
 | `sessions` | `(&self) -> SessionRepository` | Get session repo |
@@ -622,7 +622,7 @@ pub struct Database {
 
 ### Database Schema
 
-**Location**: [db/schema.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/db/schema.rs)
+**Location**: [db/schema.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/db/schema.rs)
 
 **Tables**:
 
@@ -690,7 +690,7 @@ CREATE TABLE knowledge (
 
 ### Feature Repository
 
-**Location**: [db/features.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/db/features.rs) (353 lines)
+**Location**: [db/features.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/db/features.rs) (353 lines)
 
 #### Struct: Feature
 
@@ -736,7 +736,7 @@ pub struct FeatureRepository {
 
 ## Configuration Module
 
-**Location**: [config.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/config.rs) (717 lines)
+**Location**: [config.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/config.rs) (717 lines)
 
 ### Config Hierarchy
 
@@ -807,27 +807,27 @@ pub struct NotificationsConfig {
 pub fn load(dir: Option<&Path>) -> Result<Self>
 ```
 
-**Purpose**: Load configuration from `autocode.toml` with env var expansion.
+**Purpose**: Load configuration from `forger.toml` with env var expansion.
 
 **Search Order**:
 
-1. `autocode.toml` in specified directory
-2. `.autocode/config.toml` in specified directory
-3. Current directory `autocode.toml`
-4. Current directory `.autocode/config.toml`
+1. `forger.toml` in specified directory
+2. `.forger/config.toml` in specified directory
+3. Current directory `forger.toml`
+4. Current directory `.forger/config.toml`
 5. Default values if not found
 
 ---
 
 ## CLI Module
 
-**Location**: [cli.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/cli.rs) (353 lines)
+**Location**: [cli.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/cli.rs) (353 lines)
 
 ### Struct: Cli
 
 ```rust
 #[derive(Parser, Debug)]
-#[command(name = "opencode-autocode")]
+#[command(name = "opencode-forger")]
 #[command(about = "Scaffold and run autonomous coding projects")]
 pub struct Cli {
     #[command(subcommand)]
@@ -894,7 +894,7 @@ pub enum DbAction {
 
 ## Scaffold Module
 
-**Location**: [scaffold.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/scaffold.rs) (349 lines)
+**Location**: [scaffold.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/scaffold.rs) (349 lines)
 
 ### Purpose
 
@@ -918,7 +918,7 @@ pub fn scaffold_with_spec_text(
 
 ```
 output_dir/
-├─ .autocode/
+├─ .forger/
 │  ├─ config.toml         - User configuration
 │  ├─ progress.db         - SQLite database
 │  └─ app_spec.md         - Project specification
@@ -961,7 +961,7 @@ fn resolve_includes(template: &str) -> String
 
 ## Generator Module
 
-**Location**: [generator.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/generator.rs) (534 lines)
+**Location**: [generator.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/generator.rs) (534 lines)
 
 ### Purpose
 
@@ -1014,7 +1014,7 @@ fn extract_spec_from_output(output: &str) -> Result<String>
 
 ## Conductor Module
 
-**Location**: [conductor.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/conductor.rs) (273 lines)
+**Location**: [conductor.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/conductor.rs) (273 lines)
 
 ### Purpose
 
@@ -1068,7 +1068,7 @@ pub struct PlanTask {
 
 ## Spec Module
 
-**Location**: [spec.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/spec.rs) (213 lines)
+**Location**: [spec.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/spec.rs) (213 lines)
 
 ### Struct: AppSpec
 
@@ -1126,7 +1126,7 @@ impl AppSpec {
 
 ## Validation Module
 
-**Location**: [validation.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/validation.rs) (374 lines)
+**Location**: [validation.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/validation.rs) (374 lines)
 
 ### Purpose
 
@@ -1176,7 +1176,7 @@ pub fn validate_spec(
 
 ## Regression Module
 
-**Location**: [regression.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/regression.rs) (199 lines)
+**Location**: [regression.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/regression.rs) (199 lines)
 
 ### Purpose
 
@@ -1214,7 +1214,7 @@ RETURN RegressionSummary { ... }
 
 ## Communication Module
 
-**Location**: [communication.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/communication.rs) (339 lines)
+**Location**: [communication.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/communication.rs) (339 lines)
 
 ### Purpose
 
@@ -1228,7 +1228,7 @@ pub struct CommunicationChannel {
 }
 ```
 
-**Default Path**: `.autocode/COMMUNICATION.md`
+**Default Path**: `.forger/COMMUNICATION.md`
 
 **Methods**:
 | Method | Purpose |
@@ -1243,7 +1243,7 @@ pub struct CommunicationChannel {
 
 ## Theming Module
 
-**Location**: [theming.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/theming.rs) (117 lines)
+**Location**: [theming.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/theming.rs) (117 lines)
 
 ### Color Palette
 
@@ -1291,7 +1291,7 @@ pub mod boxes {
 
 ## TUI Module
 
-**Location**: [tui/mod.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/tui/mod.rs) (184 lines)
+**Location**: [tui/mod.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/tui/mod.rs) (184 lines)
 
 ### Submodules
 
@@ -1336,7 +1336,7 @@ pub fn run_interactive(output_dir: &Path, use_subagents: bool) -> Result<()>
 
 ## Updater Module
 
-**Location**: [updater.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-autocode/src/updater.rs) (67 lines)
+**Location**: [updater.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/updater.rs) (67 lines)
 
 ### Function: check_for_update
 

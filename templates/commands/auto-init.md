@@ -5,12 +5,12 @@
 
 ---
 
-> [!IMPORTANT] > **DO NOT modify the configuration file (`autocode.toml` or `.autocode/config.toml`).**
+> [!IMPORTANT] > **DO NOT modify the configuration file (`forger.toml` or `.forger/config.toml`).**
 > Your task is to set up the project structure and database, NOT to reconfigure the agent models or settings.
 
 > [!CAUTION]
-> **DO NOT create `feature_list.json`.** All features MUST be stored in the SQLite database (`.autocode/progress.db`).
-> Use `opencode-autocode db exec "INSERT INTO features ..."` to add features. File-based tracking is deprecated.
+> **DO NOT create `feature_list.json`.** All features MUST be stored in the SQLite database (`.forger/progress.db`).
+> Use `opencode-forger db exec "INSERT INTO features ..."` to add features. File-based tracking is deprecated.
 
 This is the FIRST session. Set up the foundation for all future sessions.
 
@@ -36,7 +36,7 @@ Read `app_spec.md` in your working directory. Understand:
 > **Use batch INSERT to minimize tool calls. Insert 10-50 features per command.**
 
 ```bash
-opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES
+opencode-forger db exec "INSERT INTO features (category, description, passes, verification_command) VALUES
   ('functional', 'Feature 1 description', 0, 'bun test -- --grep \"feature1\"'),
   ('functional', 'Feature 2 description', 0, 'bun test -- --grep \"feature2\"'),
   ('functional', 'Feature 3 description', 0, 'bun test -- --grep \"feature3\"')"
@@ -46,7 +46,7 @@ opencode-autocode db exec "INSERT INTO features (category, description, passes, 
 
 ```bash
 # ✅ DO: Batch insert all features in ONE command
-opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES
+opencode-forger db exec "INSERT INTO features (category, description, passes, verification_command) VALUES
   ('functional', 'Hero entity spawns and renders as red square', 0, 'cargo test test_hero_spawn'),
   ('functional', 'Hero moves upward automatically at constant speed', 0, 'cargo test test_hero_movement'),
   ('functional', 'Weapon system fires projectiles automatically', 0, 'cargo test test_weapon_firing'),
@@ -58,8 +58,8 @@ opencode-autocode db exec "INSERT INTO features (category, description, passes, 
   ('style', 'Audio plays on weapon fire and gate contact', 0, 'cargo test test_audio')"
 
 # ❌ DON'T: Insert one by one (floods tool calls)
-# opencode-autocode db exec "INSERT ... VALUES ('functional', 'Feature 1', ...)"
-# opencode-autocode db exec "INSERT ... VALUES ('functional', 'Feature 2', ...)"
+# opencode-forger db exec "INSERT ... VALUES ('functional', 'Feature 1', ...)"
+# opencode-forger db exec "INSERT ... VALUES ('functional', 'Feature 2', ...)"
 ```
 
 #### Requirements
@@ -91,8 +91,8 @@ opencode-autocode db exec "INSERT INTO features (category, description, passes, 
 > - **Right:** `cd backend && cargo test` OR `npm test --prefix frontend`
 > **Ensure verification commands are executable from the root directory.**
 > **For web projects:** E2E tests (Playwright) are MANDATORY. See `templates/modules/testing.md`.
-> **Need examples?** Run `opencode-autocode example db --insert` or `example db --query`.
-> **Stuck already?** Run `opencode-autocode example vibe` for orientation.
+> **Need examples?** Run `opencode-forger example db --insert` or `example db --query`.
+> **Stuck already?** Run `opencode-forger example vibe` for orientation.
 
 ---
 

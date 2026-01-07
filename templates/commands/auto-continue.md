@@ -11,7 +11,7 @@ This is a fallback template. Normally, the supervisor injects feature-specific c
 ### If You're Here
 
 1. Read `app_spec.md` to understand the project
-2. Query database for features: `opencode-autocode db stats`
+2. Query database for features: `opencode-forger db stats`
 3. Implement ONE pending feature
 4. Output `===SESSION_COMPLETE===` when done
 
@@ -24,6 +24,6 @@ This is a fallback template. Normally, the supervisor injects feature-specific c
 
 ### Help
 
-- **Orientation**: `opencode-autocode example vibe`
-- **Database**: `opencode-autocode db stats`
+- **Orientation**: `opencode-forger example vibe`
+- **Database**: `opencode-forger db stats`
 - **Modules**: `templates/modules/`

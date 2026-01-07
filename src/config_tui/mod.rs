@@ -1,7 +1,7 @@
-//! Configuration TUI for editing autocode.toml
+//! Configuration TUI for editing forger.toml
 //!
 //! This module provides an interactive terminal interface for configuring
-//! all aspects of the opencode-autocode tool.
+//! all aspects of the opencode-forger tool.
 
 mod models;
 mod save;
@@ -16,8 +16,8 @@ pub fn run_config_tui(dir: Option<&Path>) -> Result<Config> {
     // Load existing config or defaults
     let mut config = Config::load(dir).unwrap_or_default();
     let config_path = match dir {
-        Some(d) => d.join(".autocode/config.toml"),
-        None => std::path::PathBuf::from(".autocode/config.toml"),
+        Some(d) => d.join(".forger/config.toml"),
+        None => std::path::PathBuf::from(".forger/config.toml"),
     };
 
     // Fetch available models
@@ -27,7 +27,7 @@ pub fn run_config_tui(dir: Option<&Path>) -> Result<Config> {
     crate::tui::run_fullscreen_config_editor(&mut config, available_models)?;
 
     // Save configuration files
-    save::save_autocode_toml(&config, &config_path)?;
+    save::save_forger_toml(&config, &config_path)?;
     let opencode_json_path = match dir {
         Some(d) => d.join("opencode.json"),
         None => std::path::PathBuf::from("opencode.json"),
@@ -41,8 +41,8 @@ pub fn run_config_tui(dir: Option<&Path>) -> Result<Config> {
 
 fn display_next_steps() {
     println!("\n─── Next Steps ───");
-    println!("  → Run opencode-autocode vibe to start the autonomous coding loop");
-    println!("  → Run opencode-autocode --config to modify settings again");
-    println!("  → Edit .autocode/config.toml directly for advanced options");
+    println!("  → Run opencode-forger vibe to start the autonomous coding loop");
+    println!("  → Run opencode-forger --config to modify settings again");
+    println!("  → Edit .forger/config.toml directly for advanced options");
     println!();
 }

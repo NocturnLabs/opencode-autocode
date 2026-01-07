@@ -1,6 +1,6 @@
 # Interactive Spec Generation Guide
 
-The `opencode-autocode -i` command launches a TUI for generating project specs through iterative feedback.
+The `opencode-forger -i` command launches a TUI for generating project specs through iterative feedback.
 
 ## 1. Generation Modes
 
@@ -27,6 +27,6 @@ When running in autonomous mode, the agent uses subagents (if enabled) to parall
 Once accepted, the tool will:
 
 1. Write `app_spec.md`
-2. Initialize `.autocode/progress.db`
+2. Initialize `.forger/progress.db`
 3. Generate `.opencode/command/` templates
 4. Create the `opencode.json` configuration

@@ -1,4 +1,4 @@
-//! OpenCode Autocode - Library exports for testing
+//! OpenCode Forger - Library exports for testing
 //!
 //! This library module exposes internal functions for integration tests.
 

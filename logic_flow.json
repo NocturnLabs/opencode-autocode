@@ -4,7 +4,7 @@
       "id": "node_0",
       "position": { "x": 2600, "y": 100 },
       "data": {
-        "label": "Run opencode-autocode",
+        "label": "Run opencode-forger",
         "type": "start",
         "description": "User initiates the tool from the CLI."
       },
@@ -30,7 +30,7 @@
       "data": {
         "label": "Scaffold Project",
         "type": "process",
-        "description": "Create .autocode directory, SQLite DB, and configuration files."
+        "description": "Create .forger directory, SQLite DB, and configuration files."
       },
       "type": "custom",
       "width": 280,
@@ -141,7 +141,7 @@
         "description": "Manage git worktrees for concurrent feature implementation.",
         "metadata": {
           "action": "git worktree add",
-          "symlinks": ["progress.db", ".conductor/", "autocode.toml"]
+          "symlinks": ["progress.db", ".conductor/", "forger.toml"]
         }
       },
       "type": "custom",
@@ -284,7 +284,7 @@
       "data": {
         "label": "Stash & Diff",
         "type": "process",
-        "description": "git stash push 'autocode-failure' to capture diff."
+        "description": "git stash push 'forger-failure' to capture diff."
       },
       "type": "custom",
       "width": 280,

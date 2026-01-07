@@ -185,7 +185,7 @@ pub fn display_final_status(passing: usize, total: usize, developer_mode: bool) 
     println!(
         "    {} Resume: {}",
         muted(symbols::BULLET),
-        crate::theming::highlight("opencode-autocode autonomous")
+        crate::theming::highlight("opencode-forger autonomous")
     );
     println!(
         "    {} Stop:   {}",

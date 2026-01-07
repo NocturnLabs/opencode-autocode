@@ -1,6 +1,6 @@
 # Communication Protocol
 
-If `.autocode/COMMUNICATION.md` exists:
+If `.forger/COMMUNICATION.md` exists:
 
 1. **Read the "User Responses" section** for any new guidance
 2. **If there are responses**, incorporate that guidance into your approach

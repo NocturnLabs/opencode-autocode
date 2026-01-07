@@ -1,11 +1,11 @@
-# OpenCode Autocode
+# OpenCode Forger
 
 A Rust CLI that scaffolds autonomous coding projects for [OpenCode](https://github.com/sst/opencode) and runs them to completion. It bridges the gap between high-level application specifications and fully implemented features.
 
 > [!WARNING]
 > **AI-Generated Code Disclaimer**: Significant portions of this codebase (including logic, templates, and tests) were generated or refined using Large Language Models. Use with appropriate caution, and always review changes in your local projects.
 
-![OpenCode Autocode Demo](assets/demo.gif)
+![OpenCode Forger Demo](assets/demo.gif)
 
 ## Documentation
 
@@ -17,19 +17,19 @@ A Rust CLI that scaffolds autonomous coding projects for [OpenCode](https://gith
 
 ```
 # 1. Scaffold a new project (Interactive TUI)
-opencode-autocode --interactive
+opencode-forger --interactive
 
 # 2. Configure project settings
-opencode-autocode --config
+opencode-forger --config
 
 # 3. Start the autonomous session loop
-opencode-autocode vibe --developer
+opencode-forger vibe --developer
 ```
 
 ## Features
 
-- **Zero-Config Scaffolding**: Build complex application specifications using a rich interactive TUI, stored in `.autocode/`.
-- **SQLite Persistence**: Robust progress tracking with a relational database (`.autocode/progress.db`).
+- **Zero-Config Scaffolding**: Build complex application specifications using a rich interactive TUI, stored in `.forger/`.
+- **SQLite Persistence**: Robust progress tracking with a relational database (`.forger/progress.db`).
 - **Persistent Agent Knowledge**: Agents can save discovered facts (ports, paths, keys) to a persistent key-value store (`db knowledge`).
 - **Vibe Loop**: Automated session management with intelligent continuation and exponential backoff retry logic.
 - **Bun First**: Enforces `bun` usage for JS/TS projects (install, scripts, tests) for maximum speed.
@@ -47,7 +47,7 @@ opencode-autocode vibe --developer
 - **Module Verification**: Validates ES6 import/export consistency to prevent ReferenceErrors at runtime.
 - **Progressive Discovery**: Modular template system that reduces context window usage by ~80%.
 - **Dual-Model Architecture**: Reasoning model plans while the `@coder` subagent implements, enabling clearer separation of concerns.
-- **Agent-User Communication**: Polling-based Q&A channel via `.autocode/COMMUNICATION.md` for async collaboration.
+- **Agent-User Communication**: Polling-based Q&A channel via `.forger/COMMUNICATION.md` for async collaboration.
 - **Spec Validation**: Validates generated specifications for structural correctness before scaffolding.
 
 ## Technology Stack
@@ -104,7 +104,7 @@ This tool is built for high-performance autonomous coding:
 
 ## Configuration
 
-Settings are stored in `.autocode/config.toml`. You can either use `opencode-autocode --config` or edit the file manually. Paths support environment variables like `$HOME`.
+Settings are stored in `.forger/config.toml`. You can either use `opencode-forger --config` or edit the file manually. Paths support environment variables like `$HOME`.
 
 ```
 [models]
@@ -115,7 +115,7 @@ enhancement = "opencode/glm-4.7-free"     # Used for discover_improvements
 fixer = "opencode/grok-code"              # Used for fixing malformed specs
 
 [paths]
-database_file = ".autocode/progress.db"
+database_file = ".forger/progress.db"
 log_dir = "$HOME/.local/share/opencode/log"
 
 [autonomous]
@@ -147,8 +147,8 @@ use_sequential_thinking = true   # Enable multi-step reasoning protocol
 required_tools = ["chrome-devtools"]
 
 [security]
-enforce_allowlist = true         # Use .autocode/security-allowlist.json
-allowlist_file = ".autocode/security-allowlist.json"
+enforce_allowlist = true         # Use .forger/security-allowlist.json
+allowlist_file = ".forger/security-allowlist.json"
 blocked_patterns = ["rm -rf /", "sudo"] # Absolute constraints
 
 [notifications]
@@ -157,7 +157,7 @@ webhook_url = "https://discord.com/api/webhooks/..."
 
 [communication]
 enabled = true                   # Agent-user Q&A channel
-file_path = ".autocode/COMMUNICATION.md"
+file_path = ".forger/COMMUNICATION.md"
 auto_ask_on_error = true         # Auto-post questions on repeated failures
 
 [generation]
@@ -176,7 +176,7 @@ show_progress = true
 
 When you run `vibe`, the engine determines the next action using a phased approach:
 
-1. **Phase 1: Init** (`auto-init`) -> Populates the database (`.autocode/progress.db`) and basic structure.
+1. **Phase 1: Init** (`auto-init`) -> Populates the database (`.forger/progress.db`) and basic structure.
 2. **Phase 2: Context** (`auto-context`) -> Establishes project-wide product and technical requirements.
 3. **Phase 3: Continue** (`auto-continue`) -> Executes the next task in the active `plan.md` (Track mode).
 4. **Phase 4: Completion** -> Checks if all features pass; if so, terminates the loop gracefully.
@@ -235,8 +235,8 @@ Use `--single-model` to disable this and use one model for everything.
 ## Installation
 
 ```
-git clone https://github.com/NocturnLabs/opencode-autocode.git
-cd opencode-autocode
+git clone https://github.com/NocturnLabs/opencode-forger.git
+cd opencode-forger
 cargo install --path .
 ```
 

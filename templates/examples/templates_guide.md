@@ -5,7 +5,7 @@ The `templates` command allows you to list and use pre-defined project structure
 ## 1. List Available Templates
 
 ```bash
-opencode-autocode templates list
+opencode-forger templates list
 ```
 
 ## 2. Use a Template
@@ -14,7 +14,7 @@ To scaffold a new project from a template:
 
 ```bash
 # In an empty directory
-opencode-autocode templates use web-app-fullstack
+opencode-forger templates use web-app-fullstack
 ```
 
 ## 3. Customizing Templates

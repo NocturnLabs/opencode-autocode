@@ -110,7 +110,7 @@ Before marking a new feature as passing, you MUST verify that no existing functi
 
 ```bash
 # Run automated regression check
-opencode-autocode db check
+opencode-forger db check
 ```
 
 If any regression is detected:

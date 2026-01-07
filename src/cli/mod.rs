@@ -6,9 +6,9 @@ use anyhow::{bail, Result};
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
-/// OpenCode Autocode - Autonomous Coding for OpenCode
+/// OpenCode Forger - Autonomous Coding for OpenCode
 #[derive(Parser, Debug)]
-#[command(name = "opencode-autocode")]
+#[command(name = "opencode-forger")]
 #[command(author = "NocturnLabs")]
 #[command(version)]
 #[command(about = "Scaffold and run autonomous coding projects for OpenCode", long_about = None)]
@@ -63,7 +63,7 @@ pub enum Commands {
         #[arg(short, long)]
         limit: Option<usize>,
 
-        /// Path to custom config file (default: autocode.toml)
+        /// Path to custom config file (default: forger.toml)
         #[arg(long, value_name = "FILE")]
         config_file: Option<PathBuf>,
 
@@ -89,7 +89,7 @@ pub enum Commands {
         #[arg(short, long)]
         limit: Option<usize>,
 
-        /// Path to custom config file (default: autocode.toml)
+        /// Path to custom config file (default: forger.toml)
         #[arg(long, value_name = "FILE")]
         config_file: Option<PathBuf>,
 
@@ -116,7 +116,7 @@ pub enum Commands {
         #[command(subcommand)]
         topic: ExampleTopic,
     },
-    /// Update opencode-autocode to the latest version
+    /// Update opencode-forger to the latest version
     Update,
     /// Initialize a new project (alias for interactive mode)
     Init {
@@ -264,7 +264,7 @@ pub enum ExampleTopic {
     },
     /// Show example verification commands by project type
     Verify,
-    /// Show example autocode.toml configuration sections
+    /// Show example forger.toml configuration sections
     Config,
     /// Show example conductor files (product.md, tech_stack.md)
     Conductor,

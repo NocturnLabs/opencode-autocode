@@ -98,8 +98,8 @@ impl Default for PathsConfig {
             ],
             log_dir: get_default_log_dir(),
             vs_cache_dir: ".vs-cache".to_string(),
-            database_file: ".autocode/progress.db".to_string(),
-            app_spec_file: ".autocode/app_spec.md".to_string(),
+            database_file: ".forger/progress.db".to_string(),
+            app_spec_file: ".forger/app_spec.md".to_string(),
         }
     }
 }

@@ -2,7 +2,7 @@
 
 **Before executing ANY commands, you MUST:**
 
-1. Read `.autocode/security-allowlist.json` if it exists
+1. Read `.forger/security-allowlist.json` if it exists
 2. Check the `blocked_patterns` array for commands you must NEVER run
 3. Only use commands listed in `allowed_commands` categories
 

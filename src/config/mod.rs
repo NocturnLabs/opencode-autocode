@@ -1,6 +1,6 @@
 //! Configuration loading and management
 //!
-//! Loads configuration from `autocode.toml` at the project root,
+//! Loads configuration from `forger.toml` at the project root,
 //! with fallback to sensible defaults.
 
 use anyhow::{Context, Result};
@@ -21,13 +21,13 @@ pub use environment::{
 pub use project::{FeaturesConfig, GenerationConfig, ModelsConfig, PathsConfig, ScaffoldingConfig};
 
 /// Default config filename
-const CONFIG_FILENAME: &str = ".autocode/config.toml";
+const CONFIG_FILENAME: &str = ".forger/config.toml";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Config Struct
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Application configuration - all sections from autocode.toml
+/// Application configuration - all sections from forger.toml
 #[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
 pub struct Config {

@@ -92,7 +92,7 @@ SERVER_PID=$!
 echo "Server running at http://localhost:$PORT (PID: $SERVER_PID)"
 
 # IMPORTANT: Save PID to knowledge DB for safe cleanup
-opencode-autocode db knowledge set "server_port_${PORT}_pid" "$SERVER_PID" --category servers --description "Dev server on port $PORT"
+opencode-forger db knowledge set "server_port_${PORT}_pid" "$SERVER_PID" --category servers --description "Dev server on port $PORT"
 ```
 
 ---
@@ -106,13 +106,13 @@ opencode-autocode db knowledge set "server_port_${PORT}_pid" "$SERVER_PID" --cat
 
 ```bash
 # Get the tracked PID for port 8000
-TRACKED_PID=$(opencode-autocode db knowledge get server_port_8000_pid 2>/dev/null | grep -oP '(?<=value: )\d+')
+TRACKED_PID=$(opencode-forger db knowledge get server_port_8000_pid 2>/dev/null | grep -oP '(?<=value: )\d+')
 
 if [ -n "$TRACKED_PID" ] && kill -0 "$TRACKED_PID" 2>/dev/null; then
     echo "Killing server on port 8000 (PID: $TRACKED_PID)"
     kill "$TRACKED_PID"
     # Remove from knowledge DB
-    opencode-autocode db knowledge delete server_port_8000_pid
+    opencode-forger db knowledge delete server_port_8000_pid
 else
     echo "No tracked server found for port 8000 (or already stopped)"
 fi

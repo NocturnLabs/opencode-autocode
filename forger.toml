@@ -1,4 +1,4 @@
-# autocode.toml - Comprehensive Configuration for nocturnlabs-opencode-autocode
+# forger.toml - Comprehensive Configuration for nocturnlabs-opencode-forger
 #
 # This file allows you to customize ALL runtime behavior without editing source code.
 # Edit values here and re-run for iterative testing.
@@ -53,10 +53,7 @@ include_future_enhancements = true
 [paths]
 # OpenCode executable search paths (in order of preference)
 # Environment variables like $HOME are expanded
-opencode_paths = [
-    "opencode",
-    "/usr/local/bin/opencode",
-]
+opencode_paths = ["opencode", "/usr/local/bin/opencode"]
 
 # Log directory for autonomous sessions
 # Uses OpenCode's native log directory:
@@ -159,7 +156,13 @@ use_sequential_thinking = true
 # ─────────────────────────────────────────────────────────────────────────────
 [features]
 # Valid feature categories
-categories = ["functional", "style", "integration", "performance", "enhancement"]
+categories = [
+    "functional",
+    "style",
+    "integration",
+    "performance",
+    "enhancement",
+]
 
 # Priority levels (in order)
 priorities = ["critical", "high", "medium", "low"]
@@ -208,7 +211,7 @@ blocked_patterns = [
     "curl | bash",
     "wget | bash",
     "chmod 777",
-    "> /dev/sda"
+    "> /dev/sda",
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────

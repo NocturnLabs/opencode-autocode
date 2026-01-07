@@ -162,7 +162,7 @@ pub fn handle_verification_failure(
 
     // STASH PROTOCOL: Capture diff to verify what failed, then clean up
     println!("  → Stashing failed attempt to capture context...");
-    let stash_msg = format!("autocode-failure-{}", feature.description);
+    let stash_msg = format!("forger-failure-{}", feature.description);
     let mut diff_context = String::new();
 
     // 1. Try to stash

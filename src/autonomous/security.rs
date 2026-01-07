@@ -4,8 +4,11 @@
 //! allowlist and blocked patterns before execution.
 
 use anyhow::{bail, Result};
+use std::io::Read;
 use std::path::Path;
-use std::process::{Command, Output};
+use std::process::{Command, Output, Stdio};
+use std::thread;
+use std::time::{Duration, Instant};
 
 use crate::config::SecurityConfig;
 
@@ -31,18 +34,77 @@ pub fn run_verified_command(
     // Execute via sh -c for shell expansion, but only after validation
     let mut command = Command::new("sh");
     command.arg("-c").arg(cmd);
+    command.stdout(Stdio::piped());
+    command.stderr(Stdio::piped());
 
     if let Some(dir) = working_dir {
         command.current_dir(dir);
     }
 
-    command.output().map_err(|e| {
+    let mut child = command.spawn().map_err(|e| {
         anyhow::anyhow!(
             "Failed to execute verification command: {}\nError: {}",
             cmd,
             e
         )
-    })
+    })?;
+
+    // Handle stdout/stderr in threads to prevent buffer blocking
+    let stdout = child.stdout.take().expect("Failed to open stdout");
+    let stderr = child.stderr.take().expect("Failed to open stderr");
+
+    let stdout_handle = thread::spawn(move || {
+        let mut buf = Vec::new();
+        let mut reader = std::io::BufReader::new(stdout);
+        let _ = reader.read_to_end(&mut buf);
+        buf
+    });
+
+    let stderr_handle = thread::spawn(move || {
+        let mut buf = Vec::new();
+        let mut reader = std::io::BufReader::new(stderr);
+        let _ = reader.read_to_end(&mut buf);
+        buf
+    });
+
+    // Timeout duration (5 minutes)
+    let timeout = Duration::from_secs(300);
+    let start_time = Instant::now();
+
+    loop {
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                let stdout = stdout_handle.join().unwrap_or_default();
+                let stderr = stderr_handle.join().unwrap_or_default();
+                return Ok(Output {
+                    status,
+                    stdout,
+                    stderr,
+                });
+            }
+            Ok(None) => {
+                if start_time.elapsed() > timeout {
+                    let _ = child.kill();
+                    let _ = child.wait(); // Ensure it's reaped
+
+                    let stdout = stdout_handle.join().unwrap_or_default();
+                    let stderr = stderr_handle.join().unwrap_or_default();
+
+                    bail!(
+                        "Verification command timed out after {}s.\nStdout: {}\nStderr: {}",
+                        timeout.as_secs(),
+                        String::from_utf8_lossy(&stdout),
+                        String::from_utf8_lossy(&stderr)
+                    );
+                }
+                thread::sleep(Duration::from_millis(100));
+            }
+            Err(e) => {
+                let _ = child.kill();
+                bail!("Failed to wait on verification command: {}", e);
+            }
+        }
+    }
 }
 
 /// Check if a command matches any blocked pattern.
