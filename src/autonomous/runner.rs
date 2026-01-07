@@ -8,19 +8,14 @@
 use anyhow::Result;
 
 use super::debug_logger::DebugLogger;
-use super::session::{self, SessionResult};
+use super::session::{self, SessionOptions, SessionResult};
 
 /// Trait for executing commands, enabling dependency injection for testing
 pub trait CommandRunner: Send + Sync {
     /// Execute an OpenCode session
     fn execute_session(
         &self,
-        command: &str,
-        model: &str,
-        log_level: &str,
-        session_id: Option<&str>,
-        timeout_minutes: u32,
-        idle_timeout_seconds: u32,
+        options: SessionOptions,
         logger: &DebugLogger,
     ) -> Result<SessionResult>;
 
@@ -44,23 +39,10 @@ pub struct RealCommandRunner;
 impl CommandRunner for RealCommandRunner {
     fn execute_session(
         &self,
-        command: &str,
-        model: &str,
-        log_level: &str,
-        session_id: Option<&str>,
-        timeout_minutes: u32,
-        idle_timeout_seconds: u32,
+        options: SessionOptions,
         logger: &DebugLogger,
     ) -> Result<SessionResult> {
-        session::execute_opencode_session(
-            command,
-            model,
-            log_level,
-            session_id,
-            timeout_minutes,
-            idle_timeout_seconds,
-            logger,
-        )
+        session::execute_opencode_session(options, logger)
     }
 
     fn run_verification(&self, command: &str) -> Result<VerificationOutput> {
@@ -125,12 +107,7 @@ pub mod mock {
     impl CommandRunner for MockCommandRunner {
         fn execute_session(
             &self,
-            _command: &str,
-            _model: &str,
-            _log_level: &str,
-            _session_id: Option<&str>,
-            _timeout_minutes: u32,
-            _idle_timeout_seconds: u32,
+            _options: SessionOptions,
             _logger: &DebugLogger,
         ) -> Result<SessionResult> {
             *self.session_call_count.lock().unwrap() += 1;
@@ -191,13 +168,33 @@ mod tests {
 
         // First session call
         let result1 = runner
-            .execute_session("cmd", "model", "info", None, 0, 0, &logger)
+            .execute_session(
+                SessionOptions {
+                    command: "cmd".to_string(),
+                    model: "model".to_string(),
+                    log_level: "info".to_string(),
+                    session_id: None,
+                    timeout_minutes: 0,
+                    idle_timeout_seconds: 0,
+                },
+                &logger,
+            )
             .unwrap();
         assert!(matches!(result1, SessionResult::Continue));
 
         // Second session call
         let result2 = runner
-            .execute_session("cmd", "model", "info", None, 0, 0, &logger)
+            .execute_session(
+                SessionOptions {
+                    command: "cmd".to_string(),
+                    model: "model".to_string(),
+                    log_level: "info".to_string(),
+                    session_id: None,
+                    timeout_minutes: 0,
+                    idle_timeout_seconds: 0,
+                },
+                &logger,
+            )
             .unwrap();
         assert!(matches!(result2, SessionResult::Error(_)));
 
@@ -223,7 +220,17 @@ mod tests {
 
         // Should return Continue by default
         let result = runner
-            .execute_session("cmd", "model", "info", None, 0, 0, &logger)
+            .execute_session(
+                SessionOptions {
+                    command: "cmd".to_string(),
+                    model: "model".to_string(),
+                    log_level: "info".to_string(),
+                    session_id: None,
+                    timeout_minutes: 0,
+                    idle_timeout_seconds: 0,
+                },
+                &logger,
+            )
             .unwrap();
         assert!(matches!(result, SessionResult::Continue));
 

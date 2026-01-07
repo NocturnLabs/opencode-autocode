@@ -11,16 +11,25 @@ use super::debug_logger::DebugLogger;
 
 /// Result from a single OpenCode session
 #[derive(Debug)]
-
 pub enum SessionResult {
     /// Session completed successfully, continue to next
     Continue,
     /// All tests passing, project complete
-
     /// Error occurred, stop
     Error(String),
     /// Stop signal detected
     Stopped,
+}
+
+/// Options for session execution
+#[derive(Debug, Clone)]
+pub struct SessionOptions {
+    pub command: String,
+    pub model: String,
+    pub log_level: String,
+    pub session_id: Option<String>,
+    pub timeout_minutes: u32,
+    pub idle_timeout_seconds: u32,
 }
 
 /// File checked for stop signal
@@ -31,12 +40,7 @@ const POLL_INTERVAL_MS: u64 = 500;
 
 /// Execute an OpenCode session with optional timeout
 pub fn execute_opencode_session(
-    command: &str,
-    model: &str,
-    log_level: &str,
-    session_id: Option<&str>,
-    timeout_minutes: u32,
-    idle_timeout_seconds: u32,
+    options: SessionOptions,
     logger: &DebugLogger,
 ) -> Result<SessionResult> {
     if stop_signal_exists() {
@@ -44,21 +48,31 @@ pub fn execute_opencode_session(
         return Ok(SessionResult::Stopped);
     }
 
-    let mut cmd = build_opencode_command(command, model, log_level, session_id);
+    let mut cmd = build_opencode_command(
+        &options.command,
+        &options.model,
+        &options.log_level,
+        options.session_id.as_deref(),
+    );
     logger.log_command(
         "opencode",
         &[
             "run",
             "--command",
-            command,
+            &options.command,
             "--model",
-            model,
+            &options.model,
             "--log-level",
-            log_level,
+            &options.log_level,
         ],
     );
 
-    execute_with_timeout(&mut cmd, timeout_minutes, idle_timeout_seconds, logger)
+    execute_with_timeout(
+        &mut cmd,
+        options.timeout_minutes,
+        options.idle_timeout_seconds,
+        logger,
+    )
 }
 
 /// Check if stop signal file exists

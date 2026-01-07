@@ -162,12 +162,14 @@ pub fn run_supervisor_loop(
 
         // --- Step 3: Execute Session ---
         let result = session::execute_opencode_session(
-            &command_name,
-            &settings.model,
-            &settings.log_level,
-            None,
-            settings.session_timeout,
-            settings.idle_timeout,
+            session::SessionOptions {
+                command: command_name.to_string(),
+                model: settings.model.clone(),
+                log_level: settings.log_level.clone(),
+                session_id: None,
+                timeout_minutes: settings.session_timeout,
+                idle_timeout_seconds: settings.idle_timeout,
+            },
             logger,
         )?;
 
