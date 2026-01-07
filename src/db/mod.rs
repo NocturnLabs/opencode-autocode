@@ -139,10 +139,13 @@ impl Database {
     }
 
     /// Execute a write query (INSERT, UPDATE, DELETE, CREATE), returns rows affected
+    /// Uses execute_batch to support multi-value INSERTs
     pub fn write_query(&self, sql: &str) -> Result<usize> {
         let conn = self.conn.lock().unwrap();
-        let affected = conn.execute(sql, [])?;
-        Ok(affected)
+        // Use execute_batch for multi-statement/multi-value support
+        conn.execute_batch(sql)?;
+        // Return changes from last statement
+        Ok(conn.changes() as usize)
     }
 
     /// List all table names in the database
