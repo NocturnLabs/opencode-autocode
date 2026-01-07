@@ -9,7 +9,6 @@
 
 mod autonomous;
 mod cli;
-mod communication;
 mod conductor;
 mod config;
 mod config_tui;

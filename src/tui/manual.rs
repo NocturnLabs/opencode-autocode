@@ -36,15 +36,13 @@ fn collect_spec_details() -> Result<AppSpec> {
     let features = collect_features()?;
     let success_criteria = collect_success_criteria()?;
 
-    Ok(AppSpec {
-        project_name,
-        overview,
-        features,
-        success_criteria,
-        technology,
-        database: None,
-        api_endpoints: None,
-    })
+    let mut spec = AppSpec::new(&project_name);
+    spec.overview = overview;
+    spec.features = features;
+    spec.success_criteria = success_criteria;
+    spec.technology = technology;
+
+    Ok(spec)
 }
 
 fn collect_features() -> Result<Vec<Feature>> {

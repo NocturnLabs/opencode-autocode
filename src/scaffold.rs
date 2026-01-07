@@ -4,7 +4,6 @@ use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
 
-use crate::communication::CommunicationChannel;
 use crate::db;
 use crate::utils::write_file;
 
@@ -186,11 +185,6 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     let coder_path = agent_dir.join("coder.md");
     write_file(&coder_path, CODER_AGENT)?;
     println!("   🤖 Created .opencode/agent/coder.md");
-
-    // Initialize communication channel (minimal stub)
-    let _comm_channel = CommunicationChannel::new();
-    println!("ℹ Communication initialized.");
-    println!("   💬 Created .autocode/COMMUNICATION.md");
 
     // Write .gitignore at project root if it doesn't exist
     let gitignore_path = output_dir.join(".gitignore");

@@ -4,7 +4,6 @@
 
 pub mod autonomous;
 pub mod cli;
-pub mod communication;
 pub mod conductor;
 pub mod config;
 pub mod config_tui;
