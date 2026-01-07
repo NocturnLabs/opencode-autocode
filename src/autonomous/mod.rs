@@ -4,6 +4,7 @@
 //! until all features pass.
 
 pub mod debug_logger;
+mod decision;
 mod display;
 mod features;
 mod git;
@@ -14,6 +15,7 @@ mod settings;
 pub mod supervisor;
 pub mod templates;
 pub mod verification;
+mod verifier;
 mod webhook;
 
 use anyhow::Result;

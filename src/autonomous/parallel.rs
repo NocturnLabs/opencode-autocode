@@ -43,14 +43,11 @@ pub fn create_worktree(
     // Clean up potential leftovers from previous runs
     if worktree_path.exists() {
         // Try git remove first
-        let _ = Command::new("git")
-            .args([
-                "worktree",
-                "remove",
-                "--force",
-                worktree_path.to_str().unwrap(),
-            ])
-            .status();
+        if let Some(path_str) = worktree_path.to_str() {
+            let _ = Command::new("git")
+                .args(["worktree", "remove", "--force", path_str])
+                .status();
+        }
 
         // If directory still exists (e.g. untracked files and git failed), force delete
         if worktree_path.exists() {
@@ -77,14 +74,12 @@ pub fn create_worktree(
     git::delete_branch_force(&branch_name)?;
 
     // Create the worktree with a new branch
+    let worktree_str = worktree_path
+        .to_str()
+        .ok_or_else(|| anyhow::anyhow!("Worktree path contains invalid UTF-8"))?;
+
     let status = Command::new("git")
-        .args([
-            "worktree",
-            "add",
-            worktree_path.to_str().unwrap(),
-            "-b",
-            &branch_name,
-        ])
+        .args(["worktree", "add", worktree_str, "-b", &branch_name])
         .status()
         .context("Failed to create worktree")?;
 
@@ -178,14 +173,11 @@ pub fn create_worktree(
 /// Remove a worktree after completion
 pub fn remove_worktree(worktree_path: &Path, _branch_name: &str) -> Result<()> {
     // Force remove worktree (workers might have left untracked files)
-    let _ = Command::new("git")
-        .args([
-            "worktree",
-            "remove",
-            "--force",
-            worktree_path.to_str().unwrap(),
-        ])
-        .status();
+    if let Some(path_str) = worktree_path.to_str() {
+        let _ = Command::new("git")
+            .args(["worktree", "remove", "--force", path_str])
+            .status();
+    }
     Ok(())
 }
 
