@@ -76,8 +76,12 @@ opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'Audio play
 
 > **NEVER** combine multiple behaviors into one feature.
 > **NEVER** use generic verification like `cargo build` — use actual test commands.
+> **MONOREPO/NESTED PATHS:** If you create subdirectories (e.g., `backend/`, `frontend/`), your verification commands MUST reference them.
+> - **Wrong:** `cargo test` (fails if Cargo.toml is in backend/)
+> - **Right:** `cd backend && cargo test` OR `npm test --prefix frontend`
+> **Ensure verification commands are executable from the root directory.**
 > **For web projects:** E2E tests (Playwright) are MANDATORY. See `templates/modules/testing.md`.
-> **Ensure verification commands are executable from the root directory.** > **Need examples?** Run `opencode-autocode example db --insert` or `example db --query`.
+> **Need examples?** Run `opencode-autocode example db --insert` or `example db --query`.
 > **Stuck already?** Run `opencode-autocode example vibe` for orientation.
 
 ---
