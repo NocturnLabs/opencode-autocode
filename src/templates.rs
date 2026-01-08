@@ -222,15 +222,15 @@ mod tests {
         let commands_resolved = [
             (
                 "auto-init.md (resolved)",
-                crate::scaffold::resolve_includes(AUTO_INIT),
+                crate::services::scaffold::resolve_includes(AUTO_INIT),
             ),
             (
                 "auto-continue.md (resolved)",
-                crate::scaffold::resolve_includes(AUTO_CONTINUE),
+                crate::services::scaffold::resolve_includes(AUTO_CONTINUE),
             ),
             (
                 "auto-enhance.md (resolved)",
-                crate::scaffold::resolve_includes(AUTO_ENHANCE),
+                crate::services::scaffold::resolve_includes(AUTO_ENHANCE),
             ),
         ];
 
