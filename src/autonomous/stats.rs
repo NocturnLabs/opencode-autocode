@@ -14,10 +14,7 @@ pub struct TokenStats {
 
 /// Fetch token stats for the current project by running `opencode stats`
 pub fn fetch_token_stats() -> Option<TokenStats> {
-    let output = Command::new("opencode")
-        .args(["stats", "--project", ""])
-        .output()
-        .ok()?;
+    let output = Command::new("opencode").args(["stats"]).output().ok()?;
 
     if !output.status.success() {
         return None;
@@ -55,7 +52,8 @@ fn parse_token_stats(output: &str) -> Option<TokenStats> {
         }
     }
 
-    if stats.input_tokens > 0 || stats.output_tokens > 0 {
+    // Return stats if we parsed any meaningful data (including cost-only scenarios)
+    if stats.input_tokens > 0 || stats.output_tokens > 0 || stats.total_cost > 0.0 {
         Some(stats)
     } else {
         None

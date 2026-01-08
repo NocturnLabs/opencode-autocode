@@ -57,6 +57,9 @@ fn create_feature_commit(feature_description: &str, verbose: bool) -> Result<()>
 
 /// Discard all uncommitted changes to reset the working directory
 /// Used when verification fails to give the next attempt a clean slate
+///
+/// Returns an error if either git checkout or git clean fails, as partial
+/// discard can leave the working directory in an inconsistent state.
 pub fn discard_changes(verbose: bool) -> Result<()> {
     // Reset tracked files
     let checkout = Command::new("git")
@@ -74,11 +77,17 @@ pub fn discard_changes(verbose: bool) -> Result<()> {
         if verbose {
             println!("✓ Discarded uncommitted changes");
         }
-    } else if verbose {
-        println!("→ Warning: Could not fully discard changes");
+        Ok(())
+    } else {
+        if verbose {
+            println!("→ Warning: Could not fully discard changes");
+        }
+        anyhow::bail!(
+            "Git discard changes partially failed: checkout={}, clean={}",
+            checkout.success(),
+            clean.success()
+        )
     }
-
-    Ok(())
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

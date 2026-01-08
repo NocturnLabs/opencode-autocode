@@ -7,6 +7,7 @@ pub struct LoopSettings {
     pub delay_seconds: u32,
     pub max_iterations: usize,
     pub max_retries: u32,
+    pub max_no_progress: u32,
     pub model: String,
     pub log_level: String,
     pub database_file: String,
@@ -30,6 +31,7 @@ impl LoopSettings {
             delay_seconds: config.autonomous.delay_between_sessions,
             max_iterations,
             max_retries: config.agent.max_retry_attempts,
+            max_no_progress: 5, // Default: stop after 5 iterations with no progress
             model: config.models.autonomous.clone(),
             log_level: config.autonomous.log_level.clone(),
             database_file: config.paths.database_file.clone(),
@@ -62,6 +64,17 @@ pub fn handle_session_result(
         SessionResult::Continue => {
             *consecutive_errors = 0;
             println!("→ Session complete, continuing...");
+            println!(
+                "→ Next session in {}s (Ctrl+C to stop)",
+                settings.delay_seconds
+            );
+            LoopAction::Continue
+        }
+
+        SessionResult::EarlyTerminated { trigger } => {
+            *consecutive_errors = 0;
+            println!("⚠️ Session terminated early via pattern match");
+            println!("   Trigger: {}", trigger);
             println!(
                 "→ Next session in {}s (Ctrl+C to stop)",
                 settings.delay_seconds

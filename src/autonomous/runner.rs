@@ -48,6 +48,11 @@ impl CommandRunner for RealCommandRunner {
     fn run_verification(&self, command: &str) -> Result<VerificationOutput> {
         use std::process::Command;
 
+        // SECURITY NOTE: This uses `sh -c` which is shell-injection-prone if untrusted
+        // input reaches this function. Currently, verification commands come from
+        // forger.toml which is developer-controlled configuration. If this changes
+        // in the future (e.g., user-provided verification commands), this should be
+        // refactored to use structured {program, args[]} format or command validation.
         let output = Command::new("sh").arg("-c").arg(command).output()?;
 
         Ok(VerificationOutput {

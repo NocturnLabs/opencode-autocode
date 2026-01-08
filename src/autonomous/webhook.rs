@@ -18,20 +18,30 @@ pub struct CurlSender;
 
 impl WebhookSender for CurlSender {
     fn send(&self, url: &str, payload: &str, method: &str) -> Result<()> {
-        let status = Command::new("curl")
+        use std::io::Write;
+        use std::process::Stdio;
+
+        // SECURITY: Pass payload via stdin (@-) to avoid exposing it in process lists
+        let mut child = Command::new("curl")
             .arg("-X")
             .arg(method)
             .arg("-H")
             .arg("Content-Type: application/json")
             .arg("-d")
-            .arg(payload)
+            .arg("@-") // Read payload from stdin
             .arg(url)
             .arg("--silent")
             .arg("--output")
             .arg("/dev/null")
             .arg("--fail")
-            .status()?;
+            .stdin(Stdio::piped())
+            .spawn()?;
 
+        if let Some(ref mut stdin) = child.stdin {
+            stdin.write_all(payload.as_bytes())?;
+        }
+
+        let status = child.wait()?;
         if !status.success() {
             anyhow::bail!("Request failed (curl exit {})", status);
         }
@@ -39,18 +49,29 @@ impl WebhookSender for CurlSender {
     }
 
     fn send_with_response(&self, url: &str, payload: &str, method: &str) -> Result<String> {
-        let output = Command::new("curl")
+        use std::io::Write;
+        use std::process::Stdio;
+
+        // SECURITY: Pass payload via stdin (@-) to avoid exposing it in process lists
+        let mut child = Command::new("curl")
             .arg("-X")
             .arg(method)
             .arg("-H")
             .arg("Content-Type: application/json")
             .arg("-d")
-            .arg(payload)
+            .arg("@-") // Read payload from stdin
             .arg(url)
             .arg("--silent")
             .arg("--fail")
-            .output()?;
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()?;
 
+        if let Some(ref mut stdin) = child.stdin {
+            stdin.write_all(payload.as_bytes())?;
+        }
+
+        let output = child.wait_with_output()?;
         if !output.status.success() {
             anyhow::bail!("Request failed (curl exit {})", output.status);
         }
@@ -237,21 +258,10 @@ fn build_webhook_payload(
 }
 
 fn extract_json_id(json: &str) -> Option<String> {
-    // Robustly find "id": "value" even with varying whitespace
-    let id_key = "\"id\"";
-    if let Some(key_idx) = json.find(id_key) {
-        let rest = &json[key_idx + id_key.len()..];
-        // Find the colon and the opening quote for the value
-        if let Some(colon_idx) = rest.find(':') {
-            let val_part = &rest[colon_idx + 1..].trim_start();
-            if let Some(stripped) = val_part.strip_prefix('"') {
-                if let Some(end_idx) = stripped.find('"') {
-                    return Some(stripped[..end_idx].to_string());
-                }
-            }
-        }
-    }
-    None
+    // Parse JSON properly to extract the top-level "id" field
+    // This is more robust than string matching and handles edge cases correctly
+    let parsed: serde_json::Value = serde_json::from_str(json).ok()?;
+    parsed.get("id")?.as_str().map(|s| s.to_string())
 }
 
 fn capitalize_first(s: &str) -> String {

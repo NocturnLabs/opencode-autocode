@@ -113,6 +113,12 @@ pub fn create_worktree(
         })?;
     }
 
+    // Symlink the database and WAL files to share progress between main and worktree.
+    // CONCURRENCY NOTE: This creates a single point of contention as all workers
+    // share the same SQLite database (with WAL mode enabled for better concurrency).
+    // While WAL mode supports multiple readers and a single writer with busy timeouts,
+    // very high parallelism (e.g., >4 workers) may experience lock contention.
+    // Future hardening could consider per-worker DBs with merge, or a coordinator model.
     let db_files = [
         db_name.to_string(),
         format!("{}-shm", db_name),
@@ -187,6 +193,10 @@ pub fn rebase_and_merge(branch_name: &str) -> Result<bool> {
     let stashed = git::stash_push("Auto-stash before parallel merge")?;
 
     if !git::checkout_branch("main")? {
+        // Restore stash before returning to avoid leaving stale stash entries
+        if stashed {
+            git::stash_pop().ok();
+        }
         return Ok(false);
     }
 
@@ -194,6 +204,10 @@ pub fn rebase_and_merge(branch_name: &str) -> Result<bool> {
     if !git::rebase(branch_name, "main")? {
         // ALWAYS return to main
         git::checkout_branch("main")?;
+        // Restore stash before returning to avoid leaving stale stash entries
+        if stashed {
+            git::stash_pop().ok();
+        }
         return Ok(false);
     }
 

@@ -14,7 +14,9 @@ use super::debug_logger::DebugLogger;
 pub enum SessionResult {
     /// Session completed successfully, continue to next
     Continue,
-    /// All tests passing, project complete
+    /// Session terminated early due to completion pattern match
+    /// This is distinct from Continue to allow supervisor to handle differently
+    EarlyTerminated { trigger: String },
     /// Error occurred, stop
     Error(String),
     /// Stop signal detected
@@ -117,13 +119,13 @@ fn build_opencode_command(
 
 /// Patterns that indicate a feature was completed - trigger early termination
 /// These are checked against stdout lines in real-time
+///
+/// CAUTION: Patterns must be specific to avoid false-positives. Previously included
+/// git branch patterns ("[main ", "[master ") but these could trigger on unrelated output.
 const FEATURE_COMPLETE_PATTERNS: &[&str] = &[
-    // Session complete signals
+    // Session complete signals - explicit sentinels (preferred)
     "===SESSION_COMPLETE===",
     "SESSION_COMPLETE",
-    // Git commit output (appears when commit succeeds)
-    "[main ",   // git shows "[main abc1234] Commit message"
-    "[master ", // for repos using master branch
     // Mark-pass output (backwards compat with old templates)
     "marked as passing",
     "Feature marked as passing",
@@ -247,8 +249,8 @@ fn execute_with_timeout(
         })
     });
 
-    // Track if we terminated early due to feature completion
-    let mut terminated_for_isolation = false;
+    // Track if we terminated early due to feature completion (and capture trigger)
+    let mut early_termination_trigger: Option<String> = None;
 
     loop {
         // Check for feature completion signal (non-blocking)
@@ -264,7 +266,7 @@ fn execute_with_timeout(
             // Give the session a moment to finish any pending writes
             thread::sleep(Duration::from_millis(1000));
             terminate_child(&mut child);
-            terminated_for_isolation = true;
+            early_termination_trigger = Some(trigger_line);
             break;
         }
 
@@ -357,9 +359,9 @@ fn execute_with_timeout(
         }
     }
 
-    // If we terminated for isolation, still return Continue so supervisor can verify
-    if terminated_for_isolation {
-        return Ok(SessionResult::Continue);
+    // If we terminated for isolation, return EarlyTerminated with the trigger
+    if let Some(trigger) = early_termination_trigger {
+        return Ok(SessionResult::EarlyTerminated { trigger });
     }
 
     if stop_signal_exists() {

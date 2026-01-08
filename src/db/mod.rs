@@ -116,12 +116,24 @@ impl Database {
 
     /// Execute a read-only SELECT query, returns formatted output.
     /// This function enforces read-only mode by rejecting any non-SELECT statements.
+    ///
+    /// PRAGMA statements are restricted to a safe subset of read-only introspection
+    /// commands, since some PRAGMAs can mutate database state.
     pub fn read_query(&self, sql: &str) -> Result<String> {
-        // Security: Only allow SELECT statements to prevent accidental mutation
-        let sql_trimmed = sql.trim().to_uppercase();
-        if !sql_trimmed.starts_with("SELECT") && !sql_trimmed.starts_with("PRAGMA") {
+        let sql_upper = sql.trim().to_uppercase();
+
+        // Allowlist: SELECT queries and safe read-only PRAGMAs for introspection
+        let is_safe = sql_upper.starts_with("SELECT")
+            || sql_upper.starts_with("PRAGMA TABLE_INFO")
+            || sql_upper.starts_with("PRAGMA DATABASE_LIST")
+            || sql_upper.starts_with("PRAGMA INDEX_LIST")
+            || sql_upper.starts_with("PRAGMA INDEX_INFO")
+            || sql_upper.starts_with("PRAGMA FOREIGN_KEY_LIST")
+            || sql_upper.starts_with("PRAGMA TABLE_LIST");
+
+        if !is_safe {
             anyhow::bail!(
-                "read_query only allows SELECT/PRAGMA statements. Use 'db exec' for modifications."
+                "read_query only allows SELECT and safe PRAGMA statements. Use 'db exec' for modifications."
             );
         }
 

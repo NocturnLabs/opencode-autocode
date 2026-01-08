@@ -54,6 +54,7 @@ pub fn run_supervisor_loop(
     // Mutable state for the loop
     let mut iteration = 0usize;
     let mut consecutive_errors = 0u32;
+    let mut no_progress_count = 0u32;
     let mut last_run_success = true;
 
     // --- Main Loop (Bounded by max_iterations) ---
@@ -80,7 +81,7 @@ pub fn run_supervisor_loop(
         let mut active_feature = None;
 
         // Exit early if all features are complete (don't print a ghost session)
-        if matches!(action, SupervisorAction::Stop) && !enhancement_mode {
+        if matches!(action, SupervisorAction::Complete) && !enhancement_mode {
             logger.info("Supervisor: All features complete.");
             break;
         }
@@ -92,15 +93,35 @@ pub fn run_supervisor_loop(
 
         // --- Step 2: Prepare Command ---
         let command_name = match action {
-            SupervisorAction::Stop => {
-                // enhancement_mode is true here (non-enhancement Stop is handled above)
+            SupervisorAction::Complete => {
+                // In normal mode, this is handled by early exit above
+                // In enhancement_mode, route to enhancement phase
+                if enhancement_mode {
+                    match templates::handle_enhancement_phase(db_path, config, settings, iteration)
+                    {
+                        Ok(LoopAction::Continue) => {
+                            iteration += 1;
+                            "auto-enhance-active".to_string()
+                        }
+                        _ => {
+                            logger.info("Supervisor: Enhancement phase exited.");
+                            break;
+                        }
+                    }
+                } else {
+                    logger.info("Supervisor: All features complete.");
+                    break;
+                }
+            }
+            SupervisorAction::EnhanceReady => {
+                // Same as Complete for now, enhancement mode handles this
                 match templates::handle_enhancement_phase(db_path, config, settings, iteration) {
                     Ok(LoopAction::Continue) => {
                         iteration += 1;
                         "auto-enhance-active".to_string()
                     }
                     _ => {
-                        logger.info("Supervisor: Stop signal received or enhancement exited.");
+                        logger.info("Supervisor: Enhancement phase exited.");
                         break;
                     }
                 }
@@ -129,8 +150,11 @@ pub fn run_supervisor_loop(
                         );
                         "auto-continue-active".to_string()
                     } else {
-                        // No pending features, use standard continue
-                        cmd.to_string()
+                        // No pending features - skip this session rather than running blind
+                        logger.warning("No pending feature found for auto-continue");
+                        println!("⚠️ No pending feature found, skipping session");
+                        no_progress_count += 1;
+                        continue;
                     }
                 } else {
                     cmd.to_string()
@@ -174,7 +198,20 @@ pub fn run_supervisor_loop(
         )?;
 
         // --- Step 4: Verification ---
-        let session_ok = matches!(&result, session::SessionResult::Continue);
+        // Both Continue and EarlyTerminated should trigger verification
+        let session_ok = matches!(
+            &result,
+            session::SessionResult::Continue | session::SessionResult::EarlyTerminated { .. }
+        );
+
+        // Log warning for early termination (pattern-based, may be false positive)
+        if let session::SessionResult::EarlyTerminated { ref trigger } = result {
+            println!("⚠️ Session terminated via pattern match: {}", trigger);
+            logger.warning(&format!("Early termination trigger: {}", trigger));
+        }
+
+        // Track whether this iteration made progress
+        let mut made_progress = false;
 
         if session_ok {
             if let Some(ref feature) = active_feature {
@@ -186,6 +223,7 @@ pub fn run_supervisor_loop(
                 match verification_result {
                     VerificationResult::Passed => {
                         last_run_success = true;
+                        made_progress = true;
                         handle_verification_success(feature, db_path, config, settings, iteration)?;
                     }
                     VerificationResult::Failed { error_message } => {
@@ -213,6 +251,21 @@ pub fn run_supervisor_loop(
                         continue;
                     }
                 }
+            }
+        }
+
+        // Track no-progress iterations to prevent infinite churn
+        if made_progress {
+            no_progress_count = 0;
+        } else {
+            no_progress_count += 1;
+            if no_progress_count >= settings.max_no_progress {
+                println!(
+                    "⚠️ No progress for {} iterations, stopping",
+                    no_progress_count
+                );
+                logger.warning(&format!("No progress for {} iterations", no_progress_count));
+                break;
             }
         }
 

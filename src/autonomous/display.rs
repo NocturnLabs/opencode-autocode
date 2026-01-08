@@ -23,7 +23,11 @@ pub fn display_banner(
     let title = "OpenCode Autonomous Agent";
     // Width breakdown: │ (1) + space (1) + ✨ (2 visual) + space (1) + title + padding + space (1) + │ (1)
     // Total fixed chars: 7, but the emoji counts as 1 in len() but displays as 2
-    let padding = width - 6 - title.len() - 2; // -6 for borders/spaces, -2 for sparkle visual width
+    // Use saturating_sub to prevent underflow if title/content is unexpectedly long
+    let padding = width
+        .saturating_sub(6)
+        .saturating_sub(title.len())
+        .saturating_sub(2);
     println!(
         "{} {} {} {}{}",
         crate::theming::accent(boxes::VERTICAL),
@@ -66,7 +70,11 @@ pub fn display_banner(
     ];
 
     for (key, value) in rows {
-        let padding = width - 6 - key.len() - value.len(); // -6: "| • " + ": " + " |"
+        // Use saturating_sub to prevent underflow if key+value is unexpectedly long
+        let padding = width
+            .saturating_sub(6)
+            .saturating_sub(key.len())
+            .saturating_sub(value.len());
         println!(
             "{} {} {}: {}{}{}",
             crate::theming::accent(boxes::VERTICAL),
@@ -80,7 +88,7 @@ pub fn display_banner(
 
     if developer_mode {
         let dev_msg = "DEVELOPER MODE ENABLED";
-        let padding = width - 5 - dev_msg.len();
+        let padding = width.saturating_sub(5).saturating_sub(dev_msg.len());
         println!(
             "{} {} {} {}{}",
             crate::theming::accent(boxes::VERTICAL),
@@ -102,7 +110,7 @@ pub fn display_banner(
 
 /// Display the session header
 pub fn display_session_header(iteration: usize) {
-    let width = 60;
+    let width: usize = 60;
 
     println!();
     // Compact header style: ╭── Session 1 ── [12:00:00] ───╮
@@ -118,7 +126,11 @@ pub fn display_session_header(iteration: usize) {
     // "─╮" = 2 chars
     // Remaining for lines: 60 - 11 - iter_len - time_len
 
-    let total_padding = width - 13 - iter_str.len() - time_str.len();
+    // Use saturating_sub to prevent underflow if content is unexpectedly long
+    let total_padding = width
+        .saturating_sub(13)
+        .saturating_sub(iter_str.len())
+        .saturating_sub(time_str.len());
     let left_pad = total_padding / 3;
     let mid_pad = total_padding / 3;
     let right_pad = total_padding - left_pad - mid_pad;
@@ -237,7 +249,11 @@ pub fn display_token_stats(stats: &super::stats::TokenStats) {
     ];
 
     for (key, value) in rows {
-        let padding = width - 7 - key.len() - value.len();
+        // Use saturating_sub to prevent underflow if value is unexpectedly long
+        let padding = width
+            .saturating_sub(7)
+            .saturating_sub(key.len())
+            .saturating_sub(value.len());
         println!(
             "{}   {}: {}{}{}",
             crate::theming::accent(boxes::VERTICAL),

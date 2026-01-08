@@ -15,6 +15,7 @@ use super::features::FeatureProgress;
 use super::verification::{classify_verification_failure, VerificationFailure};
 
 /// Actions determined by the Supervisor
+#[allow(dead_code)] // EnhanceReady is part of the design but not yet fully wired up
 pub enum SupervisorAction {
     /// Run a standard command (auto-init, auto-continue, etc.)
     Command(&'static str),
@@ -23,8 +24,10 @@ pub enum SupervisorAction {
         feature: crate::db::features::Feature,
         error: String,
     },
-    /// Stop the loop (completed or otherwise)
-    Stop,
+    /// All features complete, exit the loop (normal mode)
+    Complete,
+    /// All features pass, ready for enhancement phase (enhancement mode)
+    EnhanceReady,
 }
 
 /// Determines the next action the supervisor should take.
@@ -59,8 +62,8 @@ pub fn determine_action(
     }
 
     // --- Phase 1: First Run ---
-    // Check both database AND signal file to determine if init has run.
-    // Signal file acts as fallback in case database check fails.
+    // Database features is the source of truth for init status.
+    // Signal file is maintained for visibility but not used for decision.
     let has_features = FeatureProgress::has_features(db_path);
     let signal_exists = init_signal_exists();
 
@@ -69,8 +72,12 @@ pub fn determine_action(
         db_path, has_features, signal_exists
     );
 
-    if !has_features && !signal_exists {
-        eprintln!("[DEBUG] Selected: auto-init (no features and no signal)");
+    // DB is source of truth - signal file mismatch is a warning, not a skip
+    if !has_features {
+        if signal_exists {
+            eprintln!("[WARN] Signal file exists but DB has no features - reinitializing");
+        }
+        eprintln!("[DEBUG] Selected: auto-init (no features in DB)");
         return Ok(SupervisorAction::Command("auto-init"));
     }
 
@@ -97,7 +104,7 @@ pub fn determine_action(
     );
 
     if progress.all_passing() {
-        return Ok(SupervisorAction::Stop);
+        return Ok(SupervisorAction::Complete);
     }
 
     // --- Phase 5: Auto-continue ---
@@ -116,7 +123,7 @@ fn determine_action_for_target(
     if let Some(feature) = features.iter().find(|f| f.id == Some(id)) {
         if feature.passes {
             logger.info(&format!("Target feature {} already passes", id));
-            return Ok(SupervisorAction::Stop);
+            return Ok(SupervisorAction::Complete);
         }
 
         // If feature has a stored error, trigger Fix mode to give agent context
@@ -136,7 +143,7 @@ fn determine_action_for_target(
     }
 
     logger.error(&format!("Target feature {} not found", id));
-    Ok(SupervisorAction::Stop)
+    anyhow::bail!("Target feature {} not found in database", id)
 }
 
 /// Checks for regressions in previously passing features.
@@ -157,6 +164,9 @@ fn check_for_regressions(
         return Ok(None);
     }
 
+    // Track broken verification commands to detect systemic issues
+    let mut broken_verification_count = 0;
+
     // Find the first failing feature to fix
     for result in summary.results {
         if !result.passed && result.was_automated {
@@ -174,7 +184,8 @@ fn check_for_regressions(
                     | VerificationFailure::TestFileMissing
                     | VerificationFailure::CommandError => {
                         // The verification command is broken, not the code
-                        // Mark as failing and move on instead of looping
+                        broken_verification_count += 1;
+
                         println!("⚠️  Verification command issue (not a code regression)");
                         println!("   Feature: {}", feature.description);
                         println!("   Error: {}", error_msg.lines().next().unwrap_or(""));
@@ -187,6 +198,14 @@ fn check_for_regressions(
 
                         // Mark as failing so it goes back to pending queue
                         db.features().mark_failing(&feature.description)?;
+
+                        // If multiple features have broken verification, it's a systemic issue
+                        if broken_verification_count >= 3 {
+                            println!("🛑 Multiple features have broken verification commands");
+                            println!("   This suggests a shared configuration issue");
+                            logger.error("Systemic verification command failure detected");
+                            return Ok(Some(SupervisorAction::Complete)); // Stop, don't loop
+                        }
 
                         // Don't return Fix action - continue to find next feature
                         continue;
