@@ -105,6 +105,13 @@ fn build_opencode_command(
         println!("→ Continuing session: {}", sid);
     }
 
+    // On Unix, spawn the child in a new process group so we can kill the entire group later.
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        cmd.process_group(0);
+    }
+
     cmd
 }
 
@@ -364,6 +371,19 @@ fn execute_with_timeout(
 }
 
 fn terminate_child(child: &mut std::process::Child) {
-    let _ = child.kill();
+    // On Unix, kill the entire process group to ensure sub-processes are terminated.
+    // This is necessary because `opencode` may spawn bash tools that keep running.
+    #[cfg(unix)]
+    {
+        let pid = child.id() as libc::pid_t;
+        // Send SIGKILL to the process group (negative PID targets the group)
+        unsafe {
+            libc::kill(-pid, libc::SIGKILL);
+        }
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = child.kill();
+    }
     let _ = child.wait();
 }

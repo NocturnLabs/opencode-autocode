@@ -19,3 +19,4 @@ pub mod tui;
 pub mod updater;
 pub mod utils;
 pub mod validation;
+pub mod web;

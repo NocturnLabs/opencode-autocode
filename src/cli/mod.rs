@@ -132,6 +132,16 @@ pub enum Commands {
         #[arg(long)]
         no_subagents: bool,
     },
+    /// Start the web dashboard
+    Web {
+        /// Port to listen on (default: 3333)
+        #[arg(short, long, default_value_t = 3333)]
+        port: u16,
+
+        /// Open browser on start
+        #[arg(long)]
+        open: bool,
+    },
 }
 
 /// Template subcommand actions

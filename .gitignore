@@ -9,3 +9,4 @@
 docs/ideas/
 .agent/
 test-project/*
+src/web/frontend/dist/

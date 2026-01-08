@@ -39,6 +39,15 @@ impl Database {
     /// worker scenarios. WAL mode allows multiple readers with a single writer
     /// without locking contention.
     pub fn open(path: &Path) -> Result<Self> {
+        // Ensure parent directory exists
+        if let Some(parent) = path.parent() {
+            if !parent.exists() {
+                std::fs::create_dir_all(parent).with_context(|| {
+                    format!("Failed to create database directory: {}", parent.display())
+                })?;
+            }
+        }
+
         let conn = Connection::open(path)
             .with_context(|| format!("Failed to open database: {}", path.display()))?;
 

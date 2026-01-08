@@ -40,6 +40,13 @@ thiserror = "2.0.17"
 # Date/time for autonomous runner
 chrono = "0.4.42"
 
+# Web Server - Actix Web (latest stable, no CVEs)
+actix-web = "4.9.0"
+actix-files = "0.6.6"
+rust-embed = { version = "8.5.0", features = ["interpolate-folder-path"] }
+mime_guess = "2.0.5"
+open = "5.3.2"
+
 # Ctrl+C signal handling
 ctrlc = "3.4"
 
@@ -56,6 +63,10 @@ self_update = { version = "0.42.0", features = [
     "compression-flate2",
 ] }
 num_cpus = "1.17.0"
+
+# Unix process control (for process group termination)
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
 
 [dev-dependencies]
 # Temporary files for testing

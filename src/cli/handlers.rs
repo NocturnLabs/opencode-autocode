@@ -70,6 +70,7 @@ pub fn run(cli: Cli) -> Result<()> {
                     std::process::exit(1);
                 }
             },
+            Commands::Web { port, open } => crate::web::run_server(*port, *open),
         };
     }
 
@@ -225,11 +226,13 @@ fn handle_reset(output_dir: &std::path::Path) -> Result<()> {
 
 /// Handle database subcommands
 pub fn handle_db(action: &DbAction) -> Result<()> {
+    // Load config to get database_file path (from .forger/config.toml)
+    let config = crate::config::Config::load(None).unwrap_or_default();
+    let default_db_path = PathBuf::from(&config.paths.database_file);
+
     match action {
         DbAction::Init { path } => {
-            let db_path = path
-                .clone()
-                .unwrap_or_else(|| PathBuf::from(db::DEFAULT_DB_PATH));
+            let db_path = path.clone().unwrap_or(default_db_path);
 
             if db_path.exists() {
                 println!("⚠️  Database already exists: {}", db_path.display());
@@ -323,27 +326,25 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
             Ok(())
         }
         DbAction::Query { sql } => {
-            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
-            if !db_path.exists() {
+            if !default_db_path.exists() {
                 anyhow::bail!(
                     "Database not found: {}. Run 'db init' first.",
-                    db_path.display()
+                    default_db_path.display()
                 );
             }
-            let db = db::Database::open(&db_path)?;
+            let db = db::Database::open(&default_db_path)?;
             let output = db.read_query(sql)?;
             print!("{}", output);
             Ok(())
         }
         DbAction::Exec { sql } => {
-            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
-            if !db_path.exists() {
+            if !default_db_path.exists() {
                 anyhow::bail!(
                     "Database not found: {}. Run 'db init' first.",
-                    db_path.display()
+                    default_db_path.display()
                 );
             }
-            let db = db::Database::open(&db_path)?;
+            let db = db::Database::open(&default_db_path)?;
 
             // Auto-detect SELECT and redirect to read_query
             let trimmed = sql.trim().to_uppercase();
@@ -357,14 +358,13 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
             Ok(())
         }
         DbAction::Check { path: _ } => {
-            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
-            if !db_path.exists() {
+            if !default_db_path.exists() {
                 anyhow::bail!(
                     "Database not found: {}. Run 'db init' first.",
-                    db_path.display()
+                    default_db_path.display()
                 );
             }
-            let db = db::Database::open(&db_path)?;
+            let db = db::Database::open(&default_db_path)?;
             let features = db.features().list_all()?;
 
             println!(
@@ -381,14 +381,13 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
             Ok(())
         }
         DbAction::Tables => {
-            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
-            if !db_path.exists() {
+            if !default_db_path.exists() {
                 anyhow::bail!(
                     "Database not found: {}. Run 'db init' first.",
-                    db_path.display()
+                    default_db_path.display()
                 );
             }
-            let db = db::Database::open(&db_path)?;
+            let db = db::Database::open(&default_db_path)?;
             let tables = db.list_tables()?;
             for table in tables {
                 println!("{}", table);
@@ -396,27 +395,25 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
             Ok(())
         }
         DbAction::Schema { table } => {
-            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
-            if !db_path.exists() {
+            if !default_db_path.exists() {
                 anyhow::bail!(
                     "Database not found: {}. Run 'db init' first.",
-                    db_path.display()
+                    default_db_path.display()
                 );
             }
-            let db = db::Database::open(&db_path)?;
+            let db = db::Database::open(&default_db_path)?;
             let schema = db.describe_table(table)?;
             print!("{}", schema);
             Ok(())
         }
         DbAction::NextFeature => {
-            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
-            if !db_path.exists() {
+            if !default_db_path.exists() {
                 anyhow::bail!(
                     "Database not found: {}. Run 'db init' first.",
-                    db_path.display()
+                    default_db_path.display()
                 );
             }
-            let db = db::Database::open(&db_path)?;
+            let db = db::Database::open(&default_db_path)?;
             let next =
                 db.read_query("SELECT id, description FROM features WHERE passes = 0 LIMIT 1")?;
             print!("{}", next);
