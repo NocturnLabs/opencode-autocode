@@ -6,8 +6,7 @@
     "input": "A simple todo app",
     "expected_contains": [
       "A simple todo app",
-      "<project_specification>",
-      "{{IDEA}}"
+      "<project_specification>"
     ]
   }
 }

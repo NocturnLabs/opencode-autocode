@@ -120,14 +120,24 @@ pub fn run_parallel(
 
         // Wait for workers and queue results
         for handle in handles {
-            if let Ok(result) = handle.join() {
-                println!(
-                    "{}  Worker {} finished ({})",
-                    if result.success { "✅" } else { "❌" },
-                    result.feature_id,
-                    if result.success { "success" } else { "failed" }
-                );
-                coordinator.queue_for_merge(result);
+            match handle.join() {
+                Ok(result) => {
+                    println!(
+                        "{}  Worker {} finished ({})",
+                        if result.success { "✅" } else { "❌" },
+                        result.feature_id,
+                        if result.success { "success" } else { "failed" }
+                    );
+                    coordinator.queue_for_merge(result);
+                }
+                Err(e) => {
+                    let msg = if let Some(s) = e.downcast_ref::<&str>() {
+                        s
+                    } else {
+                        "unknown panic"
+                    };
+                    logger.error(&format!("Worker thread panicked: {}", msg));
+                }
             }
         }
 
@@ -196,7 +206,57 @@ pub fn run(
     .ok();
 
     logger.separator();
+    logger.separator();
     logger.info("OpenCode Supervisor starting");
+
+    log_startup_info(logger, &settings, developer_mode, single_model);
+
+    display::display_banner(
+        &settings.model,
+        settings.max_iterations,
+        settings.delay_seconds,
+        developer_mode,
+    );
+
+    let result =
+        supervisor::run_supervisor_loop(&config, &settings, enhancement_mode, target_feature_id);
+
+    // Final status display and cleanup
+    log_final_status(&settings, developer_mode);
+    let _ = instance_repo.mark_stopped(instance_id);
+
+    result
+}
+
+fn log_final_status(settings: &settings::LoopSettings, developer_mode: bool) {
+    let logger = debug_logger::get();
+    let db_path = Path::new(&settings.database_file);
+
+    // Get passing stats safely
+    let (passing, total) = if db_path.exists() {
+        FeatureProgress::load_from_db(db_path)
+            .map(|p| (p.passing, p.total()))
+            .unwrap_or((0, 0))
+    } else {
+        (0, 0)
+    };
+
+    logger.separator();
+    logger.info(&format!(
+        "Supervisor stopped. Final status: {}/{} tests passing",
+        passing, total
+    ));
+    logger.separator();
+
+    display::display_final_status(passing, total, developer_mode);
+}
+
+fn log_startup_info(
+    logger: &debug_logger::DebugLogger,
+    settings: &settings::LoopSettings,
+    developer_mode: bool,
+    single_model: bool,
+) {
     logger.info(&format!("Developer mode: {}", developer_mode));
     logger.info(&format!(
         "Project directory: {}",
@@ -230,38 +290,6 @@ pub fn run(
         settings.session_timeout
     ));
     logger.separator();
-
-    display::display_banner(
-        &settings.model,
-        settings.max_iterations,
-        settings.delay_seconds,
-        developer_mode,
-    );
-
-    supervisor::run_supervisor_loop(&config, &settings, enhancement_mode, target_feature_id)?;
-
-    // Final status display
-    let db_path = Path::new(&settings.database_file);
-    let (passing, total) = if db_path.exists() {
-        FeatureProgress::load_from_db(db_path)
-            .map(|p| (p.passing, p.total()))
-            .unwrap_or((0, 0))
-    } else {
-        (0, 0)
-    };
-    logger.separator();
-    logger.info(&format!(
-        "Supervisor stopped. Final status: {}/{} tests passing",
-        passing, total
-    ));
-    logger.separator();
-
-    display::display_final_status(passing, total, developer_mode);
-
-    // Mark instance as stopped
-    let _ = instance_repo.mark_stopped(instance_id);
-
-    Ok(())
 }
 
 fn load_config(config_path: Option<&Path>) -> Result<Config> {

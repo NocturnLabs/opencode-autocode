@@ -117,26 +117,13 @@ fn build_opencode_command(
     cmd
 }
 
-/// Patterns that indicate a feature was completed - trigger early termination
-/// These are checked against stdout lines in real-time
-///
-/// CAUTION: Patterns must be specific to avoid false-positives. Previously included
-/// git branch patterns ("[main ", "[master ") but these could trigger on unrelated output.
-const FEATURE_COMPLETE_PATTERNS: &[&str] = &[
-    // Session complete signals - explicit sentinels (preferred)
-    "===SESSION_COMPLETE===",
-    "SESSION_COMPLETE",
-    // Mark-pass output (backwards compat with old templates)
-    "marked as passing",
-    "Feature marked as passing",
-    // Explicit completion markers the agent might output
-    "Feature complete",
-    "✅ Verified!",
-];
+/// Strict sentinel that signals a feature was completed.
+/// Validated patterns are restricted to ONE explicit sentinel to prevent false positives.
+pub const SESSION_COMPLETE_SENTINEL: &str = "===SESSION_COMPLETE===";
 
 /// Check if a line indicates feature completion
 fn is_feature_complete_signal(line: &str) -> bool {
-    FEATURE_COMPLETE_PATTERNS.iter().any(|p| line.contains(p))
+    line.contains(SESSION_COMPLETE_SENTINEL)
 }
 
 fn execute_with_timeout(
@@ -277,21 +264,27 @@ fn execute_with_timeout(
 
                 // Wait for output threads to finish
                 if let Some(handle) = stdout_handle {
-                    if let Ok(lines) = handle.join() {
-                        if logger.is_enabled() {
-                            for line in lines {
-                                logger.log_output("stdout", &line);
+                    match handle.join() {
+                        Ok(lines) => {
+                            if logger.is_enabled() {
+                                for line in lines {
+                                    logger.log_output("stdout", &line);
+                                }
                             }
                         }
+                        Err(_) => logger.error("stdout reader thread panicked"),
                     }
                 }
                 if let Some(handle) = stderr_handle {
-                    if let Ok(lines) = handle.join() {
-                        if logger.is_enabled() {
-                            for line in lines {
-                                logger.log_output("stderr", &line);
+                    match handle.join() {
+                        Ok(lines) => {
+                            if logger.is_enabled() {
+                                for line in lines {
+                                    logger.log_output("stderr", &line);
+                                }
                             }
                         }
+                        Err(_) => logger.error("stderr reader thread panicked"),
                     }
                 }
 

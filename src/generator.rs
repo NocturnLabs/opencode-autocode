@@ -286,7 +286,7 @@ where
 }
 
 /// Build the generation prompt by inserting the user's idea and configuration constraints.
-fn build_generation_prompt(
+pub fn build_generation_prompt(
     idea: &str,
     testing_preference: Option<&str>,
     config: &Config,

@@ -53,19 +53,8 @@ pub fn run_verified_command(
     let stdout = child.stdout.take().expect("Failed to open stdout");
     let stderr = child.stderr.take().expect("Failed to open stderr");
 
-    let stdout_handle = thread::spawn(move || {
-        let mut buf = Vec::new();
-        let mut reader = std::io::BufReader::new(stdout);
-        let _ = reader.read_to_end(&mut buf);
-        buf
-    });
-
-    let stderr_handle = thread::spawn(move || {
-        let mut buf = Vec::new();
-        let mut reader = std::io::BufReader::new(stderr);
-        let _ = reader.read_to_end(&mut buf);
-        buf
-    });
+    let stdout_handle = spawn_reader_thread(stdout);
+    let stderr_handle = spawn_reader_thread(stderr);
 
     // Timeout duration (5 minutes)
     let timeout = Duration::from_secs(300);
@@ -125,6 +114,15 @@ fn is_command_blocked(cmd: &str, security_config: &SecurityConfig) -> bool {
     }
 
     false
+}
+
+fn spawn_reader_thread<R: Read + Send + 'static>(reader: R) -> thread::JoinHandle<Vec<u8>> {
+    thread::spawn(move || {
+        let mut buf = Vec::new();
+        let mut reader = std::io::BufReader::new(reader);
+        let _ = reader.read_to_end(&mut buf);
+        buf
+    })
 }
 
 #[cfg(test)]

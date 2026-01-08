@@ -2057,6 +2057,7 @@ name = "opencode-regression-tests"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "opencode-forger",
  "serde",
  "serde_json",
  "tempfile",
