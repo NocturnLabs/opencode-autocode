@@ -9,7 +9,8 @@ A Rust CLI that scaffolds autonomous coding projects for [OpenCode](https://gith
 
 ## Documentation
 
-- [Architecture Overview](ARCHITECTURE.md) - Detailed modules (Supervisor, Decision, Verifier, Runner).
+- [Architecture Overview](ARCHITECTURE.md) - High-level module responsibilities.
+- [Internal Architecture](docs/INTERNAL_ARCHITECTURE.md) - Detailed modules, call graphs, and database schema.
 - [Development Guide](docs/DEVELOPMENT.md) - Developer onboarding and contribution guidelines.
 - [Contributing](CONTRIBUTING.md) - Code standards and PR process.
 

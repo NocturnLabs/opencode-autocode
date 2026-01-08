@@ -16,10 +16,111 @@ pub struct SessionRepository {
     conn: Arc<Mutex<Connection>>,
 }
 
+/// Session data for API responses
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct Session {
+    pub id: i64,
+    pub session_number: i32,
+    pub started_at: String,
+    pub completed_at: Option<String>,
+    pub features_before: i32,
+    pub features_after: i32,
+    pub status: String,
+}
+
+/// Session event data for API responses
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct SessionEvent {
+    pub id: i64,
+    pub session_id: i64,
+    pub event_type: String,
+    pub message: Option<String>,
+    pub timestamp: String,
+}
+
 impl SessionRepository {
     /// Create a new repository with the given connection
     pub fn new(conn: Arc<Mutex<Connection>>) -> Self {
         Self { conn }
+    }
+
+    /// List all sessions, ordered by most recent first
+    pub fn list_sessions(&self) -> Result<Vec<Session>> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn.prepare(
+            "SELECT id, session_number, started_at, completed_at, features_before, features_after, status
+             FROM sessions ORDER BY started_at DESC"
+        )?;
+
+        let sessions = stmt
+            .query_map([], |row| {
+                Ok(Session {
+                    id: row.get(0)?,
+                    session_number: row.get(1)?,
+                    started_at: row.get(2)?,
+                    completed_at: row.get(3)?,
+                    features_before: row.get(4)?,
+                    features_after: row.get(5)?,
+                    status: row.get(6)?,
+                })
+            })?
+            .filter_map(|r| r.ok())
+            .collect();
+
+        Ok(sessions)
+    }
+
+    /// Get a session by ID with its events
+    pub fn get_session_with_events(
+        &self,
+        session_id: i64,
+    ) -> Result<Option<(Session, Vec<SessionEvent>)>> {
+        let conn = self.conn.lock().unwrap();
+
+        // Get session
+        let session: Option<Session> = conn
+            .query_row(
+                "SELECT id, session_number, started_at, completed_at, features_before, features_after, status
+                 FROM sessions WHERE id = ?1",
+                params![session_id],
+                |row| {
+                    Ok(Session {
+                        id: row.get(0)?,
+                        session_number: row.get(1)?,
+                        started_at: row.get(2)?,
+                        completed_at: row.get(3)?,
+                        features_before: row.get(4)?,
+                        features_after: row.get(5)?,
+                        status: row.get(6)?,
+                    })
+                },
+            )
+            .ok();
+
+        let Some(session) = session else {
+            return Ok(None);
+        };
+
+        // Get events
+        let mut stmt = conn.prepare(
+            "SELECT id, session_id, event_type, message, timestamp
+             FROM session_events WHERE session_id = ?1 ORDER BY timestamp ASC",
+        )?;
+
+        let events = stmt
+            .query_map(params![session_id], |row| {
+                Ok(SessionEvent {
+                    id: row.get(0)?,
+                    session_id: row.get(1)?,
+                    event_type: row.get(2)?,
+                    message: row.get(3)?,
+                    timestamp: row.get(4)?,
+                })
+            })?
+            .filter_map(|r| r.ok())
+            .collect();
+
+        Ok(Some((session, events)))
     }
 
     /// Get session statistics

@@ -33,10 +33,11 @@ Read `app_spec.md` in your working directory. Understand:
 **CRITICAL: Break down the specification into SEPARATE, testable features.** Based on your analysis of `app_spec.md` (which defines approximately **{{SPEC_FEATURE_COUNT}}** features and **{{SPEC_ENDPOINT_COUNT}}** API endpoints), insert ALL required features into the database.
 
 > [!TIP]
-> **Use batch INSERT to minimize tool calls. Insert 10-50 features per command.**
+> **Use `INSERT OR IGNORE` to safely re-run init without duplicate errors.**
+> If a feature with the same description already exists, it will be skipped.
 
 ```bash
-opencode-forger db exec "INSERT INTO features (category, description, passes, verification_command) VALUES
+opencode-forger db exec "INSERT OR IGNORE INTO features (category, description, passes, verification_command) VALUES
   ('functional', 'Feature 1 description', 0, 'bun test -- --grep \"feature1\"'),
   ('functional', 'Feature 2 description', 0, 'bun test -- --grep \"feature2\"'),
   ('functional', 'Feature 3 description', 0, 'bun test -- --grep \"feature3\"')"
@@ -46,7 +47,7 @@ opencode-forger db exec "INSERT INTO features (category, description, passes, ve
 
 ```bash
 # ✅ DO: Batch insert all features in ONE command
-opencode-forger db exec "INSERT INTO features (category, description, passes, verification_command) VALUES
+opencode-forger db exec "INSERT OR IGNORE INTO features (category, description, passes, verification_command) VALUES
   ('functional', 'Hero entity spawns and renders as red square', 0, 'cargo test test_hero_spawn'),
   ('functional', 'Hero moves upward automatically at constant speed', 0, 'cargo test test_hero_movement'),
   ('functional', 'Weapon system fires projectiles automatically', 0, 'cargo test test_weapon_firing'),

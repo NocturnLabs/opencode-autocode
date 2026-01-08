@@ -464,8 +464,8 @@ fn SpecReview(props: &SpecReviewProps, mut hooks: Hooks) -> impl Into<AnyElement
             }
 
             View(flex_grow: 1.0, flex_direction: FlexDirection::Row) {
-                // Left side: Validation & Actions
-                View(width: 40, flex_direction: FlexDirection::Column, padding: 1, border_style: BorderStyle::Single, border_color: Color::Grey) {
+                // Left side: Validation & Actions (~35% width)
+                View(flex_grow: 0.65, flex_direction: FlexDirection::Column, padding: 1, border_style: BorderStyle::Single, border_color: Color::Grey) {
                     Text(content: "Status:", weight: Weight::Bold)
                     #(if props.validation.is_valid {
                         element! { Text(content: " ✅ VALID", color: Color::Green, weight: Weight::Bold) }
@@ -503,8 +503,8 @@ fn SpecReview(props: &SpecReviewProps, mut hooks: Hooks) -> impl Into<AnyElement
                     }
                 }
 
-                // Right side: Preview
-                View(flex_grow: 1.0, flex_direction: FlexDirection::Column, padding: 1, border_style: BorderStyle::Single, border_color: Color::Grey) {
+                // Right side: Preview (~65% width)
+                View(flex_grow: 0.65, flex_direction: FlexDirection::Column, padding: 1, border_style: BorderStyle::Single, border_color: Color::Grey) {
                     Text(content: "Preview:", weight: Weight::Bold)
                     View(flex_grow: 1.0, margin_top: 1) {
                         Text(
@@ -641,7 +641,6 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
         "MCP",
         "Generation",
         "Security",
-        "Communication",
         "UI",
         "Features",
         "Scaffolding",
@@ -774,25 +773,6 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
             ],
             7 => vec![
                 (
-                    "Enabled".to_string(),
-                    config.communication.enabled.to_string(),
-                ),
-                ("Path".to_string(), config.communication.file_path.clone()),
-                (
-                    "Auto Ask".to_string(),
-                    config.communication.auto_ask_on_error.to_string(),
-                ),
-                (
-                    "Check Interval".to_string(),
-                    config.communication.check_interval_sessions.to_string(),
-                ),
-                (
-                    "Max Pending".to_string(),
-                    config.communication.max_pending_questions.to_string(),
-                ),
-            ],
-            8 => vec![
-                (
                     "Spec Preview Lines".to_string(),
                     config.ui.spec_preview_lines.to_string(),
                 ),
@@ -806,7 +786,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                 ),
                 ("Verbose".to_string(), config.ui.verbose.to_string()),
             ],
-            9 => vec![
+            8 => vec![
                 (
                     "Require Verification".to_string(),
                     config.features.require_verification_command.to_string(),
@@ -824,7 +804,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     config.features.comprehensive_test_min_steps.to_string(),
                 ),
             ],
-            10 => vec![
+            9 => vec![
                 (
                     "Git Init".to_string(),
                     config.scaffolding.git_init.to_string(),
@@ -842,7 +822,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     config.scaffolding.create_scripts_dir.to_string(),
                 ),
             ],
-            11 => vec![
+            10 => vec![
                 (
                     "Webhook Enabled".to_string(),
                     config.notifications.webhook_enabled.to_string(),
@@ -852,7 +832,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     config.notifications.webhook_url.clone().unwrap_or_default(),
                 ),
             ],
-            12 => vec![
+            11 => vec![
                 (
                     "Context Dir".to_string(),
                     config.conductor.context_dir.clone(),
@@ -874,7 +854,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     config.conductor.checkpoint_frequency.to_string(),
                 ),
             ],
-            13 => vec![
+            12 => vec![
                 ("Log Dir".to_string(), config.paths.log_dir.clone()),
                 (
                     "VS Cache Dir".to_string(),
@@ -1012,25 +992,6 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 _ => {}
                             },
                             7 => match field_idx {
-                                0 => config.communication.enabled = val.to_lowercase() == "true",
-                                1 => config.communication.file_path = val,
-                                2 => {
-                                    config.communication.auto_ask_on_error =
-                                        val.to_lowercase() == "true"
-                                }
-                                3 => {
-                                    config.communication.check_interval_sessions = val
-                                        .parse()
-                                        .unwrap_or(config.communication.check_interval_sessions)
-                                }
-                                4 => {
-                                    config.communication.max_pending_questions = val
-                                        .parse()
-                                        .unwrap_or(config.communication.max_pending_questions)
-                                }
-                                _ => {}
-                            },
-                            8 => match field_idx {
                                 0 => {
                                     config.ui.spec_preview_lines =
                                         val.parse().unwrap_or(config.ui.spec_preview_lines)
@@ -1040,7 +1001,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 3 => config.ui.verbose = val.to_lowercase() == "true",
                                 _ => {}
                             },
-                            9 => match field_idx {
+                            8 => match field_idx {
                                 0 => {
                                     config.features.require_verification_command =
                                         val.to_lowercase() == "true"
@@ -1060,7 +1021,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 }
                                 _ => {}
                             },
-                            10 => match field_idx {
+                            9 => match field_idx {
                                 0 => config.scaffolding.git_init = val.to_lowercase() == "true",
                                 1 => config.scaffolding.output_dir = val,
                                 2 => {
@@ -1073,7 +1034,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 }
                                 _ => {}
                             },
-                            11 => match field_idx {
+                            10 => match field_idx {
                                 0 => {
                                     config.notifications.webhook_enabled =
                                         val.to_lowercase() == "true"
@@ -1084,7 +1045,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 }
                                 _ => {}
                             },
-                            12 => match field_idx {
+                            11 => match field_idx {
                                 0 => config.conductor.context_dir = val,
                                 1 => config.conductor.tracks_dir = val,
                                 2 => config.conductor.auto_setup = val.to_lowercase() == "true",
@@ -1095,7 +1056,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 }
                                 _ => {}
                             },
-                            13 => match field_idx {
+                            12 => match field_idx {
                                 0 => config.paths.log_dir = val,
                                 1 => config.paths.vs_cache_dir = val,
                                 2 => config.paths.database_file = val,
@@ -1196,12 +1157,6 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 _ => String::new(),
                             },
                             7 => match field_idx {
-                                0 => config.communication.enabled.to_string(),
-                                1 => config.communication.file_path.clone(),
-                                2 => config.communication.auto_ask_on_error.to_string(),
-                                _ => String::new(),
-                            },
-                            8 => match field_idx {
                                 0 => config.ui.spec_preview_lines.to_string(),
                                 1 => config.ui.colored_output.to_string(),
                                 2 => config.ui.show_progress.to_string(),

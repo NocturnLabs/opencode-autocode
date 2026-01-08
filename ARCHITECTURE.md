@@ -6,6 +6,9 @@ This document outlines the high-level architecture of the `opencode-forger` CLI 
 
 `opencode-forger` bridges the gap between high-level requirements and implementation by automating the "Vibe Loop". It uses a stateful approach with SQLite for persistence and a modular template system for efficient AI prompting.
 
+> [!NOTE]
+> For a deep dive into module call graphs, database schemas, and parallel execution logic, see the [Detailed Internal Architecture](docs/INTERNAL_ARCHITECTURE.md).
+
 ## Core Modules
 
 | Module        | Responsibility                                                                     |

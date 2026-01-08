@@ -22,6 +22,8 @@ pub async fn run_server(port: u16, open_browser: bool) -> Result<()> {
             .service(
                 web::scope("/api")
                     .service(routes::get_status)
+                    .service(routes::get_runs)
+                    .service(routes::get_run_by_id)
                     .service(routes::run_project),
             )
             .default_service(web::to(static_files::index))
