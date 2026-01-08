@@ -23,14 +23,24 @@ impl FeatureProgress {
 
     /// Check if the database has any features (determines if init has run)
     pub fn has_features(db_path: &Path) -> bool {
+        eprintln!("[DEBUG] has_features: checking path {:?}", db_path);
+        eprintln!("[DEBUG] has_features: path.exists() = {}", db_path.exists());
+
         if !db_path.exists() {
+            eprintln!("[DEBUG] has_features: returning false (path doesn't exist)");
             return false;
         }
         if let Ok(database) = db::Database::open(db_path) {
             if let Ok((passing, remaining)) = database.features().count() {
-                return passing + remaining > 0;
+                let result = passing + remaining > 0;
+                eprintln!(
+                    "[DEBUG] has_features: passing={}, remaining={}, returning {}",
+                    passing, remaining, result
+                );
+                return result;
             }
         }
+        eprintln!("[DEBUG] has_features: returning false (failed to open/count)");
         false
     }
 

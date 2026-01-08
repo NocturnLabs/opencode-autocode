@@ -61,7 +61,16 @@ pub fn determine_action(
     // --- Phase 1: First Run ---
     // Check both database AND signal file to determine if init has run.
     // Signal file acts as fallback in case database check fails.
-    if !FeatureProgress::has_features(db_path) && !init_signal_exists() {
+    let has_features = FeatureProgress::has_features(db_path);
+    let signal_exists = init_signal_exists();
+
+    eprintln!(
+        "[DEBUG] Decision check: db_path={:?}, has_features={}, signal_exists={}",
+        db_path, has_features, signal_exists
+    );
+
+    if !has_features && !signal_exists {
+        eprintln!("[DEBUG] Selected: auto-init (no features and no signal)");
         return Ok(SupervisorAction::Command("auto-init"));
     }
 
@@ -203,15 +212,32 @@ fn check_for_regressions(
 /// in case the database check fails for some reason.
 fn init_signal_exists() -> bool {
     const SIGNAL_FILE: &str = ".opencode-signal";
-    std::path::Path::new(SIGNAL_FILE)
-        .exists()
-        .then(|| std::fs::read_to_string(SIGNAL_FILE).ok())
-        .flatten()
-        .map(|content| {
+    let path = std::path::Path::new(SIGNAL_FILE);
+    let exists = path.exists();
+    eprintln!(
+        "[DEBUG] init_signal_exists: path={:?}, exists={}",
+        path, exists
+    );
+
+    if !exists {
+        return false;
+    }
+
+    match std::fs::read_to_string(SIGNAL_FILE) {
+        Ok(content) => {
             let trimmed = content.trim();
-            trimmed == "CONTINUE" || trimmed == "COMPLETE"
-        })
-        .unwrap_or(false)
+            let result = trimmed == "CONTINUE" || trimmed == "COMPLETE";
+            eprintln!(
+                "[DEBUG] init_signal_exists: content={:?}, result={}",
+                trimmed, result
+            );
+            result
+        }
+        Err(e) => {
+            eprintln!("[DEBUG] init_signal_exists: read error: {}", e);
+            false
+        }
+    }
 }
 
 #[cfg(test)]

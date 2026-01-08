@@ -164,7 +164,7 @@ mod tests {
             exit_code: 1,
         });
 
-        let logger = DebugLogger::new(false);
+        let logger = DebugLogger::new(false, None);
 
         // First session call
         let result1 = runner
@@ -216,7 +216,7 @@ mod tests {
     #[test]
     fn test_mock_runner_defaults_when_queue_empty() {
         let runner = MockCommandRunner::new();
-        let logger = DebugLogger::new(false);
+        let logger = DebugLogger::new(false, None);
 
         // Should return Continue by default
         let result = runner
