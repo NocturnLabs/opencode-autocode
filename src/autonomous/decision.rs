@@ -55,7 +55,7 @@ pub fn determine_action(
     }
 
     // --- Priority 1: Regression Check ---
-    if FeatureProgress::has_features(db_path) {
+    if FeatureProgress::has_features(db_path)? {
         if let Some(action) = check_for_regressions(db_path, config, logger)? {
             return Ok(action);
         }
@@ -64,7 +64,19 @@ pub fn determine_action(
     // --- Phase 1: First Run ---
     // Database features is the source of truth for init status.
     // Signal file is maintained for visibility but not used for decision.
-    let has_features = FeatureProgress::has_features(db_path);
+    let has_features = match FeatureProgress::has_features(db_path) {
+        Ok(has) => has,
+        Err(e) => {
+            eprintln!("[ERROR] Failed to check features DB: {}", e);
+            // If we can't check DB, assuming "not initialized" is dangerous if DB exists.
+            if init_signal_exists() {
+                eprintln!("[WARN] DB check failed but signal exists. Assuming initialized to avoid destructive re-init.");
+                true
+            } else {
+                return Err(e.context("Failed to check initialization status"));
+            }
+        }
+    };
     let signal_exists = init_signal_exists();
 
     eprintln!(
