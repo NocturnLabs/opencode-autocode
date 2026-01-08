@@ -1,0 +1,412 @@
+[
+  {
+    "category": "functional",
+    "description": "Scaffold default project: CLI creates basic project structure from built-in template without interactive mode",
+    "steps": [
+      "Run 'opencode-forger --default --output /tmp/test-project'",
+      "Verify project directory /tmp/test-project was created",
+      "Check that .forger/ directory exists with config.toml",
+      "Verify feature_list.json was created in project root",
+      "Check that src/ directory exists with main.rs",
+      "Verify templates/ directory exists with index.json",
+      "Confirm .opencode/ command directory was scaffolded"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Scaffold project from spec file: CLI parses markdown specification and generates corresponding project structure",
+    "steps": [
+      "Create a test spec file with app_spec.txt format",
+      "Run 'opencode-forger --spec /tmp/test-spec.md --output /tmp/spec-project'",
+      "Verify project directory was created",
+      "Check that all files mentioned in spec are generated",
+      "Validate feature_list.json matches spec requirements",
+      "Verify .forger/ directory contains app_spec.md copy"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Preview scaffold output: --dry-run mode shows what would be created without writing to disk",
+    "steps": [
+      "Run 'opencode-forger --default --preview --output /tmp/preview-project'",
+      "Verify no files were created in /tmp/preview-project",
+      "Check that preview output shows directory structure",
+      "Confirm no .forger/ directory exists in target location"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Database initialization: 'db init' command creates SQLite database with proper schema",
+    "steps": [
+      "Run 'opencode-forger db init' in test directory",
+      "Verify .forger/progress.db was created",
+      "Run 'opencode-forger db tables' and verify expected tables exist",
+      "Run 'opencode-forger db schema features' to check schema",
+      "Verify features table has id, description, category, steps, passes columns"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Database feature migration: 'db migrate' imports feature_list.json into SQLite database",
+    "steps": [
+      "Create a test feature_list.json with 3 test features",
+      "Run 'opencode-forger db migrate'",
+      "Verify database contains all migrated features",
+      "Run 'opencode-forger db query \"SELECT COUNT(*) FROM features\"'",
+      "Verify count matches number of features in JSON",
+      "Check that feature attributes are correctly mapped"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Database feature queries: 'db next-feature' returns the first incomplete feature",
+    "steps": [
+      "Initialize database with test features (some passing, some failing)",
+      "Run 'opencode-forger db next-feature'",
+      "Verify it returns the first feature where passes=false",
+      "Mark that feature as passing using 'db mark-pass'",
+      "Run 'db next-feature' again and verify it returns the next failing feature"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Database knowledge store: Agents can save and recall persistent facts",
+    "steps": [
+      "Run 'opencode-forger db knowledge set api-port 8080 --category server'",
+      "Run 'opencode-forger db knowledge get api-port'",
+      "Verify returned value is '8080'",
+      "Run 'opencode-forger db knowledge list'",
+      "Verify the fact appears in list output",
+      "Set another fact with description and verify it stores correctly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Configuration TUI: --config launches interactive terminal configuration editor",
+    "steps": [
+      "Run 'opencode-forger --config'",
+      "Verify TUI interface launches successfully",
+      "Check that navigation keys work",
+      "Verify settings can be modified",
+      "Exit TUI and verify changes saved to .forger/config.toml"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Interactive scaffold TUI: --interactive mode provides step-by-step project specification",
+    "steps": [
+      "Run 'opencode-forger --interactive'",
+      "Verify TUI launches with first question",
+      "Navigate through project type selection",
+      "Enter project name when prompted",
+      "Complete the interactive flow",
+      "Verify final project structure matches selections"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Vibe loop execution: 'vibe' starts autonomous session that implements features",
+    "steps": [
+      "Initialize a project with feature_list.json having 1 incomplete feature",
+      "Run 'opencode-forger vibe --limit 1'",
+      "Verify session starts and attempts to implement feature",
+      "Check that opencode process is spawned",
+      "Verify session completes after limit reached",
+      "Check opencode-debug.log exists with session output"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Vibe developer mode: --developer flag enables verbose debug logging to file",
+    "steps": [
+      "Run 'opencode-forger vibe --developer --limit 1'",
+      "Verify opencode-debug.log is created",
+      "Check that log contains DEBUG level messages",
+      "Verify session output is captured in log file",
+      "Confirm console output is still visible"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Template listing: 'templates list' displays available project templates",
+    "steps": [
+      "Run 'opencode-forger templates list'",
+      "Verify output shows at least Web App, CLI, API templates",
+      "Check that template names are displayed correctly",
+      "Verify template descriptions are shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Template usage: 'templates use <name>' scaffolds project directly from named template",
+    "steps": [
+      "Run 'opencode-forger templates use web-app --output /tmp/web-project'",
+      "Verify project directory created",
+      "Check that web-app specific files are present",
+      "Verify feature_list.json contains web-app features"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Regression check: --regression-check verifies all passing features still work",
+    "steps": [
+      "Create a project with multiple features, mark some as passing",
+      "Run 'opencode-forger --regression-check'",
+      "Verify it tests each passing feature",
+      "Check that passing features remain functional",
+      "Verify summary output shows regression results"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Configuration loading: CLI respects settings from .forger/config.toml",
+    "steps": [
+      "Create .forger/config.toml with custom model settings",
+      "Run any CLI command",
+      "Verify custom settings are applied (check logs or behavior)",
+      "Update config and run command again",
+      "Verify updated settings take effect"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Environment variable support: Configuration paths support $HOME and other variables",
+    "steps": [
+      "Create config.toml with $HOME/log_dir path",
+      "Run any CLI command that uses log_dir",
+      "Verify path is correctly expanded",
+      "Verify logs are written to expanded path"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Auto-commit on feature completion: Git commits are created automatically when features pass",
+    "steps": [
+      "Initialize git repository in project",
+      "Implement a feature and mark it as passing",
+      "Verify git commit is created",
+      "Check commit message follows AI-generated format",
+      "Run 'git log' to verify commit history"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Port conflict prevention: CLI detects and resolves port conflicts before starting servers",
+    "steps": [
+      "Start a process using a specific port",
+      "Run CLI command that would use same port",
+      "Verify automatic port detection and conflict resolution",
+      "Verify new process starts on different port"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Module verification: ES6 import/export consistency is validated",
+    "steps": [
+      "Create a JavaScript file with intentional import/export mismatch",
+      "Run module verification command",
+      "Verify error is detected and reported",
+      "Fix the mismatch",
+      "Run verification again and confirm success"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Idle timeout detection: Sessions are killed after 10 minutes of no output",
+    "steps": [
+      "Start vibe loop with a feature that causes hang",
+      "Wait for idle timeout period",
+      "Verify session is terminated",
+      "Check that termination is logged",
+      "Verify parent process exits cleanly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Conductor context creation: .conductor/ directory contains product.md and tech_stack.md",
+    "steps": [
+      "Run 'opencode-forger --default' for new project",
+      "Verify .conductor/ directory exists",
+      "Check that product.md was created",
+      "Verify tech_stack.md was created",
+      "Validate content of both files"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Track creation: tracks/ directory contains per-feature specifications",
+    "steps": [
+      "Complete a feature implementation",
+      "Verify tracks/ directory is created",
+      "Check that plan.md exists for the completed feature",
+      "Verify plan.md contains feature specification",
+      "Validate structure of track files"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Spec validation: Generated specifications are validated for structural correctness",
+    "steps": [
+      "Create an invalid spec file (missing required sections)",
+      "Run CLI with --spec on invalid file",
+      "Verify validation error is reported",
+      "Check error message describes what's missing",
+      "Fix spec and verify it passes validation"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Dual-model architecture: Reasoning model delegates to coding subagent via @coder",
+    "steps": [
+      "Run vibe loop on a feature requiring implementation",
+      "Check logs for @coder subagent invocation",
+      "Verify reasoning model produces plan",
+      "Verify coding model executes implementation",
+      "Check that roles are properly separated in output"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Alternative approach generation: System generates new paths when progress stalls",
+    "steps": [
+      "Create a feature that intentionally fails multiple times",
+      "Run vibe loop until retry threshold reached",
+      "Verify alternative approaches are generated",
+      "Check that new implementation paths are proposed",
+      "Verify system attempts alternative approach"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Agent-user communication channel: .forger/COMMUNICATION.md enables async Q&A",
+    "steps": [
+      "Enable communication in config",
+      "Run vibe loop until it needs user input",
+      "Write response to COMMUNICATION.md",
+      "Verify agent reads the response",
+      "Verify agent continues execution based on response"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Database statistics: 'db stats' displays feature and session statistics",
+    "steps": [
+      "Create project with multiple features and sessions",
+      "Run 'opencode-forger db stats'",
+      "Verify total feature count is displayed",
+      "Verify passing/failing feature counts",
+      "Check session count is shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Database export: 'db export <FILE>' writes database contents to JSON",
+    "steps": [
+      "Create project with features in database",
+      "Run 'opencode-forger db export /tmp/export.json'",
+      "Verify export file was created",
+      "Check that export contains all features",
+      "Validate JSON structure matches expected format"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "CLI help output: All commands show proper usage information and examples",
+    "steps": [
+      "Run 'opencode-forger --help'",
+      "Verify main help shows all available commands",
+      "Run 'opencode-forger vibe --help'",
+      "Verify subcommand help is detailed",
+      "Check that examples are provided where applicable"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Error messages: CLI provides helpful error messages with suggestions",
+    "steps": [
+      "Run command with invalid arguments",
+      "Verify error message is clear and actionable",
+      "Run command with missing required files",
+      "Check that error suggests correct usage",
+      "Verify exit codes are appropriate"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Colored output: Terminal output uses appropriate colors for different message types",
+    "steps": [
+      "Run CLI command with colored_output=true",
+      "Verify error messages use red color",
+      "Verify success messages use green color",
+      "Check that warnings use yellow color",
+      "Verify info messages use appropriate styling"
+    ],
+    "passes": false
+  },
+  {
+    "category": "style",
+    "description": "Progress display: Vibe mode shows real-time progress bars and status updates",
+    "steps": [
+      "Run 'opencode-forger vibe --limit 3'",
+      "Verify progress bar is displayed",
+      "Check that feature status updates in real-time",
+      "Verify completion percentage is shown",
+      "Confirm session count is displayed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Security allowlist enforcement: Blocked patterns are prevented from execution",
+    "steps": [
+      "Configure security allowlist with specific allowed commands",
+      "Run CLI command that would execute blocked pattern",
+      "Verify execution is prevented",
+      "Check that security violation is logged",
+      "Verify appropriate error message is shown"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "Webhook notifications: Discord/Slack dashboard updates with project status",
+    "steps": [
+      "Configure webhook_url in config",
+      "Complete a feature",
+      "Verify webhook notification is sent",
+      "Check that message contains feature status",
+      "Verify progress information is included"
+    ],
+    "passes": false
+  }
+]
