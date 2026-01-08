@@ -18,6 +18,8 @@ pub use features::FeatureRepository;
 pub use knowledge::KnowledgeRepository;
 pub use meta::MetaRepository;
 pub use sessions::SessionRepository;
+pub mod instances;
+pub use instances::InstanceRepository;
 
 use anyhow::{Context, Result};
 use rusqlite::Connection;

@@ -18,9 +18,9 @@ pub struct DebugLogger {
 impl DebugLogger {
     /// Create a new debug logger
     ///
-    /// If `enabled` is true, creates/opens `opencode-debug.log` in the current directory.
+    /// If `enabled` is true, creates/opens the specified log file (or default `opencode-debug.log`).
     /// If `enabled` is false, all logging operations are no-ops.
-    pub fn new(enabled: bool) -> Self {
+    pub fn new(enabled: bool, log_file_path: Option<&str>) -> Self {
         if !enabled {
             return Self {
                 writer: None,
@@ -28,11 +28,15 @@ impl DebugLogger {
             };
         }
 
-        let file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(DEBUG_LOG_FILE)
-            .ok();
+        let path = log_file_path.unwrap_or(DEBUG_LOG_FILE);
+        let file = OpenOptions::new().create(true).append(true).open(path).ok();
+
+        if let Some(ref f) = file {
+            // Write a header indicating the start of a new run
+            let mut writer = BufWriter::new(f);
+            let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
+            let _ = writeln!(writer, "\n=== Session Started at {} ===\n", timestamp);
+        }
 
         Self {
             writer: file.map(|f| Mutex::new(BufWriter::new(f))),
@@ -115,13 +119,13 @@ impl DebugLogger {
 static LOGGER: std::sync::OnceLock<DebugLogger> = std::sync::OnceLock::new();
 
 /// Initialize the global logger
-pub fn init(enabled: bool) {
-    let _ = LOGGER.set(DebugLogger::new(enabled));
+pub fn init(enabled: bool, log_path: Option<&str>) {
+    let _ = LOGGER.set(DebugLogger::new(enabled, log_path));
 }
 
 /// Get a reference to the global logger
 pub fn get() -> &'static DebugLogger {
-    LOGGER.get_or_init(|| DebugLogger::new(false))
+    LOGGER.get_or_init(|| DebugLogger::new(false, None))
 }
 
 /// Convenience macro for info logging

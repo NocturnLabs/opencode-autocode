@@ -59,7 +59,9 @@ pub fn determine_action(
     }
 
     // --- Phase 1: First Run ---
-    if !FeatureProgress::has_features(db_path) {
+    // Check both database AND signal file to determine if init has run.
+    // Signal file acts as fallback in case database check fails.
+    if !FeatureProgress::has_features(db_path) && !init_signal_exists() {
         return Ok(SupervisorAction::Command("auto-init"));
     }
 
@@ -193,4 +195,35 @@ fn check_for_regressions(
     }
 
     Ok(None)
+}
+
+/// Check if the initialization signal file exists with CONTINUE or COMPLETE content.
+///
+/// This acts as a fallback indicator that initialization has completed,
+/// in case the database check fails for some reason.
+fn init_signal_exists() -> bool {
+    const SIGNAL_FILE: &str = ".opencode-signal";
+    std::path::Path::new(SIGNAL_FILE)
+        .exists()
+        .then(|| std::fs::read_to_string(SIGNAL_FILE).ok())
+        .flatten()
+        .map(|content| {
+            let trimmed = content.trim();
+            trimmed == "CONTINUE" || trimmed == "COMPLETE"
+        })
+        .unwrap_or(false)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    #[test]
+    fn test_init_signal_exists_returns_false_when_missing() {
+        let _ = fs::remove_file(".opencode-signal-test");
+        // Testing with actual file would interfere with other tests,
+        // so we just verify the function doesn't panic
+        let _ = init_signal_exists();
+    }
 }

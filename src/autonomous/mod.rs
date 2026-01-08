@@ -36,9 +36,18 @@ pub fn run_parallel(
     config_path: Option<&Path>,
     developer_mode: bool,
 ) -> Result<()> {
-    let (config, settings) = init_session(developer_mode, config_path, limit, false)?;
+    let pid = std::process::id();
+    let log_path = format!("opencode-parallel-{}.log", pid);
+
+    let (config, settings) =
+        init_session(developer_mode, config_path, limit, false, Some(&log_path))?;
     let logger = debug_logger::get();
     let db_path = Path::new(&settings.database_file);
+
+    // Register instance globally
+    let instance_repo = crate::db::InstanceRepository::open()?;
+    let instance_id = instance_repo.register(pid, "coordinator", Some(&log_path))?;
+    logger.info(&format!("Process registered as instance #{}", instance_id));
 
     let mut iteration = 0usize;
 
@@ -138,6 +147,9 @@ pub fn run_parallel(
         }
     }
 
+    // Mark instance as stopped
+    let _ = instance_repo.mark_stopped(instance_id);
+
     Ok(())
 }
 
@@ -150,13 +162,36 @@ pub fn run(
     enhancement_mode: bool,
     target_feature_id: Option<i64>,
 ) -> Result<()> {
-    let (config, settings) = init_session(developer_mode, config_path, limit, single_model)?;
+    let pid = std::process::id();
+    // Use a simpler log name for the main "vibe" command, but still PID-scoped if needed.
+    // However, if we want to allow `tail -f opencode-debug.log`, maybe we should symlink it?
+    // For now, let's use a unique name so we can distinguish instances.
+    let log_path = format!("opencode-debug-{}.log", pid);
+
+    let (config, settings) = init_session(
+        developer_mode,
+        config_path,
+        limit,
+        single_model,
+        Some(&log_path),
+    )?;
     let logger = debug_logger::get();
 
-    // Register Ctrl+C handler to create stop signal file
-    ctrlc::set_handler(|| {
+    // Register instance globally
+    let instance_repo = crate::db::InstanceRepository::open()?;
+    let instance_id = instance_repo.register(pid, "supervisor", Some(&log_path))?;
+    logger.info(&format!("Process registered as instance #{}", instance_id));
+
+    // Register Ctrl+C handler to create stop signal file AND update DB status
+    // Repository handles its own connection, so we can clone/re-open safely
+    ctrlc::set_handler(move || {
         std::fs::write(session::STOP_SIGNAL_FILE, "").ok();
         println!("\n→ Ctrl+C detected, stopping after current session...");
+
+        // Try to verify instance stopped status
+        if let Ok(repo) = crate::db::InstanceRepository::open() {
+            let _ = repo.mark_stopped(instance_id);
+        }
     })
     .ok();
 
@@ -223,6 +258,9 @@ pub fn run(
 
     display::display_final_status(passing, total, developer_mode);
 
+    // Mark instance as stopped
+    let _ = instance_repo.mark_stopped(instance_id);
+
     Ok(())
 }
 
@@ -239,8 +277,9 @@ fn init_session(
     config_path: Option<&Path>,
     limit: Option<usize>,
     single_model: bool,
+    log_path: Option<&str>,
 ) -> Result<(Config, LoopSettings)> {
-    debug_logger::init(developer_mode);
+    debug_logger::init(developer_mode, log_path);
     let config = load_config(config_path)?;
     let mut settings = settings::LoopSettings::from_config(&config, limit);
     settings.dual_model_enabled = !single_model;
