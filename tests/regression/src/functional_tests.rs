@@ -25,7 +25,7 @@ pub async fn test_generator_functionality(
     // Use the actual generator module to build the prompt
     // This verifies the prompt construction logic works as expected
     let config = opencode_forger::config::Config::default();
-    let prompt = opencode_forger::generator::build_generation_prompt(input, None, &config);
+    let prompt = opencode_forger::generator::prompts::build_generation_prompt(input, None, &config);
 
     // Check that expected strings are contained in the generated prompt
     for expected in expected_contains {
