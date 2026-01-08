@@ -1,4 +1,5 @@
 //! Scaffolding logic - generates files from templates
+//! Refactored to use assets module.
 
 use anyhow::{Context, Result};
 use std::fs;
@@ -7,39 +8,8 @@ use std::path::Path;
 use crate::db;
 use crate::utils::write_file;
 
-/// Embedded default app spec template
-const DEFAULT_APP_SPEC: &str = include_str!("../docs/examples/default_app_spec.md");
-
-/// Embedded command templates
-const AUTO_INIT_TEMPLATE: &str = include_str!("../templates/commands/auto-init.md");
-const AUTO_CONTINUE_TEMPLATE: &str = include_str!("../templates/commands/auto-continue.md");
-const AUTO_ENHANCE_TEMPLATE: &str = include_str!("../templates/commands/auto-enhance.md");
-
-/// Core modules for include directive resolution
-const CORE_IDENTITY: &str = include_str!("../templates/core/identity.md");
-const CORE_SECURITY: &str = include_str!("../templates/core/security.md");
-const CORE_SIGNALING: &str = include_str!("../templates/core/signaling.md");
-const CORE_DATABASE: &str = include_str!("../templates/core/database.md");
-const CORE_COMMUNICATION: &str = include_str!("../templates/core/communication.md");
-const CORE_MCP_GUIDE: &str = include_str!("../templates/core/mcp_guide.md");
-
-/// Embedded security allowlist
-const SECURITY_ALLOWLIST: &str = include_str!("../templates/scripts/security-allowlist.json");
-
-/// Embedded user configuration template
-const USER_CONFIG_TEMPLATE: &str = include_str!("../templates/forger-user.toml");
-
-/// Embedded subagent templates for parallel spec generation
-const SPEC_PRODUCT_AGENT: &str = include_str!("../templates/scaffold/agents/spec-product.md");
-const SPEC_ARCHITECTURE_AGENT: &str =
-    include_str!("../templates/scaffold/agents/spec-architecture.md");
-const SPEC_QUALITY_AGENT: &str = include_str!("../templates/scaffold/agents/spec-quality.md");
-
-/// Embedded coder subagent for dual-model architecture
-const CODER_AGENT: &str = include_str!("../templates/scaffold/agents/coder.md");
-
-/// Embedded AGENTS.md template
-const AGENTS_MD_TEMPLATE: &str = include_str!("../templates/AGENTS.md");
+mod assets;
+use assets::*;
 
 /// Resolve {{INCLUDE path}} directives in templates.
 ///
@@ -252,7 +222,6 @@ pub fn preview_scaffold(output_dir: &Path) {
 }
 
 /// Generate the opencode.json content with default MCP settings
-/// Note: This generates valid JSON (no comments) since .json files don't support JSONC
 fn generate_opencode_json() -> String {
     r#"{
   "$schema": "https://opencode.ai/config.json",
@@ -294,7 +263,6 @@ fn generate_opencode_json() -> String {
 }
 
 /// Generate .gitignore content for scaffolded projects
-/// Only includes essential tool-related entries - AI generates the rest based on project type
 fn generate_gitignore() -> String {
     r#"# MCP & Tool caches (do not commit)
 .osgrep/

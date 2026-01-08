@@ -1,5 +1,6 @@
 //! CLI argument parsing using clap
 
+pub mod commands;
 pub mod handlers;
 
 use anyhow::{bail, Result};

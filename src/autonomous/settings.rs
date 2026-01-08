@@ -1,6 +1,9 @@
 //! Settings and result handling for the autonomous loop
 
+use super::session;
 use crate::config::{Config, McpConfig};
+use anyhow::Result;
+use std::path::Path;
 
 /// Settings extracted from config for the main loop
 pub struct LoopSettings {
@@ -107,4 +110,30 @@ pub fn handle_session_result(
             LoopAction::Break
         }
     }
+}
+
+fn load_config(config_path: Option<&Path>) -> Result<Config> {
+    match config_path {
+        Some(path) => Config::load_from_file(path),
+        None => Config::load(None),
+    }
+}
+
+/// Initialize a session, loading config and setting up logging
+pub fn init_session(
+    developer_mode: bool,
+    config_path: Option<&Path>,
+    limit: Option<usize>,
+    single_model: bool,
+    log_path: Option<&str>,
+) -> Result<(Config, LoopSettings)> {
+    crate::common::logging::init(developer_mode, log_path);
+    let config = load_config(config_path)?;
+    let mut settings = LoopSettings::from_config(&config, limit);
+    settings.dual_model_enabled = !single_model;
+
+    // Clear any lingering stop signal from a previous run
+    session::clear_stop_signal();
+
+    Ok((config, settings))
 }

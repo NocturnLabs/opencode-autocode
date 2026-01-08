@@ -3,7 +3,8 @@
 use anyhow::Result;
 use std::path::Path;
 
-use crate::scaffold::scaffold_from_spec;
+use crate::services::scaffold::scaffold_from_spec;
+
 use crate::spec::{AppSpec, Feature, Priority, TechStack};
 use crate::tui::prompts::{confirm, input, multiline_input, print_error, print_success, select};
 

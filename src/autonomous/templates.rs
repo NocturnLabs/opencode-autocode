@@ -44,7 +44,7 @@ pub fn generate_fix_template(
         );
 
     // Resolve includes (e.g. core/database.md)
-    let content = crate::scaffold::resolve_includes(&content);
+    let content = crate::services::scaffold::resolve_includes(&content);
 
     // Write to active command file
     let target = Path::new(".opencode/command/auto-fix-active.md");

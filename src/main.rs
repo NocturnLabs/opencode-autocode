@@ -8,15 +8,20 @@
 #![deny(warnings)]
 
 mod autonomous;
+mod common;
+mod services;
+
 mod cli;
 mod conductor;
 mod config;
 mod config_tui;
 mod db;
 mod docs;
-mod generator;
+// mod generator; // moved to services
+
 mod regression;
-mod scaffold;
+// mod scaffold; // moved to services
+
 mod spec;
 mod templates;
 mod theming;

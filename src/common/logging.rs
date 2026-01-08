@@ -132,7 +132,7 @@ pub fn get() -> &'static DebugLogger {
 #[macro_export]
 macro_rules! debug_info {
     ($($arg:tt)*) => {
-        $crate::autonomous::debug_logger::get().info(&format!($($arg)*))
+        $crate::common::logging::get().info(&format!($($arg)*))
     };
 }
 
@@ -140,7 +140,7 @@ macro_rules! debug_info {
 #[macro_export]
 macro_rules! debug_log {
     ($($arg:tt)*) => {
-        $crate::autonomous::debug_logger::get().debug(&format!($($arg)*))
+        $crate::common::logging::get().debug(&format!($($arg)*))
     };
 }
 
@@ -148,6 +148,6 @@ macro_rules! debug_log {
 #[macro_export]
 macro_rules! debug_error {
     ($($arg:tt)*) => {
-        $crate::autonomous::debug_logger::get().error(&format!($($arg)*))
+        $crate::common::logging::get().error(&format!($($arg)*))
     };
 }

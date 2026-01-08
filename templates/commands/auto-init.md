@@ -43,10 +43,10 @@ opencode-forger db exec "INSERT OR IGNORE INTO features (category, description, 
   ('functional', 'Feature 3 description', 0, 'bun test -- --grep \"feature3\"')"
 ```
 
-#### Example: Game Project with 9 Core Features (SINGLE BATCH)
+#### Example: Game Project with 9 Core Features (BATCHED)
 
 ```bash
-# ✅ DO: Batch insert all features in ONE command
+# ✅ DO: Batch insert features in chunks (e.g., 50 at a time) to avoid command line limits
 opencode-forger db exec "INSERT OR IGNORE INTO features (category, description, passes, verification_command) VALUES
   ('functional', 'Hero entity spawns and renders as red square', 0, 'cargo test test_hero_spawn'),
   ('functional', 'Hero moves upward automatically at constant speed', 0, 'cargo test test_hero_movement'),
@@ -58,9 +58,8 @@ opencode-forger db exec "INSERT OR IGNORE INTO features (category, description, 
   ('style', 'UI displays current score and weapon stats', 0, 'cargo test test_ui_display'),
   ('style', 'Audio plays on weapon fire and gate contact', 0, 'cargo test test_audio')"
 
-# ❌ DON'T: Insert one by one (floods tool calls)
-# opencode-forger db exec "INSERT ... VALUES ('functional', 'Feature 1', ...)"
-# opencode-forger db exec "INSERT ... VALUES ('functional', 'Feature 2', ...)"
+# ❌ DON'T: Insert 200+ features in a single command (may exceed shell ARG_MAX)
+# opencode-forger db exec "INSERT ... (500 lines) ..."
 ```
 
 #### Requirements

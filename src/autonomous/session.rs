@@ -7,7 +7,7 @@ use std::process::{Command, Stdio};
 use std::thread;
 use std::time::Duration;
 
-use super::debug_logger::DebugLogger;
+use crate::common::logging::DebugLogger;
 
 /// Result from a single OpenCode session
 #[derive(Debug)]

@@ -1,23 +1,10 @@
-//! Parallel feature development using git worktrees
-//!
-//! Enables multiple workers to implement features simultaneously,
-//! each in their own worktree with a dedicated branch.
-
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use super::utils::slugify;
 use crate::autonomous::git;
 use crate::db::features::Feature;
-
-/// Result of a worker completing a feature
-#[derive(Debug)]
-pub struct WorkerResult {
-    pub feature_id: i64,
-    pub branch_name: String,
-    pub worktree_path: PathBuf,
-    pub success: bool,
-}
 
 /// Create a worktree for a feature, with shared config symlinked
 pub fn create_worktree(
@@ -185,120 +172,4 @@ pub fn remove_worktree(worktree_path: &Path, _branch_name: &str) -> Result<()> {
             .status();
     }
     Ok(())
-}
-
-/// Rebase a branch onto main and fast-forward merge
-pub fn rebase_and_merge(branch_name: &str) -> Result<bool> {
-    // 1. Stash any changes in main
-    let stashed = git::stash_push("Auto-stash before parallel merge")?;
-
-    if !git::checkout_branch("main")? {
-        // Restore stash before returning to avoid leaving stale stash entries
-        if stashed {
-            git::stash_pop().ok();
-        }
-        return Ok(false);
-    }
-
-    // 2. Rebase the feature branch onto main (this checks it out in the main repo)
-    if !git::rebase(branch_name, "main")? {
-        // ALWAYS return to main
-        git::checkout_branch("main")?;
-        // Restore stash before returning to avoid leaving stale stash entries
-        if stashed {
-            git::stash_pop().ok();
-        }
-        return Ok(false);
-    }
-
-    // 3. Checkout main again (rebase leaves you on the feature branch)
-    git::checkout_branch("main")?;
-
-    // 4. Fast-forward merge
-    let success = git::merge_ff_only(branch_name)?;
-
-    // 5. Pop stash if we stashed anything
-    if stashed {
-        git::stash_pop().ok();
-    }
-
-    Ok(success)
-}
-
-/// Convert a description to a URL-safe slug
-fn slugify(s: &str) -> String {
-    s.to_lowercase()
-        .chars()
-        .map(|c| if c.is_alphanumeric() { c } else { '-' })
-        .collect::<String>()
-        .split('-')
-        .filter(|s| !s.is_empty())
-        .take(5) // Limit length
-        .collect::<Vec<_>>()
-        .join("-")
-}
-
-/// Coordinator for parallel workers
-pub struct Coordinator {
-    merge_queue: Vec<WorkerResult>,
-}
-
-impl Coordinator {
-    pub fn new(_worker_count: usize, _base_path: PathBuf) -> Self {
-        Self {
-            merge_queue: Vec::new(),
-        }
-    }
-
-    /// Queue a completed worker result for merging
-    pub fn queue_for_merge(&mut self, result: WorkerResult) {
-        // Queue EVERYTHING so we can clean up properly
-        self.merge_queue.push(result);
-    }
-
-    /// Process the merge queue - clean up all, merge successful ones
-    pub fn process_merge_queue(&mut self) -> Result<usize> {
-        let mut merged_count = 0;
-
-        for result in self.merge_queue.drain(..) {
-            println!("📦 Processing result for: {}", result.branch_name);
-
-            // ALWAYS remove worktree first
-            println!("  → Removing worktree...");
-            remove_worktree(&result.worktree_path, &result.branch_name)?;
-
-            if result.success {
-                println!("  → Merging feature...");
-                if rebase_and_merge(&result.branch_name)? {
-                    println!("  ✅ Merged successfully");
-                    // Delete the merged branch
-                    git::delete_branch(&result.branch_name).ok();
-                    merged_count += 1;
-                } else {
-                    println!("  ⚠️ Rebase failed, branch left for manual review");
-                }
-            } else {
-                println!("  ❌ Worker failed, skipping merge (branch preserved for debugging)");
-                // We do NOT delete the branch here, so user can debug why it failed.
-                // But we DID remove the worktree so we don't hog the filesystem.
-            }
-        }
-
-        Ok(merged_count)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_slugify() {
-        assert_eq!(slugify("User authentication"), "user-authentication");
-        assert_eq!(slugify("API: Login endpoint"), "api-login-endpoint");
-        assert_eq!(
-            slugify("very long feature description that goes on and on"),
-            "very-long-feature-description-that"
-        );
-    }
 }

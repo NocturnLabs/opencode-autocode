@@ -10,9 +10,9 @@ use crate::conductor;
 use crate::config::Config;
 use crate::regression;
 
-use super::debug_logger;
 use super::features::FeatureProgress;
 use super::verification::{classify_verification_failure, VerificationFailure};
+use crate::common::logging as debug_logger;
 
 /// Actions determined by the Supervisor
 #[allow(dead_code)] // EnhanceReady is part of the design but not yet fully wired up
@@ -87,9 +87,11 @@ pub fn determine_action(
     // DB is source of truth - signal file mismatch is a warning, not a skip
     if !has_features {
         if signal_exists {
-            eprintln!("[WARN] Signal file exists but DB has no features - reinitializing");
+            println!("[WARN] Signal file exists but DB has no features - trusting signal to prevent re-init");
+            println!("[DEBUG] Selected: auto-continue (signal exists)");
+            return Ok(SupervisorAction::Command("auto-continue"));
         }
-        eprintln!("[DEBUG] Selected: auto-init (no features in DB)");
+        println!("[DEBUG] Selected: auto-init (no features in DB)");
         return Ok(SupervisorAction::Command("auto-init"));
     }
 

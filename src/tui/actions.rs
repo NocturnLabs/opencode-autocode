@@ -5,8 +5,9 @@ use std::fs;
 use std::io::Write;
 use std::path::Path;
 
-use crate::generator::refine_spec_from_idea;
-use crate::scaffold::scaffold_with_spec_text;
+use crate::services::generator::refine_spec_from_idea;
+use crate::services::scaffold::scaffold_with_spec_text;
+
 use crate::tui::prompts::{confirm, edit_in_editor, print_error, print_info, print_success};
 use crate::validation::print_diff;
 

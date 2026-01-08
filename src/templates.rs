@@ -98,7 +98,7 @@ pub fn use_template(name: &str, output_dir: &Path) -> Result<()> {
     validation.print();
 
     // Scaffold
-    crate::scaffold::scaffold_with_spec_text(output_dir, &spec)?;
+    crate::services::scaffold::scaffold_with_spec_text(output_dir, &spec)?;
 
     println!("\n✅ Project scaffolded from template!");
 

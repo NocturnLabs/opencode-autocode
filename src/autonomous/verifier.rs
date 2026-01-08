@@ -10,12 +10,12 @@ use crate::conductor;
 use crate::config::{Config, SecurityConfig};
 use crate::db::features::Feature;
 
-use super::debug_logger;
 use super::features::FeatureProgress;
 use super::git;
 use super::security;
 use super::settings::LoopSettings;
 use super::webhook;
+use crate::common::logging as debug_logger;
 
 /// Result of verifying a feature
 pub enum VerificationResult {
