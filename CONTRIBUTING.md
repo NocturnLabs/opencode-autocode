@@ -21,6 +21,18 @@ Thank you for your interest in contributing to `opencode-forger`! This document 
 - **Linting:** We use `clippy` for static analysis. Ensure your code is clean by running `make lint`.
 - **Naming:** Follow standard Rust naming conventions (CamelCase for types, snake_case for functions/variables).
 
+## Code Base Map
+
+To help you navigate the new modular architecture:
+
+- **CLI Commands**: `src/cli/commands/` - Adding a new `opencode-forger [cmd]` starts here.
+- **Autonomous Loop**: `src/autonomous/` - The core "Vibe Loop" engine.
+  - `supervisor/`: High-level state machine and orchestration.
+  - `parallel/`: Git worktree management for concurrent execution.
+  - `runner/`: Command execution abstractions.
+- **Database**: `src/db/` - SQLite models (`models.rs`) and repositories (`features/`, `sessions.rs`).
+- **Services**: `src/services/` - Core business logic (scaffolding, AI generation).
+
 ## Testing Procedures
 
 We take testing seriously to ensure the reliability of autonomous coding tasks.

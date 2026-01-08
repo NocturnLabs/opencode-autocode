@@ -176,8 +176,6 @@ fn handle_db_command(action: &DbAction) -> Result<()>
 
 ---
 
-## Autonomous Module
-
 **Location**: [autonomous/mod.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/autonomous/mod.rs) (797 lines)  
 **Purpose**: The **Vibe Loop** engine — manages autonomous coding sessions.
 
@@ -185,48 +183,33 @@ fn handle_db_command(action: &DbAction) -> Result<()>
 
 ```
 autonomous/
-├─ mod.rs           - Main loop, supervisor logic
-├─ debug_logger.rs  - Developer mode logging
-├─ display.rs       - Terminal output formatting
-├─ features.rs      - Feature state management
-├─ git.rs           - Auto-commit operations
-├─ parallel.rs      - Git worktree parallel workers
+├─ mod.rs           - Entry point
+├─ supervisor/      - High-level orchestration
+│  ├─ mod.rs        - State machine logic
+│  ├─ actions.rs    - Action determination (Command/Fix/Stop)
+│  └─ loop.rs       - Main execution loop
+├─ parallel/        - Git worktree management
+│  ├─ mod.rs        - API
+│  ├─ coordinator.rs- Worker pool coordination
+│  ├─ process.rs    - Parallel execution logic
+│  └─ worktree.rs   - Branch/Worktree creation
+├─ runner/          - Execution abstractions
+│  ├─ traits.rs     - CommandRunner trait
+│  └─ implementation.rs - Real shell execution
+├─ decision.rs      - Next-step logic
+├─ features.rs      - Feature state helpers
 ├─ session.rs       - OpenCode process execution
-├─ settings.rs      - Loop configuration
-└─ webhook.rs       - Discord notifications
+└─ settings.rs      - Loop configuration
 ```
-
----
-
-### Enum: SupervisorAction
-
-```rust
-pub enum SupervisorAction {
-    Command(&'static str),  // Run an OpenCode command template
-    Fix { feature: Feature, error: String },  // Fix a regression
-    Stop,  // Halt the loop
-}
-```
-
-**Lines**: 30-40  
-**Purpose**: Action determined by supervisor after each iteration.
 
 ---
 
 ### Function: run
 
 ```rust
-pub fn run(
-    limit: Option<usize>,
-    config_path: Option<&Path>,
-    developer_mode: bool,
-    single_model: bool,
-    enhancement_mode: bool,
-    target_feature_id: Option<i64>,
-) -> Result<()>
+pub fn run(...) -> Result<()>
 ```
 
-**Lines**: 154-237  
 **Purpose**: Initialize and run the autonomous agent loop.
 
 **Call Graph**:
@@ -236,29 +219,27 @@ run()
 ├─ Called By:
 │  └─ main::main() [Commands::Vibe]
 ├─ Calls:
-│  ├─ debug_logger::init() - Initialize developer logging
-│  ├─ load_config() - Load forger.toml
-│  ├─ LoopSettings::from_config() - Parse settings
-│  ├─ ctrlc::set_handler() - Set Ctrl+C handler
-│  ├─ display::display_banner() - Show startup info
-│  ├─ run_supervisor_loop() - Main execution loop
-│  └─ display::display_final_status() - Show completion stats
-├─ Side Effects:
-│  ├─ Sets global STOP_REQUESTED flag
-│  ├─ Initializes global DebugLogger
-│  └─ Writes to .opencode-stop signal file
-└─ Error Handling: Propagates all errors up
+│  ├─ common::logging::init()
+│  ├─ load_config()
+│  ├─ supervisor::run_supervisor_loop() [Sequential]
+│  └─ parallel::run_parallel() [Parallel]
 ```
 
-**Execution Flow**:
+---
 
-1. Initialize debug logging if `developer_mode`
-2. Load configuration from `forger.toml`
-3. Build `LoopSettings` with iteration limits, delays
-4. Register Ctrl+C handler for clean shutdown
-5. Display startup banner
-6. Enter `run_supervisor_loop()` main loop
-7. On exit, display final statistics
+### Function: supervisor::run_supervisor_loop
+
+**Location**: `src/autonomous/supervisor/loop.rs`
+
+The heart of the Vibe Loop when running sequentially.
+
+**Algorithm**:
+1. Determine action (`decision.rs`)
+2. Prepare command (`supervisor::actions::prepare_command`)
+3. Execute session (`session::execute_opencode_session`)
+4. Verify results (`supervisor::verification_step`)
+5. Repeat
+
 
 ---
 
@@ -516,48 +497,14 @@ pub struct WorkerResult {
 **Purpose**: Outcome of a worker completing a feature.
 
 ---
+## Parallel Execution Module
 
-### Function: create_worktree
-
-```rust
-pub fn create_worktree(
-    feature: &Feature,
-    base_path: &Path
-) -> Result<(PathBuf, String)>
-```
-
-**Lines**: 21-151  
-**Purpose**: Create a git worktree for isolated feature development.
-
-**Steps**:
-
-1. Generate branch name from feature description (slugified)
-2. Create worktree: `git worktree add -b <branch> <path>`
-3. Symlink shared config files (`.forger/`, `forger.toml`)
-4. Return `(worktree_path, branch_name)`
-
----
-
-### Function: rebase_and_merge
-
-```rust
-pub fn rebase_and_merge(branch_name: &str) -> Result<bool>
-```
-
-**Lines**: 167-206  
-**Purpose**: Rebase feature branch onto main and fast-forward merge.
-
-**Steps**:
-
-1. Checkout main branch
-2. Reset to origin/main
-3. Rebase feature branch onto main
-4. Fast-forward merge: `git merge --ff-only <branch>`
-5. Return success status
-
----
+**Location**: [autonomous/parallel/](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/autonomous/parallel/)
+**Purpose**: Manage concurrent feature implementation using Git Worktrees.
 
 ### Struct: Coordinator
+
+**Location**: `src/autonomous/parallel/coordinator.rs`
 
 ```rust
 pub struct Coordinator {
@@ -570,10 +517,41 @@ pub struct Coordinator {
 **Purpose**: Coordinate parallel workers and manage merge queue.
 
 **Methods**:
-
 - `new(worker_count, base_path)` - Initialize coordinator
 - `queue_for_merge(result)` - Queue completed worker
 - `process_merge_queue()` - Clean up worktrees, merge successful branches
+
+---
+
+### Function: process::run_parallel
+
+**Location**: `src/autonomous/parallel/process.rs`
+
+```rust
+pub fn run_parallel(...)
+```
+
+**Purpose**: Main loop for parallel execution mode.
+
+**flow**:
+1. Initialize Coordinator
+2. Loop until all features complete:
+   a. Check for available slots
+   b. Assign pending features to new workers (create worktree)
+   c. Poll running workers for completion
+   d. Coordinator handles merges
+   e. Sleep briefly
+
+---
+
+### Module: worktree
+
+**Location**: `src/autonomous/parallel/worktree.rs`
+
+Handles the low-level git operations:
+- `create_worktree`: `git worktree add ...`
+- `remove_worktree`: `git worktree remove ...`
+
 
 ---
 
