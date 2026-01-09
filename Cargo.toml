@@ -3,7 +3,7 @@ members = ["tests/regression"]
 
 [package]
 name = "opencode-forger"
-version = "0.8.2"
+version = "0.9.0"
 edition = "2021"
 description = "Scaffold autonomous coding plugin for OpenCode"
 authors = ["CodingInCarhartts"]

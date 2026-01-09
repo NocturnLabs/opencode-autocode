@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2026-01-09
+
+### Added
+
+- **Web Interface**: Added a frontend web interface with static file serving `feat(web)`.
+- **Autonomous Module**:
+  - **Refactoring**: Major restructuring of the autonomous module for better organization and maintainability.
+  - **Parallel Execution**: Enhanced parallel processing capabilities.
+  - **Process Tracking**: Added process instance tracking and enhanced debug logging.
+- **Debug Logging**: Added enhanced debug logging for decision and feature checks.
+
+### Changed
+
+- **Refactoring**: improved initialization logic and session handling in autonomous module.
+- **Build**: Added build script to ensure frontend dist directory exists.
+
 ## [0.8.1] - 2026-01-05
 
 ### Fixed
