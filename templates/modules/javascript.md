@@ -106,7 +106,7 @@ opencode-forger db knowledge set "server_port_${PORT}_pid" "$SERVER_PID" --categ
 
 ```bash
 # Get the tracked PID for port 8000
-TRACKED_PID=$(opencode-forger db knowledge get server_port_8000_pid 2>/dev/null | grep -oP '(?<=value: )\d+')
+TRACKED_PID=$(opencode-forger db knowledge get server_port_8000_pid 2>/dev/null | head -n 1 | cut -d= -f2)
 
 if [ -n "$TRACKED_PID" ] && kill -0 "$TRACKED_PID" 2>/dev/null; then
     echo "Killing server on port 8000 (PID: $TRACKED_PID)"

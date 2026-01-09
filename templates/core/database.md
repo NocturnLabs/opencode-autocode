@@ -2,11 +2,11 @@
 
 Features are tracked in `.forger/progress.db`. Use the CLI:
 
-> [!IMPORTANT]
-> - **`db query`** = SELECT (read data)
-> - **`db exec`** = INSERT, UPDATE, DELETE (write data)
+> [!TIP]
+> - **`db query`** = Preferred for SELECT (read data)
+> - **`db exec`** = Preferred for INSERT, UPDATE, DELETE (write data)
 > 
-> Using `db exec` for SELECT will return "0 row(s) affected" instead of data!
+> `db exec` *can* run SELECT queries (it auto-detects them), but `db query` is more explicit.
 
 ```bash
 # ✅ READ features (use db query)
@@ -15,9 +15,6 @@ opencode-forger db query "SELECT COUNT(*) FROM features WHERE passes = 0"
 
 # ✅ WRITE to database (use db exec)
 opencode-forger db exec "UPDATE features SET verification_command = 'new cmd' WHERE id = 1"
-
-# ❌ WRONG - this returns "0 rows affected" instead of data
-# opencode-forger db exec "SELECT * FROM features"
 ```
 
 **YOU CAN ONLY CHANGE THE `passes` FIELD. NEVER delete or edit feature descriptions.**
