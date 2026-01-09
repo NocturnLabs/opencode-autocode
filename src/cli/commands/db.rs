@@ -284,5 +284,37 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
             println!("✅ Project marked as initialized in database.");
             Ok(())
         }
+        DbAction::List {
+            all,
+            passing,
+            remaining,
+        } => {
+            if !default_db_path.exists() {
+                anyhow::bail!(
+                    "Database not found: {}. Run 'db init' first.",
+                    default_db_path.display()
+                );
+            }
+            let db = db::Database::open(&default_db_path)?;
+            let features = match (all, passing, remaining) {
+                (true, _, _) => db.features().list_all()?,
+                (_, true, _) => db.features().list_passing()?,
+                (_, _, true) => db.features().list_remaining()?,
+                _ => db.features().list_passing()?,
+            };
+
+            if features.is_empty() {
+                println!("No features found.");
+                return Ok(());
+            }
+
+            println!("id | description                    | status");
+            println!("---|--------------------------------|--------");
+            for f in &features {
+                let status = if f.passes { "✓" } else { "○" };
+                println!("{} | {} | {}", f.id.unwrap_or(0), f.description, status);
+            }
+            Ok(())
+        }
     }
 }

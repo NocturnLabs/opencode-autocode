@@ -3,12 +3,19 @@
 Features are tracked in `.forger/progress.db`. Use the CLI:
 
 > [!TIP]
-> - **`db query`** = Preferred for SELECT (read data)
+> - **`db list`** = List features (passing by default, ideal for regression checks)
+> - **`db query`** = Preferred for custom SELECT (read data)
 > - **`db exec`** = Preferred for INSERT, UPDATE, DELETE (write data)
 > 
 > `db exec` *can* run SELECT queries (it auto-detects them), but `db query` is more explicit.
 
 ```bash
+# ✅ LIST features (for regression checks, defaults to passing)
+opencode-forger db list
+opencode-forger db list --passing
+opencode-forger db list --remaining
+opencode-forger db list --all
+
 # ✅ READ features (use db query)
 opencode-forger db query "SELECT id, description FROM features WHERE passes = 0 ORDER BY id LIMIT 1"
 opencode-forger db query "SELECT COUNT(*) FROM features WHERE passes = 0"

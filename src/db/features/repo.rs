@@ -53,6 +53,19 @@ impl FeatureRepository {
         self.query_features(&conn, "SELECT * FROM features ORDER BY id")
     }
 
+    pub fn list_passing(&self) -> Result<Vec<Feature>> {
+        let conn = self.conn.lock().unwrap();
+        self.query_features(
+            &conn,
+            "SELECT * FROM features WHERE passes != 0 ORDER BY id",
+        )
+    }
+
+    pub fn list_remaining(&self) -> Result<Vec<Feature>> {
+        let conn = self.conn.lock().unwrap();
+        self.query_features(&conn, "SELECT * FROM features WHERE passes = 0 ORDER BY id")
+    }
+
     pub fn count(&self) -> Result<(usize, usize)> {
         let conn = self.conn.lock().unwrap();
 

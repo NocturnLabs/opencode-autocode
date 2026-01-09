@@ -109,6 +109,9 @@ In addition to automated tests, manually verify with chrome-devtools MCP:
 Before marking a new feature as passing, you MUST verify that no existing functionality was broken.
 
 ```bash
+# List passing features to check for regressions
+opencode-forger db list
+
 # Run automated regression check
 opencode-forger db check
 ```

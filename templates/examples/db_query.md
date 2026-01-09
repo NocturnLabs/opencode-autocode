@@ -8,6 +8,16 @@ Use these queries to understand the current state of the project.
 # Get summary stats
 opencode-forger db stats
 
+# List passing features (for regression checks)
+opencode-forger db list
+opencode-forger db list --passing
+
+# List remaining features
+opencode-forger db list --remaining
+
+# List all features
+opencode-forger db list --all
+
 # Count by category
 opencode-forger db query "SELECT category, count(*) FROM features GROUP BY category"
 

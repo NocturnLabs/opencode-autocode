@@ -210,6 +210,18 @@ pub enum DbAction {
         /// Feature ID to mark as passing
         id: i32,
     },
+    /// List features from the database
+    List {
+        /// List all features
+        #[arg(long)]
+        all: bool,
+        /// List only passing features (default behavior)
+        #[arg(long)]
+        passing: bool,
+        /// List only remaining (not passing) features
+        #[arg(long)]
+        remaining: bool,
+    },
     /// Manage persistent agent knowledge
     Knowledge {
         #[command(subcommand)]
