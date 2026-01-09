@@ -1,4 +1,4 @@
-# Example: autocode.toml configuration sections
+# Example: forger.toml configuration sections
 
 [models]
 default = "anthropic/claude-sonnet-4" # spec generation

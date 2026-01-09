@@ -2,7 +2,7 @@
 
 ## Overview
 
-The regression testing suite ensures that changes to the opencode-autocode codebase don't introduce unintended side effects or break existing functionality. This guide covers maintenance procedures, baseline updates, and troubleshooting.
+The regression testing suite ensures that changes to the opencode-forger codebase don't introduce unintended side effects or break existing functionality. This guide covers maintenance procedures, baseline updates, and troubleshooting.
 
 ## Daily Operations
 

@@ -11,10 +11,10 @@ use tempfile::TempDir;
 fn get_bin_path() -> PathBuf {
     // 1. Try CARGO_BIN_EXE_<name> environment variables (set by cargo test)
     // Cargo normalizes hyphens to underscores in some contexts
-    if let Ok(path) = std::env::var("CARGO_BIN_EXE_opencode-autocode") {
+    if let Ok(path) = std::env::var("CARGO_BIN_EXE_opencode-forger") {
         return PathBuf::from(path);
     }
-    if let Ok(path) = std::env::var("CARGO_BIN_EXE_opencode_autocode") {
+    if let Ok(path) = std::env::var("CARGO_BIN_EXE_opencode_forger") {
         return PathBuf::from(path);
     }
 
@@ -22,19 +22,19 @@ fn get_bin_path() -> PathBuf {
     let manifest_path = Path::new(&manifest_dir);
 
     // 2. Try target/debug (typical for local cargo test)
-    let debug_bin = manifest_path.join("target/debug/opencode-autocode");
+    let debug_bin = manifest_path.join("target/debug/opencode-forger");
     if debug_bin.exists() {
         return debug_bin;
     }
 
     // 3. Try target/release (typical for production/CI builds)
-    let release_bin = manifest_path.join("target/release/opencode-autocode");
+    let release_bin = manifest_path.join("target/release/opencode-forger");
     if release_bin.exists() {
         return release_bin;
     }
 
     // 4. Fallback to system PATH
-    PathBuf::from("opencode-autocode")
+    PathBuf::from("opencode-forger")
 }
 
 /// Initialize a fresh test project
@@ -210,7 +210,7 @@ fn test_git_index_lock_recovery() {
 #[test]
 fn test_database_concurrency_stress() {
     let (_temp, project_path) = setup_project();
-    let db_path = project_path.join(".autocode/progress.db");
+    let db_path = project_path.join(".forger/progress.db");
 
     // Initialize DB with one feature using the CLI first to ensure schema exists
     add_feature(&project_path, 1, "Initial Feature");
@@ -221,7 +221,7 @@ fn test_database_concurrency_stress() {
         let db_path = db_path.clone();
         handles.push(thread::spawn(move || {
             // Each thread opens its own connection
-            let db = opencode_autocode::db::Database::open(&db_path)
+            let db = opencode_forger::db::Database::open(&db_path)
                 .expect("Failed to open DB in thread");
 
             for j in 0..50 {
@@ -241,7 +241,7 @@ fn test_database_concurrency_stress() {
     }
 
     // Verify count
-    let db = opencode_autocode::db::Database::open(&db_path).unwrap();
+    let db = opencode_forger::db::Database::open(&db_path).unwrap();
     let count_str = db.read_query("SELECT COUNT(*) FROM features").unwrap();
     println!("Final DB Count: {}", count_str);
     // We don't assert exact count because some might fail due to busy timeout (though unlikely with WAL),

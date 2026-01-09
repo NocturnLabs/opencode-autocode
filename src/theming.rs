@@ -1,4 +1,5 @@
 //! Shared theming and styling for TUI components
+#![allow(dead_code)]
 //!
 //! Provides consistent colors, symbols, and box drawing characters
 //! across all interactive terminal displays.
@@ -8,20 +9,29 @@ use std::fmt;
 /// ANSI 256-color codes for terminal styling
 pub mod colors {
     pub const PRIMARY: u8 = 117; // #87d7ff - soft blue
+    pub const SECONDARY: u8 = 153; // #afd7ff - lighter blue
     pub const SUCCESS: u8 = 114; // #87d787 - soft green
+    pub const WARNING: u8 = 215; // #ffaf5f - soft orange
+    pub const ERROR: u8 = 203; // #ff5f5f - soft red
     pub const MUTED: u8 = 245; // #8a8a8a - gray
     pub const HIGHLIGHT: u8 = 87; // #5fffff - bright cyan
+    pub const ACCENT: u8 = 177; // #d787ff - soft purple
 }
 
 /// Unicode symbols for status indicators
 pub mod symbols {
     pub const SUCCESS: &str = "✔";
+    pub const ERROR: &str = "✖";
+    pub const WARNING: &str = "⚠";
     pub const PENDING: &str = "○";
     pub const RUNNING: &str = "●";
     pub const ARROW: &str = "→";
+    pub const CHEVRON: &str = "❯";
     pub const BULLET: &str = "•";
     pub const INFO: &str = "ℹ";
     pub const SPARKLE: &str = "✨";
+    pub const LOCK: &str = "🔒";
+    pub const CLOCK: &str = "🕒";
 }
 
 /// Box drawing characters for borders
@@ -32,6 +42,8 @@ pub mod boxes {
     pub const BOTTOM_RIGHT: &str = "╯";
     pub const HORIZONTAL: &str = "─";
     pub const VERTICAL: &str = "│";
+    pub const LEFT_T: &str = "├";
+    pub const RIGHT_T: &str = "┤";
 
     /// Create a horizontal line of specified width
     pub fn line(width: usize) -> String {
@@ -106,4 +118,32 @@ pub fn muted<D: ToString>(text: D) -> StyledString {
 
 pub fn highlight<D: ToString>(text: D) -> StyledString {
     style(text).fg(colors::HIGHLIGHT).bold()
+}
+
+pub fn warning<D: ToString>(text: D) -> StyledString {
+    style(text).fg(colors::WARNING)
+}
+
+pub fn error<D: ToString>(text: D) -> StyledString {
+    style(text).fg(colors::ERROR)
+}
+
+pub fn accent<D: ToString>(text: D) -> StyledString {
+    style(text).fg(colors::ACCENT)
+}
+
+/// Create a text-based progress bar
+pub fn progress_bar(current: usize, total: usize, width: usize) -> String {
+    let percentage = if total > 0 {
+        current as f64 / total as f64
+    } else {
+        0.0
+    };
+    let filled_width = (percentage * width as f64).round() as usize;
+    let empty_width = width.saturating_sub(filled_width);
+
+    let filled = "█".repeat(filled_width);
+    let empty = "░".repeat(empty_width);
+
+    format!("{}{}", success(filled), muted(empty))
 }

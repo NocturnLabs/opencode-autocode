@@ -7,121 +7,42 @@ use std::process::{Command, Stdio};
 use std::thread;
 use std::time::Duration;
 
-use super::debug_logger::DebugLogger;
-
-/// Token usage statistics from OpenCode
-#[derive(Debug, Default, Clone)]
-pub struct TokenStats {
-    pub input_tokens: u64,
-    pub output_tokens: u64,
-    pub total_cost: f64,
-}
-
-/// Fetch token stats for the current project by running `opencode stats`
-pub fn fetch_token_stats() -> Option<TokenStats> {
-    let output = Command::new("opencode")
-        .args(["stats", "--project", ""])
-        .output()
-        .ok()?;
-
-    if !output.status.success() {
-        return None;
-    }
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    parse_token_stats(&stdout)
-}
-
-fn parse_token_stats(output: &str) -> Option<TokenStats> {
-    let mut stats = TokenStats::default();
-
-    for line in output.lines() {
-        let line = line.trim();
-
-        // Parse lines like "Input tokens: 123,456" or "Total input: 123456"
-        if line.to_lowercase().contains("input") && line.contains("token") {
-            if let Some(num) = extract_number(line) {
-                stats.input_tokens = num;
-            }
-        }
-
-        // Parse lines like "Output tokens: 78,901"
-        if line.to_lowercase().contains("output") && line.contains("token") {
-            if let Some(num) = extract_number(line) {
-                stats.output_tokens = num;
-            }
-        }
-
-        // Parse cost lines like "Total cost: $1.23" or "Cost: $0.05"
-        if line.to_lowercase().contains("cost") {
-            if let Some(cost) = extract_cost(line) {
-                stats.total_cost = cost;
-            }
-        }
-    }
-
-    if stats.input_tokens > 0 || stats.output_tokens > 0 {
-        Some(stats)
-    } else {
-        None
-    }
-}
-
-fn extract_number(s: &str) -> Option<u64> {
-    // Find sequences of digits, removing commas
-    let num_str: String = s
-        .chars()
-        .filter(|c| c.is_ascii_digit() || *c == ',')
-        .collect::<String>()
-        .replace(',', "");
-
-    // Take the last number in the string (usually the value after the label)
-    num_str
-        .split_whitespace()
-        .last()?
-        .parse()
-        .ok()
-        .or_else(|| num_str.parse().ok())
-}
-
-fn extract_cost(s: &str) -> Option<f64> {
-    // Find pattern like $1.23 or 1.23
-    for part in s.split_whitespace() {
-        let cleaned = part.trim_start_matches('$').trim_end_matches(',');
-        if let Ok(cost) = cleaned.parse::<f64>() {
-            return Some(cost);
-        }
-    }
-    None
-}
+use crate::common::logging::DebugLogger;
 
 /// Result from a single OpenCode session
 #[derive(Debug)]
-
 pub enum SessionResult {
     /// Session completed successfully, continue to next
     Continue,
-    /// All tests passing, project complete
-
+    /// Session terminated early due to completion pattern match
+    /// This is distinct from Continue to allow supervisor to handle differently
+    EarlyTerminated { trigger: String },
     /// Error occurred, stop
     Error(String),
     /// Stop signal detected
     Stopped,
 }
 
+/// Options for session execution
+#[derive(Debug, Clone)]
+pub struct SessionOptions {
+    pub command: String,
+    pub model: String,
+    pub log_level: String,
+    pub session_id: Option<String>,
+    pub timeout_minutes: u32,
+    pub idle_timeout_seconds: u32,
+}
+
 /// File checked for stop signal
 pub const STOP_SIGNAL_FILE: &str = ".opencode-stop";
 
 /// Polling interval for timeout checks (milliseconds)
-const POLL_INTERVAL_MS: u64 = 500;
+const POLL_INTERVAL_MS: u64 = 50;
 
 /// Execute an OpenCode session with optional timeout
 pub fn execute_opencode_session(
-    command: &str,
-    model: &str,
-    log_level: &str,
-    session_id: Option<&str>,
-    timeout_minutes: u32,
+    options: SessionOptions,
     logger: &DebugLogger,
 ) -> Result<SessionResult> {
     if stop_signal_exists() {
@@ -129,25 +50,31 @@ pub fn execute_opencode_session(
         return Ok(SessionResult::Stopped);
     }
 
-    let mut cmd = build_opencode_command(command, model, log_level, session_id);
+    let mut cmd = build_opencode_command(
+        &options.command,
+        &options.model,
+        &options.log_level,
+        options.session_id.as_deref(),
+    );
     logger.log_command(
         "opencode",
         &[
             "run",
             "--command",
-            command,
+            &options.command,
             "--model",
-            model,
+            &options.model,
             "--log-level",
-            log_level,
+            &options.log_level,
         ],
     );
 
-    if timeout_minutes > 0 {
-        execute_with_timeout(&mut cmd, timeout_minutes, logger)
-    } else {
-        execute_synchronously(&mut cmd, logger)
-    }
+    execute_with_timeout(
+        &mut cmd,
+        options.timeout_minutes,
+        options.idle_timeout_seconds,
+        logger,
+    )
 }
 
 /// Check if stop signal file exists
@@ -180,45 +107,53 @@ fn build_opencode_command(
         println!("→ Continuing session: {}", sid);
     }
 
+    // On Unix, spawn the child in a new process group so we can kill the entire group later.
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        cmd.process_group(0);
+    }
+
     cmd
 }
 
-/// Patterns that indicate a feature was completed - trigger early termination
-/// These are checked against stdout lines in real-time
-const FEATURE_COMPLETE_PATTERNS: &[&str] = &[
-    // Session complete signals
-    "===SESSION_COMPLETE===",
-    "SESSION_COMPLETE",
-    // Git commit output (appears when commit succeeds)
-    "[main ",   // git shows "[main abc1234] Commit message"
-    "[master ", // for repos using master branch
-    // Mark-pass output (backwards compat with old templates)
-    "marked as passing",
-    "Feature marked as passing",
-    // Explicit completion markers the agent might output
-    "Feature complete",
-    "✅ Verified!",
-];
+/// Strict sentinel that signals a feature was completed.
+/// Validated patterns are restricted to ONE explicit sentinel to prevent false positives.
+pub const SESSION_COMPLETE_SENTINEL: &str = "===SESSION_COMPLETE===";
 
 /// Check if a line indicates feature completion
 fn is_feature_complete_signal(line: &str) -> bool {
-    FEATURE_COMPLETE_PATTERNS.iter().any(|p| line.contains(p))
+    line.contains(SESSION_COMPLETE_SENTINEL)
 }
 
 fn execute_with_timeout(
     cmd: &mut Command,
     timeout_minutes: u32,
+    idle_timeout_seconds: u32,
     logger: &DebugLogger,
 ) -> Result<SessionResult> {
-    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
     use std::sync::mpsc;
     use std::sync::Arc;
+    use std::time::{SystemTime, UNIX_EPOCH};
 
-    let timeout_secs = timeout_minutes as u64 * 60;
+    let timeout_secs = if timeout_minutes > 0 {
+        timeout_minutes as u64 * 60
+    } else {
+        u64::MAX // Effectively unlimited
+    };
+
+    // Effective idle timeout (0 means disabled)
+    let idle_enabled = idle_timeout_seconds > 0;
+
     println!("→ Session timeout: {} minutes", timeout_minutes);
+    if idle_enabled {
+        println!("→ Idle timeout: {} seconds", idle_timeout_seconds);
+    }
+
     logger.debug(&format!(
-        "Session timeout set to {} minutes",
-        timeout_minutes
+        "Session timeout: {}m, Idle timeout: {}s",
+        timeout_minutes, idle_timeout_seconds
     ));
 
     // Capture stdout and stderr
@@ -235,14 +170,33 @@ fn execute_with_timeout(
     let (tx, rx) = mpsc::channel::<String>();
     let feature_completed = Arc::new(AtomicBool::new(false));
 
-    // Spawn thread to read stdout with feature detection
+    // Last activity timestamp (Unix timestamp in seconds)
+    // Initialized to now
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    let last_activity = Arc::new(AtomicU64::new(now));
+
+    // Spawn thread to read stdout with feature detection & activity tracking
     let tx_stdout = tx.clone();
     let feature_completed_stdout = Arc::clone(&feature_completed);
+    let last_activity_stdout = Arc::clone(&last_activity);
+
     let stdout_handle = stdout.map(|s| {
         thread::spawn(move || {
             let reader = BufReader::new(s);
             let mut lines = Vec::new();
             for line in reader.lines().map_while(Result::ok) {
+                // Update activity timestamp
+                if idle_enabled {
+                    let now = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs();
+                    last_activity_stdout.store(now, Ordering::Relaxed);
+                }
+
                 println!("{}", line);
 
                 // Check for feature completion signal
@@ -259,12 +213,22 @@ fn execute_with_timeout(
         })
     });
 
-    // Spawn thread to read stderr
+    // Spawn thread to read stderr with activity tracking
+    let last_activity_stderr = Arc::clone(&last_activity);
     let stderr_handle = stderr.map(|s| {
         thread::spawn(move || {
             let reader = BufReader::new(s);
             let mut lines = Vec::new();
             for line in reader.lines().map_while(Result::ok) {
+                // Update activity timestamp
+                if idle_enabled {
+                    let now = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs();
+                    last_activity_stderr.store(now, Ordering::Relaxed);
+                }
+
                 eprintln!("{}", line);
                 lines.push(line);
             }
@@ -272,8 +236,8 @@ fn execute_with_timeout(
         })
     });
 
-    // Track if we terminated early due to feature completion
-    let mut terminated_for_isolation = false;
+    // Track if we terminated early due to feature completion (and capture trigger)
+    let mut early_termination_trigger: Option<String> = None;
 
     loop {
         // Check for feature completion signal (non-blocking)
@@ -286,32 +250,41 @@ fn execute_with_timeout(
                 trigger_line
             ));
 
-            // Give the session a moment to finish any pending writes
-            thread::sleep(Duration::from_millis(1000));
+            // Small safety delay to allow pending DB writes to complete
+            thread::sleep(Duration::from_millis(100));
             terminate_child(&mut child);
-            terminated_for_isolation = true;
+            early_termination_trigger = Some(trigger_line);
             break;
         }
 
         match child.try_wait() {
             Ok(Some(status)) => {
+                // Process finished naturally - handle output collection ...
+                // Reusing exit logic below loop for cleaner flow
+
                 // Wait for output threads to finish
                 if let Some(handle) = stdout_handle {
-                    if let Ok(lines) = handle.join() {
-                        if logger.is_enabled() {
-                            for line in lines {
-                                logger.log_output("stdout", &line);
+                    match handle.join() {
+                        Ok(lines) => {
+                            if logger.is_enabled() {
+                                for line in lines {
+                                    logger.log_output("stdout", &line);
+                                }
                             }
                         }
+                        Err(_) => logger.error("stdout reader thread panicked"),
                     }
                 }
                 if let Some(handle) = stderr_handle {
-                    if let Ok(lines) = handle.join() {
-                        if logger.is_enabled() {
-                            for line in lines {
-                                logger.log_output("stderr", &line);
+                    match handle.join() {
+                        Ok(lines) => {
+                            if logger.is_enabled() {
+                                for line in lines {
+                                    logger.log_output("stderr", &line);
+                                }
                             }
                         }
+                        Err(_) => logger.error("stderr reader thread panicked"),
                     }
                 }
 
@@ -328,6 +301,7 @@ fn execute_with_timeout(
                 break;
             }
             Ok(None) => {
+                // 1. Hard Timeout Check
                 if start.elapsed().as_secs() > timeout_secs {
                     println!();
                     println!("⏱ Session timeout reached ({} minutes)", timeout_minutes);
@@ -337,6 +311,28 @@ fn execute_with_timeout(
                     ));
                     terminate_child(&mut child);
                     return Ok(SessionResult::Error("session timeout".to_string()));
+                }
+
+                // 2. Idle Timeout Check
+                if idle_enabled {
+                    let current_time = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs();
+                    let last = last_activity.load(Ordering::Relaxed);
+                    if current_time > last + idle_timeout_seconds as u64 {
+                        println!();
+                        println!(
+                            "💤 Idle timeout reached (no output for {} seconds)",
+                            idle_timeout_seconds
+                        );
+                        logger.error(&format!(
+                            "Idle timeout after {} seconds of silence",
+                            idle_timeout_seconds
+                        ));
+                        terminate_child(&mut child);
+                        return Ok(SessionResult::Error("idle timeout".to_string()));
+                    }
                 }
 
                 if stop_signal_exists() {
@@ -356,88 +352,9 @@ fn execute_with_timeout(
         }
     }
 
-    // If we terminated for isolation, still return Continue so supervisor can verify
-    if terminated_for_isolation {
-        return Ok(SessionResult::Continue);
-    }
-
-    if stop_signal_exists() {
-        logger.info("Stop signal detected after session");
-        return Ok(SessionResult::Stopped);
-    }
-
-    Ok(SessionResult::Continue)
-}
-
-fn execute_synchronously(cmd: &mut Command, logger: &DebugLogger) -> Result<SessionResult> {
-    // Capture stdout and stderr
-    cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
-
-    let mut child = cmd.spawn().context("Failed to spawn opencode command")?;
-
-    // Take ownership of stdout/stderr for reading
-    let stdout = child.stdout.take();
-    let stderr = child.stderr.take();
-
-    // Spawn threads to read output
-    let logger_enabled = logger.is_enabled();
-    let stdout_handle = stdout.map(|s| {
-        thread::spawn(move || {
-            let reader = BufReader::new(s);
-            let mut lines = Vec::new();
-            for line in reader.lines().map_while(Result::ok) {
-                println!("{}", line);
-                lines.push(line);
-            }
-            lines
-        })
-    });
-
-    let stderr_handle = stderr.map(|s| {
-        thread::spawn(move || {
-            let reader = BufReader::new(s);
-            let mut lines = Vec::new();
-            for line in reader.lines().map_while(Result::ok) {
-                eprintln!("{}", line);
-                lines.push(line);
-            }
-            lines
-        })
-    });
-
-    let status = child
-        .wait()
-        .context("Failed to wait for opencode command")?;
-
-    // Wait for output threads and log
-    if let Some(handle) = stdout_handle {
-        if let Ok(lines) = handle.join() {
-            if logger_enabled {
-                for line in lines {
-                    logger.log_output("stdout", &line);
-                }
-            }
-        }
-    }
-    if let Some(handle) = stderr_handle {
-        if let Ok(lines) = handle.join() {
-            if logger_enabled {
-                for line in lines {
-                    logger.log_output("stderr", &line);
-                }
-            }
-        }
-    }
-
-    println!();
-    let exit_code = status.code().unwrap_or(-1);
-    println!("→ OpenCode exited with code: {}", exit_code);
-    logger.info(&format!("OpenCode exited with code: {}", exit_code));
-
-    if !status.success() {
-        let err_msg = format!("exit code {}", exit_code);
-        logger.error(&format!("Session failed: {}", err_msg));
-        return Ok(SessionResult::Error(err_msg));
+    // If we terminated for isolation, return EarlyTerminated with the trigger
+    if let Some(trigger) = early_termination_trigger {
+        return Ok(SessionResult::EarlyTerminated { trigger });
     }
 
     if stop_signal_exists() {
@@ -449,6 +366,19 @@ fn execute_synchronously(cmd: &mut Command, logger: &DebugLogger) -> Result<Sess
 }
 
 fn terminate_child(child: &mut std::process::Child) {
-    let _ = child.kill();
+    // On Unix, kill the entire process group to ensure sub-processes are terminated.
+    // This is necessary because `opencode` may spawn bash tools that keep running.
+    #[cfg(unix)]
+    {
+        let pid = child.id() as libc::pid_t;
+        // Send SIGKILL to the process group (negative PID targets the group)
+        unsafe {
+            libc::kill(-pid, libc::SIGKILL);
+        }
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = child.kill();
+    }
     let _ = child.wait();
 }

@@ -1,6 +1,6 @@
 # Template Token Costs
 
-This document tracks the approximate token usage for the core templates used by `opencode-autocode`.
+This document tracks the approximate token usage for the core templates used by `opencode-forger`.
 These estimates uses a heuristic of ~4 characters per token. Actual usage varies by tokenizer.
 
 > **Note:** You can run `cargo test token_count -- --nocapture` to generate fresh estimates.

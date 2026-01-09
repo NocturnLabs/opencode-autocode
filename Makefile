@@ -1,4 +1,4 @@
-# OpenCode Autocode Makefile
+# OpenCode Forger Makefile
 # Replaces shell scripts with make targets
 
 .PHONY: all build test regression clean autonomous install help
@@ -34,7 +34,7 @@ regression: build
 
 # Run the autonomous agent (convenience target)
 autonomous: build
-	./target/release/opencode-autocode autonomous
+	./target/release/opencode-forger autonomous
 
 # Install the binary to ~/.cargo/bin
 install: build

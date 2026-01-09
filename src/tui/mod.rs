@@ -11,6 +11,7 @@ mod fullscreen;
 mod generated;
 mod manual;
 pub mod prompts;
+pub mod stats;
 mod validation;
 
 // Re-export the main entry points

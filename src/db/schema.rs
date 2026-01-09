@@ -82,6 +82,25 @@ CREATE TRIGGER IF NOT EXISTS update_knowledge_timestamp
 BEGIN
     UPDATE knowledge SET updated_at = datetime('now') WHERE key = NEW.key;
 END;
+
+-- Active Instances (Control Panel)
+CREATE TABLE IF NOT EXISTS instances (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pid INTEGER NOT NULL,
+    role TEXT NOT NULL, -- 'supervisor', 'worker', 'web'
+    start_time TEXT DEFAULT (datetime('now')),
+    status TEXT DEFAULT 'running', -- 'running', 'stopped', 'error'
+    log_path TEXT,
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+-- Trigger to update updated_at on instance changes
+CREATE TRIGGER IF NOT EXISTS update_instances_timestamp
+    AFTER UPDATE ON instances
+    FOR EACH ROW
+BEGIN
+    UPDATE instances SET updated_at = datetime('now') WHERE id = NEW.id;
+END;
 "#;
 
 /// Migration for existing databases - adds last_error column if missing

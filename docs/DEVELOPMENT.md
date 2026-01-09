@@ -1,6 +1,6 @@
 # Developer Onboarding & Development Guide
 
-Welcome to the `opencode-autocode` developer guide. This document explains how to set up your environment and contribute to the core engine and templates.
+Welcome to the `opencode-forger` developer guide. This document explains how to set up your environment and contribute to the core engine and templates.
 
 ## Prerequisites
 
@@ -13,8 +13,8 @@ Welcome to the `opencode-autocode` developer guide. This document explains how t
 ### 1. Initial Setup
 
 ```bash
-git clone https://github.com/NocturnLabs/opencode-autocode.git
-cd opencode-autocode
+git clone https://github.com/NocturnLabs/opencode-forger.git
+cd opencode-forger
 cargo build
 ```
 
@@ -31,12 +31,17 @@ cargo run -- --interactive
 ```
 
 ### 3. Testing
-
-We use a 3-tier testing strategy:
-
-- **Unit Tests**: Fast, internal logic (`cargo test`).
+ 
+We use a comprehensive testing strategy:
+ 
+- **Unit Tests**: Fast, internal logic (`cargo test`). Includes mocked `CommandRunner` tests.
 - **Integration Tests**: File system and CLI entry points (`cargo test --test integration`).
 - **Regression Tests**: Real-world feature verification (`make regression`).
+
+To run the full suite:
+```bash
+cargo test --workspace
+```
 
 ## Working with Templates
 

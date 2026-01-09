@@ -1,4 +1,4 @@
-//! Documentation module for opencode-autocode
+//! Documentation module for opencode-forger
 //! Provides access to embedded documentation and examples.
 
 // Embedded documentation and examples

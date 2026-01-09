@@ -4,7 +4,8 @@ use anyhow::Result;
 use std::io::Write;
 use std::path::Path;
 
-use crate::generator::generate_spec_from_idea;
+use crate::services::generator::generate_spec_from_idea;
+
 use crate::tui::prompts::{confirm, multiline_input, print_error, print_info};
 
 use super::manual::run_manual_mode;

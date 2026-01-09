@@ -58,7 +58,7 @@ pub fn list_templates() {
     }
 
     println!("\n{}", "─".repeat(50));
-    println!("Use: opencode-autocode templates use <name>");
+    println!("Use: opencode-forger templates use <name>");
     println!("Or run with -i for interactive selection");
 }
 
@@ -98,7 +98,7 @@ pub fn use_template(name: &str, output_dir: &Path) -> Result<()> {
     validation.print();
 
     // Scaffold
-    crate::scaffold::scaffold_with_spec_text(output_dir, &spec)?;
+    crate::services::scaffold::scaffold_with_spec_text(output_dir, &spec)?;
 
     println!("\n✅ Project scaffolded from template!");
 
@@ -222,15 +222,15 @@ mod tests {
         let commands_resolved = [
             (
                 "auto-init.md (resolved)",
-                crate::scaffold::resolve_includes(AUTO_INIT),
+                crate::services::scaffold::resolve_includes(AUTO_INIT),
             ),
             (
                 "auto-continue.md (resolved)",
-                crate::scaffold::resolve_includes(AUTO_CONTINUE),
+                crate::services::scaffold::resolve_includes(AUTO_CONTINUE),
             ),
             (
                 "auto-enhance.md (resolved)",
-                crate::scaffold::resolve_includes(AUTO_ENHANCE),
+                crate::services::scaffold::resolve_includes(AUTO_ENHANCE),
             ),
         ];
 

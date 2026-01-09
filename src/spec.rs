@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 //! App specification schema
 
 use serde::{Deserialize, Serialize};

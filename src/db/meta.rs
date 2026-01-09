@@ -40,4 +40,14 @@ impl MetaRepository {
         .context("Failed to set metadata")?;
         Ok(())
     }
+
+    /// Check if the project is marked as initialized
+    pub fn is_initialized(&self) -> Result<bool> {
+        Ok(self.get("initialization_complete")? == Some("true".to_string()))
+    }
+
+    /// Mark the project as initialized
+    pub fn mark_initialized(&self) -> Result<()> {
+        self.set("initialization_complete", "true")
+    }
 }

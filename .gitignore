@@ -8,4 +8,7 @@
 .vscode/tasks.json
 docs/ideas/
 .agent/
-test-project/*
+src/web/frontend/dist/
+src/web/frontend/autocode-vibe-dashboard/
+openspec/
+AGENTS.md

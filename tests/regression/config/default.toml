@@ -1,5 +1,5 @@
 # Regression Testing Configuration
-# This file configures the regression testing suite for opencode-autocode
+# This file configures the regression testing suite for opencode-forger
 
 base_dir = "."
 fixtures_dir = "fixtures"

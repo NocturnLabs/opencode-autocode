@@ -3,7 +3,7 @@
         "category": "functional",
         "description": "Config loading with TOML parsing",
         "steps": [
-            "Load autocode.toml from project root",
+            "Load forger.toml from project root",
             "Verify all sections parse correctly",
             "Check environment variable expansion works"
         ],

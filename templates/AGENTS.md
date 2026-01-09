@@ -4,7 +4,7 @@ This file serves as a guide for OpenCode autonomous agents. It describes the pro
 
 ## Project Structure
 
-- `.autocode/`: detailed specs, configuration, and logs for the autocode tool.
+- `.forger/`: detailed specs, configuration, and logs for the forger tool.
 - `.opencode/`: OpenCode internal configuration and subagent definitions.
 - `src/`: Source code directory.
 - `tests/`: Test suite.
@@ -12,7 +12,7 @@ This file serves as a guide for OpenCode autonomous agents. It describes the pro
 
 ## Database Schema
 
-The project uses SQLite for progress tracking. The database is located at `.autocode/progress.db`.
+The project uses SQLite for progress tracking. The database is located at `.forger/progress.db`.
 
 ### features table
 ```sql

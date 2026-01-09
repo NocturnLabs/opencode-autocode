@@ -66,11 +66,11 @@ The agent runs `./scripts/run-regression-check.sh` at:
 ### Via CLI
 
 ```bash
-# Using the opencode-autocode CLI
-opencode-autocode regression-check
+# Using the opencode-forger CLI
+opencode-forger regression-check
 
 # With options
-opencode-autocode regression-check --feature-list ./feature_list.json --verbose
+opencode-forger regression-check --feature-list ./feature_list.json --verbose
 ```
 
 ## Regression Log Format

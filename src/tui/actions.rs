@@ -5,8 +5,9 @@ use std::fs;
 use std::io::Write;
 use std::path::Path;
 
-use crate::generator::refine_spec_from_idea;
-use crate::scaffold::scaffold_with_spec_text;
+use crate::services::generator::refine_spec_from_idea;
+use crate::services::scaffold::scaffold_with_spec_text;
+
 use crate::tui::prompts::{confirm, edit_in_editor, print_error, print_info, print_success};
 use crate::validation::print_diff;
 
@@ -24,8 +25,8 @@ pub fn handle_accept(output_dir: &Path, spec_text: &str, is_valid: bool) -> Resu
 
     // Config was already done before generation, just show next steps
     println!("\n─── Next Steps ───");
-    println!("  → Run opencode-autocode vibe to start the autonomous coding loop");
-    println!("  → Run opencode-autocode --config to modify settings");
+    println!("  → Run opencode-forger vibe to start the autonomous coding loop");
+    println!("  → Run opencode-forger --config to modify settings");
     println!();
 
     Ok(true)
@@ -53,8 +54,8 @@ pub fn handle_save(output_dir: &Path, spec_text: &str) -> Result<()> {
     print_success(&format!("Saved to: {}", spec_path.display()));
 
     println!("\n─── Next Steps ───");
-    println!("  → Run opencode-autocode --config to configure settings");
-    println!("  → Run opencode-autocode vibe to start the autonomous coding loop");
+    println!("  → Run opencode-forger --config to configure settings");
+    println!("  → Run opencode-forger vibe to start the autonomous coding loop");
     println!();
 
     Ok(())

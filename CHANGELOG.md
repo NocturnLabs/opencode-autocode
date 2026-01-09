@@ -70,7 +70,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- **Configurable Fixer Model**: A dedicated model for fixing malformed XML and spec errors, configurable via `autocode.toml` and TUI (default: `opencode/grok-code`).
+- **Configurable Fixer Model**: A dedicated model for fixing malformed XML and spec errors, configurable via `forger.toml` and TUI (default: `opencode/grok-code`).
 - **Doc: Template Token Costs**: New documentation (`docs/template_costs.md`) tracking token usage for all system prompts (init session: ~1,800 tokens).
 - **Test: Token Counting**: Automated tests to monitor prompt size and prevent context bloat.
 
@@ -112,7 +112,7 @@ All notable changes to this project will be documented in this file.
 - **Spec Generation Limit**: Removed hardcoded ranges (e.g., "15-25") from prompt templates, allowing the AI to generate comprehensive specifications for complex projects without artificial caps.
 - **Bun Enforcement**: Replaced all hardcoded `npm`/`npx` examples with `bun`/`bun x` across all command and project templates to ensure consistent toolchain usage.
 - **Port Management**: Refined port-killing logic to strictly forbid killing processes not started by the agent. Added mandatory warnings and reinforced the "find free port" pattern for local development safety.
-- **Security Allowlist**: Updated `.autocode/security-allowlist.json` to include common `bun` subcommands (`bun run`, `bun test`, etc.).
+- **Security Allowlist**: Updated `.forger/security-allowlist.json` to include common `bun` subcommands (`bun run`, `bun test`, etc.).
 
 ## [0.4.1] - 2026-01-01
 

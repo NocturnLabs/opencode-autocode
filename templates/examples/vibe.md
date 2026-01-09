@@ -6,8 +6,8 @@ Use this guide to orient yourself quickly when starting a session in an existing
 
 **DO NOT** run `ls -R`. Instead, check for these markers to identify the project state:
 
-- **`.autocode/progress.db`**: SQLite database tracking all features and their status.
-- **`.autocode/config.toml`**: Agent settings (models, timeouts, etc.).
+- **`.forger/progress.db`**: SQLite database tracking all features and their status.
+- **`.forger/config.toml`**: Agent settings (models, timeouts, etc.).
 - **`.conductor/tracks/`**: Active development plans and session history.
 - **`app_spec.md`**: The source of truth for requirements.
 
@@ -26,10 +26,10 @@ Run these commands to see what's left to do:
 
 ```bash
 # Total progress
-opencode-autocode db stats
+opencode-forger db stats
 
 # Next feature to build
-opencode-autocode db next-feature
+opencode-forger db next-feature
 ```
 
 ## 4. Check Active Tracks
@@ -43,7 +43,7 @@ ls -t .conductor/tracks/*/plan.md | head -n 1 | xargs cat
 
 ## 5. Summary Protocol
 
-At the end of your session, ALWAYS write to `.autocode/session.log` summarizing:
+At the end of your session, ALWAYS write to `.forger/session.log` summarizing:
 
 1. What you finished
 2. What you broke (and if you fixed it)

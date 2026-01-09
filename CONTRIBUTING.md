@@ -1,14 +1,14 @@
-# Contributing to OpenCode Autocode
+# Contributing to OpenCode Forger
 
-Thank you for your interest in contributing to `opencode-autocode`! This document provides guidelines for contributing to this project.
+Thank you for your interest in contributing to `opencode-forger`! This document provides guidelines for contributing to this project.
 
 ## Development Setup
 
 1.  **Install Rust:** Ensure you have the latest stable version of Rust installed (via [rustup](https://rustup.rs/)).
 2.  **Clone the Repository:**
     ```bash
-    git clone https://github.com/nocturnlabs/opencode-autocode.git
-    cd opencode-autocode
+    git clone https://github.com/nocturnlabs/opencode-forger.git
+    cd opencode-forger
     ```
 3.  **Build the Project:**
     ```bash
@@ -20,6 +20,18 @@ Thank you for your interest in contributing to `opencode-autocode`! This documen
 - **Formatting:** We use `rustfmt` to maintain consistent code style. Run `cargo fmt` before committing.
 - **Linting:** We use `clippy` for static analysis. Ensure your code is clean by running `make lint`.
 - **Naming:** Follow standard Rust naming conventions (CamelCase for types, snake_case for functions/variables).
+
+## Code Base Map
+
+To help you navigate the new modular architecture:
+
+- **CLI Commands**: `src/cli/commands/` - Adding a new `opencode-forger [cmd]` starts here.
+- **Autonomous Loop**: `src/autonomous/` - The core "Vibe Loop" engine.
+  - `supervisor/`: High-level state machine and orchestration.
+  - `parallel/`: Git worktree management for concurrent execution.
+  - `runner/`: Command execution abstractions.
+- **Database**: `src/db/` - SQLite models (`models.rs`) and repositories (`features/`, `sessions.rs`).
+- **Services**: `src/services/` - Core business logic (scaffolding, AI generation).
 
 ## Testing Procedures
 

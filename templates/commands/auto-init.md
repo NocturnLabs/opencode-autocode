@@ -5,12 +5,12 @@
 
 ---
 
-> [!IMPORTANT] > **DO NOT modify the configuration file (`autocode.toml` or `.autocode/config.toml`).**
+> [!IMPORTANT] > **DO NOT modify the configuration file (`forger.toml` or `.forger/config.toml`).**
 > Your task is to set up the project structure and database, NOT to reconfigure the agent models or settings.
 
 > [!CAUTION]
-> **DO NOT create `feature_list.json`.** All features MUST be stored in the SQLite database (`.autocode/progress.db`).
-> Use `opencode-autocode db exec "INSERT INTO features ..."` to add features. File-based tracking is deprecated.
+> **DO NOT create `feature_list.json`.** All features MUST be stored in the SQLite database (`.forger/progress.db`).
+> Use `opencode-forger db exec "INSERT INTO features ..."` to add features. File-based tracking is deprecated.
 
 This is the FIRST session. Set up the foundation for all future sessions.
 
@@ -33,28 +33,30 @@ Read `app_spec.md` in your working directory. Understand:
 **CRITICAL: Break down the specification into SEPARATE, testable features.** Based on your analysis of `app_spec.md` (which defines approximately **{{SPEC_FEATURE_COUNT}}** features and **{{SPEC_ENDPOINT_COUNT}}** API endpoints), insert ALL required features into the database.
 
 > [!TIP]
-> **If there are many features (e.g., >20), you can insert them in batches of 10.**
+> **Use `INSERT OR IGNORE` to safely re-run init without duplicate errors.**
+> Column order: `category` (string), `description` (string), `passes` (integer 0), `verification_command` (string).
 
 ```bash
-opencode-autocode db exec "INSERT INTO features (category, description, passes, verification_command) VALUES ('functional', 'Feature description', 0, 'bun test -- --grep \"feature\"')"
+opencode-forger db exec "INSERT OR IGNORE INTO features (category, description, passes, verification_command) VALUES
+  ('functional', 'Feature name', 0, 'test command'),
+  ('functional', 'Another feature', 0, 'another command')"
 ```
 
-#### Example: Game Project with 9 Core Features
+#### Example: Game Project with 9 Core Features (BATCHED)
 
 ```bash
-# DON'T: One vague feature
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Implement the game', 0, 'cargo build')"
-
-# DO: Separate testable features
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Hero entity spawns and renders as red square', 0, 'cargo test test_hero_spawn')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Hero moves upward automatically at constant speed', 0, 'cargo test test_hero_movement')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Weapon system fires projectiles automatically', 0, 'cargo test test_weapon_firing')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Zombie enemies spawn and move toward hero', 0, 'cargo test test_zombie_spawn')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Collision detection between projectiles and zombies', 0, 'cargo test test_collision')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'Gate entities modify weapon properties on contact', 0, 'cargo test test_gate_effects')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('functional', 'SQLite database persists high scores', 0, 'cargo test test_score_persistence')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'UI displays current score and weapon stats', 0, 'cargo test test_ui_display')"
-opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'Audio plays on weapon fire and gate contact', 0, 'cargo test test_audio')"
+# ✅ DO: Batch insert features in chunks (e.g., 50 at a time) to avoid command line limits
+# Ensure the 'passes' value is ALWAYS the literal number 0, WITHOUT quotes.
+opencode-forger db exec "INSERT OR IGNORE INTO features (category, description, passes, verification_command) VALUES
+  ('functional', 'Hero entity spawns and renders as red square', 0, 'cargo test test_hero_spawn'),
+  ('functional', 'Hero moves upward automatically at constant speed', 0, 'cargo test test_hero_movement'),
+  ('functional', 'Weapon system fires projectiles automatically', 0, 'cargo test test_weapon_firing'),
+  ('functional', 'Zombie enemies spawn and move toward hero', 0, 'cargo test test_zombie_spawn'),
+  ('functional', 'Collision detection between projectiles and zombies', 0, 'cargo test test_collision'),
+  ('functional', 'Gate entities modify weapon properties on contact', 0, 'cargo test test_gate_effects'),
+  ('functional', 'SQLite database persists high scores', 0, 'cargo test test_score_persistence'),
+  ('style', 'UI displays current score and weapon stats', 0, 'cargo test test_ui_display'),
+  ('style', 'Audio plays on weapon fire and gate contact', 0, 'cargo test test_audio')"
 ```
 
 #### Requirements
@@ -62,10 +64,15 @@ opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'Audio play
 | Rule             | Description                                                            |
 | ---------------- | ---------------------------------------------------------------------- |
 | **Granularity**  | Each feature = ONE testable behavior. Not "implement the app".         |
-| **Count**        | Insert ALL **{{SPEC_FEATURE_COUNT}}** features defined in the spec.       |
+| **Count**        | **MINIMUM 200 features** for comprehensive coverage. Cover every requirement exhaustively. |
+| **Depth**        | At least **25 features MUST have 10+ testing steps** for thorough validation. |
 | **Categories**   | Mix `functional` (logic) and `style` (UI/UX)                           |
 | **Passes**       | ALL start with `passes = 0`                                            |
 | **Verification** | Project-appropriate commands (e.g. `npm test`, `pytest`, `cargo test`) |
+
+> [!IMPORTANT]
+> **IT IS CATASTROPHIC TO REMOVE OR EDIT FEATURES IN FUTURE SESSIONS.**
+> Features can ONLY be marked as passing. Never remove, never edit descriptions, never modify testing steps.
 
 > [!TIP] > **Use standard test runners:**
 >
@@ -76,9 +83,13 @@ opencode-autocode db exec "INSERT INTO features ... VALUES ('style', 'Audio play
 
 > **NEVER** combine multiple behaviors into one feature.
 > **NEVER** use generic verification like `cargo build` — use actual test commands.
+> **MONOREPO/NESTED PATHS:** If you create subdirectories (e.g., `backend/`, `frontend/`), your verification commands MUST reference them.
+> - **Wrong:** `cargo test` (fails if Cargo.toml is in backend/)
+> - **Right:** `cd backend && cargo test` OR `npm test --prefix frontend`
+> **Ensure verification commands are executable from the root directory.**
 > **For web projects:** E2E tests (Playwright) are MANDATORY. See `templates/modules/testing.md`.
-> **Ensure verification commands are executable from the root directory.** > **Need examples?** Run `opencode-autocode example db --insert` or `example db --query`.
-> **Stuck already?** Run `opencode-autocode example vibe` for orientation.
+> **Need examples?** Run `opencode-forger example db --insert` or `example db --query`.
+> **Stuck already?** Run `opencode-forger example vibe` for orientation.
 
 ---
 
@@ -140,7 +151,15 @@ git commit -m "Initial setup: features database, conductor context, project stru
 
 ---
 
-### STEP 7: Signal Continuation
+### STEP 7: Signal Completion
+
+**CRITICAL: You MUST mark the database as initialized when you are finished seeding features.**
+
+```bash
+opencode-forger db init-complete
+```
+
+Then create the standard OpenCode continuation signal:
 
 ```bash
 echo "CONTINUE" > .opencode-signal

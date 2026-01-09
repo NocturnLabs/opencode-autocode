@@ -22,23 +22,18 @@ pub async fn test_generator_functionality(
         .and_then(|v| v.as_array())
         .ok_or("Missing 'expected_contains' parameter")?;
 
-    // Import the generator module from the main crate
-    // Note: This assumes the generator module is accessible
-    // In a real implementation, you'd need to make sure the modules are properly exposed
+    // Use the actual generator module to build the prompt
+    // This verifies the prompt construction logic works as expected
+    let config = opencode_forger::config::Config::default();
+    let prompt = opencode_forger::generator::prompts::build_generation_prompt(input, None, &config);
 
-    // For now, we'll simulate the test
-    // TODO: Replace with actual generator testing once modules are accessible
-
-    let prompt = format!(
-        "Generate a project specification for: {}\n<project_specification>\n{{{{IDEA}}}}",
-        input
-    );
-
-    // Check that expected strings are contained
+    // Check that expected strings are contained in the generated prompt
     for expected in expected_contains {
         if let Some(expected_str) = expected.as_str() {
             if !prompt.contains(expected_str) {
-                return Err(format!("Expected '{}' not found in output", expected_str).into());
+                return Err(
+                    format!("Expected '{}' not found in generated prompt", expected_str).into(),
+                );
             }
         }
     }
@@ -66,30 +61,34 @@ pub async fn test_spec_validation(
         .and_then(|v| v.as_u64())
         .unwrap_or(0) as usize;
 
-    // Import and use the spec validation from the main crate
-    // TODO: Replace with actual spec validation testing
+    // Use actual validation logic
+    let result = opencode_forger::validation::validate_spec(spec_content);
 
-    // Simulate validation
-    let is_valid = spec_content.contains("<project_specification>")
-        && spec_content.contains("<project_name>")
-        && spec_content.contains("<overview>");
+    // If we expected a hard error but didn't get one (or vice versa)
+    match result {
+        Ok(validation_result) => {
+            if validation_result.is_valid != expected_valid {
+                return Err(format!(
+                    "Validation result mismatch: expected valid={}, got valid={}",
+                    expected_valid, validation_result.is_valid
+                )
+                .into());
+            }
 
-    let features_count = spec_content.matches("<feature").count();
-
-    if is_valid != expected_valid {
-        return Err(format!(
-            "Validation result mismatch: expected {}, got {}",
-            expected_valid, is_valid
-        )
-        .into());
-    }
-
-    if features_count != expected_features_count {
-        return Err(format!(
-            "Features count mismatch: expected {}, got {}",
-            expected_features_count, features_count
-        )
-        .into());
+            if validation_result.stats.feature_count != expected_features_count {
+                return Err(format!(
+                    "Features count mismatch: expected {}, got {}",
+                    expected_features_count, validation_result.stats.feature_count
+                )
+                .into());
+            }
+        }
+        Err(e) => {
+            // If we expected valid=true but validation crashed, that's a fail
+            if expected_valid {
+                return Err(format!("Validation failed unexpectedly: {}", e).into());
+            }
+        }
     }
 
     Ok(())

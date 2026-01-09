@@ -1,4 +1,4 @@
-//! Regression Testing Suite for opencode-autocode
+//! Regression Testing Suite for opencode-forger
 //!
 //! This module provides comprehensive regression testing capabilities
 //! to ensure that changes to the codebase don't break existing functionality.

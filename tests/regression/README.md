@@ -1,6 +1,6 @@
 # Regression Testing Suite
 
-This directory contains the regression testing suite for the opencode-autocode project. The regression tests ensure that changes to the codebase don't break existing functionality.
+This directory contains the regression testing suite for the opencode-forger project. The regression tests ensure that changes to the codebase don't break existing functionality.
 
 ## Directory Structure
 

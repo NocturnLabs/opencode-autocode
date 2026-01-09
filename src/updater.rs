@@ -11,7 +11,7 @@ pub fn check_for_update() -> Result<Option<String>> {
     // or GitHub is rate limiting.
     let releases = match self_update::backends::github::ReleaseList::configure()
         .repo_owner("NocturnLabs")
-        .repo_name("opencode-autocode")
+        .repo_name("opencode-forger")
         .build()
         .and_then(|r| r.fetch())
     {
@@ -37,9 +37,9 @@ pub fn update() -> Result<()> {
 
     let status = self_update::backends::github::Update::configure()
         .repo_owner("NocturnLabs")
-        .repo_name("opencode-autocode")
-        .bin_name("opencode-autocode")
-        .bin_path_in_archive("opencode-autocode")
+        .repo_name("opencode-forger")
+        .bin_name("opencode-forger")
+        .bin_path_in_archive("opencode-forger")
         .show_download_progress(true)
         .current_version(current_version)
         .build()

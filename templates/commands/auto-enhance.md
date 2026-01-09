@@ -8,7 +8,7 @@ Research and propose enhancements for the current project based on popular patte
 
 **Before executing ANY commands:**
 
-1. Read `.autocode/security-allowlist.json` if it exists
+1. Read `.forger/security-allowlist.json` if it exists
 2. Check the `blocked_patterns` array - commands matching these are FORBIDDEN
 3. Only use commands listed in `allowed_commands` categories
 
@@ -16,7 +16,7 @@ Research and propose enhancements for the current project based on popular patte
 
 ### STEP 1: UNDERSTAND THE PROJECT
 
-Read app_spec.md and .autocode/features.json to understand:
+Read app_spec.md and .forger/features.json to understand:
 
 - What the project does
 - What technology stack is used
@@ -110,7 +110,7 @@ The user will review and select which to pursue.
 
 ### STEP 6: UPDATE PROGRESS
 
-Add to `.autocode/session.log`:
+Add to `.forger/session.log`:
 
 - That you ran enhancement discovery
 - How many enhancements were found
@@ -122,7 +122,7 @@ Add to `.autocode/session.log`:
 ### STEP 7: OPTIONALLY ADD TO FEATURE LIST
 
 If the user has pre-approved certain types of enhancements, you may add
-them to .autocode/features.json with:
+them to .forger/features.json with:
 
 - Category: "enhancement"
 - Detailed testing steps

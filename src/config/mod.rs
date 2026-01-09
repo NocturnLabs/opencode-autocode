@@ -1,6 +1,6 @@
 //! Configuration loading and management
 //!
-//! Loads configuration from `autocode.toml` at the project root,
+//! Loads configuration from `forger.toml` at the project root,
 //! with fallback to sensible defaults.
 
 use anyhow::{Context, Result};
@@ -21,13 +21,13 @@ pub use environment::{
 pub use project::{FeaturesConfig, GenerationConfig, ModelsConfig, PathsConfig, ScaffoldingConfig};
 
 /// Default config filename
-const CONFIG_FILENAME: &str = ".autocode/config.toml";
+const CONFIG_FILENAME: &str = ".forger/config.toml";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Config Struct
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Application configuration - all sections from autocode.toml
+/// Application configuration - all sections from forger.toml
 #[derive(Debug, Clone, Deserialize, Default)]
 #[serde(default)]
 pub struct Config {
@@ -52,10 +52,15 @@ pub struct Config {
 // ─────────────────────────────────────────────────────────────────────────────
 
 impl Config {
-    /// Load configuration from the specified directory or current directory.
+    /// Load configuration from the specified directory or search upwards for project root.
     pub fn load(dir: Option<&Path>) -> Result<Self> {
-        let config_path = match dir {
-            Some(d) => d.join(CONFIG_FILENAME),
+        let root = match dir {
+            Some(d) => Some(d.to_path_buf()),
+            None => find_project_root(),
+        };
+
+        let config_path = match root {
+            Some(ref r) => r.join(CONFIG_FILENAME),
             None => PathBuf::from(CONFIG_FILENAME),
         };
 
@@ -69,6 +74,12 @@ impl Config {
             })?;
 
             config.expand_env_vars();
+
+            // Canonicalize relative paths based on discovered root
+            if let Some(r) = root {
+                config.canonicalize_paths(&r);
+            }
+
             Ok(config)
         } else {
             Ok(Config::default())
@@ -105,6 +116,43 @@ impl Config {
             self.notifications.webhook_url = Some(expand_env_var(url));
         }
     }
+
+    /// Canonicalize relative paths based on the project root.
+    fn canonicalize_paths(&mut self, root: &Path) {
+        let canonicalize = |p: &str| -> String {
+            let path = Path::new(p);
+            if path.is_relative() {
+                root.join(path).to_string_lossy().to_string()
+            } else {
+                p.to_string()
+            }
+        };
+
+        self.paths.database_file = canonicalize(&self.paths.database_file);
+        self.paths.app_spec_file = canonicalize(&self.paths.app_spec_file);
+        self.paths.vs_cache_dir = canonicalize(&self.paths.vs_cache_dir);
+        self.conductor.context_dir = canonicalize(&self.conductor.context_dir);
+        self.conductor.tracks_dir = canonicalize(&self.conductor.tracks_dir);
+    }
+}
+
+/// Search upwards for the project root (containing .forger directory).
+pub fn find_project_root() -> Option<PathBuf> {
+    let current_dir = env::current_dir().ok()?;
+    let mut current = current_dir.as_path();
+
+    loop {
+        if current.join(".forger").is_dir() {
+            return Some(current.to_path_buf());
+        }
+
+        match current.parent() {
+            Some(parent) => current = parent,
+            None => break,
+        }
+    }
+
+    None
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -182,6 +230,7 @@ mod tests {
         assert_eq!(config.models.default, "opencode/glm-4.7-free");
         assert_eq!(config.models.autonomous, "opencode/minimax-m2.1-free");
         assert_eq!(config.autonomous.delay_between_sessions, 5);
+        assert_eq!(config.autonomous.session_timeout_minutes, 15);
         assert_eq!(config.agent.max_retry_attempts, 3);
         assert!(config.alternative_approaches.enabled);
         assert_eq!(config.ui.spec_preview_lines, 25);

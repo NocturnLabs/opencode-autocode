@@ -6,7 +6,7 @@
     "command": "--help",
     "expected_exit_code": 0,
     "expected_output_contains": [
-      "opencode-autocode",
+      "opencode-forger",
       "Usage"
     ]
   }
