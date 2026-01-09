@@ -6,9 +6,6 @@ use std::sync::{Arc, Mutex};
 use super::schema;
 use super::{FeatureRepository, KnowledgeRepository, MetaRepository, SessionRepository};
 
-/// Default database filename
-pub const DEFAULT_DB_PATH: &str = ".forger/progress.db";
-
 /// Database connection wrapper with thread-safe access
 #[derive(Clone)]
 pub struct Database {
@@ -46,11 +43,6 @@ impl Database {
 
         db.init_schema()?;
         Ok(db)
-    }
-
-    /// Open database with default path (.opencode.db in current directory)
-    pub fn open_default() -> Result<Self> {
-        Self::open(Path::new(DEFAULT_DB_PATH))
     }
 
     /// Initialize database schema and run migrations

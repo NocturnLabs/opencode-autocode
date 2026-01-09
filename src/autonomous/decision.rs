@@ -61,37 +61,41 @@ pub fn determine_action(
         }
     }
 
-    // --- Phase 1: First Run ---
-    // Database features is the source of truth for init status.
-    // Signal file is maintained for visibility but not used for decision.
-    let has_features = match FeatureProgress::has_features(db_path) {
-        Ok(has) => has,
-        Err(e) => {
-            eprintln!("[ERROR] Failed to check features DB: {}", e);
-            // If we can't check DB, assuming "not initialized" is dangerous if DB exists.
-            if init_signal_exists() {
-                eprintln!("[WARN] DB check failed but signal exists. Assuming initialized to avoid destructive re-init.");
-                true
-            } else {
-                return Err(e.context("Failed to check initialization status"));
-            }
+    // --- Phase 1: Initialization ---
+    // Check both DB features AND the explicit initialization marker.
+    // If we have either, we are initialized.
+    let (is_initialized, has_features) = match crate::db::Database::open(db_path) {
+        Ok(db) => {
+            let marker = db.meta().is_initialized().unwrap_or(false);
+            let features = FeatureProgress::has_features(db_path).unwrap_or(false);
+            (marker, features)
         }
+        Err(_) => (false, false),
     };
-    let signal_exists = init_signal_exists();
+
+    let project_root = db_path
+        .parent()
+        .and_then(|p| p.parent())
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_default());
+
+    let signal_exists = init_signal_exists(&project_root);
 
     eprintln!(
-        "[DEBUG] Decision check: db_path={:?}, has_features={}, signal_exists={}",
-        db_path, has_features, signal_exists
+        "[DEBUG] Decision check: db_path={:?}, is_initialized={}, has_features={}, signal_exists={}",
+        db_path, is_initialized, has_features, signal_exists
     );
 
-    // DB is source of truth - signal file mismatch is a warning, not a skip
-    if !has_features {
+    // Initialized if marker exists OR we have features
+    let actually_initialized = is_initialized || has_features;
+
+    if !actually_initialized {
         if signal_exists {
-            println!("[WARN] Signal file exists but DB has no features - trusting signal to prevent re-init");
+            println!("[WARN] Signal file exists but project not marked initialized - trusting signal to prevent re-init");
             println!("[DEBUG] Selected: auto-continue (signal exists)");
             return Ok(SupervisorAction::Command("auto-continue"));
         }
-        println!("[DEBUG] Selected: auto-init (no features in DB)");
+        println!("[DEBUG] Selected: auto-init (project not initialized)");
         return Ok(SupervisorAction::Command("auto-init"));
     }
 
@@ -239,13 +243,10 @@ fn check_for_regressions(
     Ok(None)
 }
 
-/// Check if the initialization signal file exists with CONTINUE or COMPLETE content.
-///
-/// This acts as a fallback indicator that initialization has completed,
-/// in case the database check fails for some reason.
-fn init_signal_exists() -> bool {
+/// Check if the initialization signal file exists with valid content.
+fn init_signal_exists(project_root: &Path) -> bool {
     const SIGNAL_FILE: &str = ".opencode-signal";
-    let path = std::path::Path::new(SIGNAL_FILE);
+    let path = project_root.join(SIGNAL_FILE);
     let exists = path.exists();
     eprintln!(
         "[DEBUG] init_signal_exists: path={:?}, exists={}",
@@ -256,13 +257,14 @@ fn init_signal_exists() -> bool {
         return false;
     }
 
-    match std::fs::read_to_string(SIGNAL_FILE) {
+    match std::fs::read_to_string(&path) {
         Ok(content) => {
             let trimmed = content.trim();
-            let result = trimmed == "CONTINUE" || trimmed == "COMPLETE";
+            let result = !trimmed.is_empty();
             eprintln!(
-                "[DEBUG] init_signal_exists: content={:?}, result={}",
-                trimmed, result
+                "[DEBUG] init_signal_exists: content_len={}, result={}",
+                trimmed.len(),
+                result
             );
             result
         }
@@ -281,8 +283,6 @@ mod tests {
     #[test]
     fn test_init_signal_exists_returns_false_when_missing() {
         let _ = fs::remove_file(".opencode-signal-test");
-        // Testing with actual file would interfere with other tests,
-        // so we just verify the function doesn't panic
-        let _ = init_signal_exists();
+        let _ = init_signal_exists(Path::new("."));
     }
 }

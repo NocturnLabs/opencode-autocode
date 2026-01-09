@@ -14,7 +14,7 @@ pub mod sessions;
 pub mod test_utils;
 
 // Re-export types used by main.rs
-pub use connection::{Database, DEFAULT_DB_PATH};
+pub use connection::Database;
 pub use features::FeatureRepository;
 pub use knowledge::KnowledgeRepository;
 pub use meta::MetaRepository;

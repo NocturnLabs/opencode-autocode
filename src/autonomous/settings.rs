@@ -30,6 +30,17 @@ impl LoopSettings {
             limit.unwrap_or(config.autonomous.max_iterations as usize)
         };
 
+        let db_path = Path::new(&config.paths.database_file);
+        let database_file = if db_path.is_relative() {
+            std::env::current_dir()
+                .unwrap_or_default()
+                .join(db_path)
+                .to_string_lossy()
+                .to_string()
+        } else {
+            config.paths.database_file.clone()
+        };
+
         Self {
             delay_seconds: config.autonomous.delay_between_sessions,
             max_iterations,
@@ -37,7 +48,7 @@ impl LoopSettings {
             max_no_progress: 5, // Default: stop after 5 iterations with no progress
             model: config.models.autonomous.clone(),
             log_level: config.autonomous.log_level.clone(),
-            database_file: config.paths.database_file.clone(),
+            database_file,
             session_timeout: config.autonomous.session_timeout_minutes,
             idle_timeout: config.autonomous.idle_timeout_seconds,
             auto_commit: config.autonomous.auto_commit,

@@ -38,7 +38,7 @@ pub struct SessionOptions {
 pub const STOP_SIGNAL_FILE: &str = ".opencode-stop";
 
 /// Polling interval for timeout checks (milliseconds)
-const POLL_INTERVAL_MS: u64 = 500;
+const POLL_INTERVAL_MS: u64 = 50;
 
 /// Execute an OpenCode session with optional timeout
 pub fn execute_opencode_session(
@@ -250,8 +250,8 @@ fn execute_with_timeout(
                 trigger_line
             ));
 
-            // Give the session a moment to finish any pending writes
-            thread::sleep(Duration::from_millis(1000));
+            // Small safety delay to allow pending DB writes to complete
+            thread::sleep(Duration::from_millis(100));
             terminate_child(&mut child);
             early_termination_trigger = Some(trigger_line);
             break;

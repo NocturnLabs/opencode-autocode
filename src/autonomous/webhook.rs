@@ -5,7 +5,7 @@ use std::path::Path;
 use std::process::Command;
 
 use crate::config::Config;
-use crate::db::{features::Feature, Database, DEFAULT_DB_PATH};
+use crate::db::{features::Feature, Database};
 
 /// Trait for sending webhook requests (allows mocking)
 pub trait WebhookSender {
@@ -95,7 +95,7 @@ pub fn notify_feature_complete(
         current_passing,
         total_features,
         &CurlSender,
-        DEFAULT_DB_PATH,
+        &config.paths.database_file,
     )
 }
 

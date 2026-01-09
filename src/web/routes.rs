@@ -21,8 +21,9 @@ struct RunDetailResponse {
 
 #[get("/status")]
 pub async fn get_status() -> impl Responder {
-    // Try to get stats from database
-    let db_path = std::path::PathBuf::from(db::DEFAULT_DB_PATH);
+    // Load config to get database_file path
+    let config = crate::config::Config::load(None).unwrap_or_default();
+    let db_path = std::path::PathBuf::from(&config.paths.database_file);
     if !db_path.exists() {
         return HttpResponse::Ok().json(StatusResponse {
             status: "No database found".to_string(),
@@ -48,7 +49,8 @@ pub async fn get_status() -> impl Responder {
 
 #[get("/runs")]
 pub async fn get_runs() -> impl Responder {
-    let db_path = std::path::PathBuf::from(db::DEFAULT_DB_PATH);
+    let config = crate::config::Config::load(None).unwrap_or_default();
+    let db_path = std::path::PathBuf::from(&config.paths.database_file);
     if !db_path.exists() {
         return HttpResponse::Ok().json(Vec::<Session>::new());
     }
@@ -65,7 +67,8 @@ pub async fn get_runs() -> impl Responder {
 #[get("/runs/{id}")]
 pub async fn get_run_by_id(path: web::Path<i64>) -> impl Responder {
     let session_id = path.into_inner();
-    let db_path = std::path::PathBuf::from(db::DEFAULT_DB_PATH);
+    let config = crate::config::Config::load(None).unwrap_or_default();
+    let db_path = std::path::PathBuf::from(&config.paths.database_file);
     if !db_path.exists() {
         return HttpResponse::NotFound().body("Database not found");
     }

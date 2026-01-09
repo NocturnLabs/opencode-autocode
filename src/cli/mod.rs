@@ -68,8 +68,8 @@ pub enum Commands {
         #[arg(long, value_name = "FILE")]
         config_file: Option<PathBuf>,
 
-        /// Enable developer mode with comprehensive debug logging
-        #[arg(long)]
+        /// Developer mode is enabled by default for comprehensive debug logging
+        #[arg(long, default_value_t = true)]
         developer: bool,
 
         /// Use single model for all tasks (disables dual-model reasoning/coding split)
@@ -94,8 +94,8 @@ pub enum Commands {
         #[arg(long, value_name = "FILE")]
         config_file: Option<PathBuf>,
 
-        /// Enable developer mode with comprehensive debug logging
-        #[arg(long)]
+        /// Developer mode is enabled by default for comprehensive debug logging
+        #[arg(long, default_value_t = true)]
         developer: bool,
 
         /// Use single model for all tasks (disables dual-model reasoning/coding split)
@@ -215,6 +215,8 @@ pub enum DbAction {
         #[command(subcommand)]
         action: KnowledgeAction,
     },
+    /// Mark project initialization as complete
+    InitComplete,
 }
 
 #[derive(Subcommand, Debug)]

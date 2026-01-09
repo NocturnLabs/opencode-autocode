@@ -34,19 +34,19 @@ Read `app_spec.md` in your working directory. Understand:
 
 > [!TIP]
 > **Use `INSERT OR IGNORE` to safely re-run init without duplicate errors.**
-> If a feature with the same description already exists, it will be skipped.
+> Column order: `category` (string), `description` (string), `passes` (integer 0), `verification_command` (string).
 
 ```bash
 opencode-forger db exec "INSERT OR IGNORE INTO features (category, description, passes, verification_command) VALUES
-  ('functional', 'Feature 1 description', 0, 'bun test -- --grep \"feature1\"'),
-  ('functional', 'Feature 2 description', 0, 'bun test -- --grep \"feature2\"'),
-  ('functional', 'Feature 3 description', 0, 'bun test -- --grep \"feature3\"')"
+  ('functional', 'Feature name', 0, 'test command'),
+  ('functional', 'Another feature', 0, 'another command')"
 ```
 
 #### Example: Game Project with 9 Core Features (BATCHED)
 
 ```bash
 # ✅ DO: Batch insert features in chunks (e.g., 50 at a time) to avoid command line limits
+# Ensure the 'passes' value is ALWAYS the literal number 0, WITHOUT quotes.
 opencode-forger db exec "INSERT OR IGNORE INTO features (category, description, passes, verification_command) VALUES
   ('functional', 'Hero entity spawns and renders as red square', 0, 'cargo test test_hero_spawn'),
   ('functional', 'Hero moves upward automatically at constant speed', 0, 'cargo test test_hero_movement'),
@@ -57,9 +57,6 @@ opencode-forger db exec "INSERT OR IGNORE INTO features (category, description, 
   ('functional', 'SQLite database persists high scores', 0, 'cargo test test_score_persistence'),
   ('style', 'UI displays current score and weapon stats', 0, 'cargo test test_ui_display'),
   ('style', 'Audio plays on weapon fire and gate contact', 0, 'cargo test test_audio')"
-
-# ❌ DON'T: Insert 200+ features in a single command (may exceed shell ARG_MAX)
-# opencode-forger db exec "INSERT ... (500 lines) ..."
 ```
 
 #### Requirements
@@ -154,7 +151,15 @@ git commit -m "Initial setup: features database, conductor context, project stru
 
 ---
 
-### STEP 7: Signal Continuation
+### STEP 7: Signal Completion
+
+**CRITICAL: You MUST mark the database as initialized when you are finished seeding features.**
+
+```bash
+opencode-forger db init-complete
+```
+
+Then create the standard OpenCode continuation signal:
 
 ```bash
 echo "CONTINUE" > .opencode-signal

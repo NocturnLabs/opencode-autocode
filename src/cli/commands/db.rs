@@ -39,14 +39,13 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
                 anyhow::bail!("Feature list not found: {}", json_path.display());
             }
 
-            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
             println!(
                 "📥 Migrating features from {} to {}",
                 json_path.display(),
-                db_path.display()
+                default_db_path.display()
             );
 
-            let db = db::Database::open(&db_path)?;
+            let db = db::Database::open(&default_db_path)?;
             let count = db.features().import_from_json(&json_path)?;
 
             println!("✅ Migrated {} features successfully!", count);
@@ -61,17 +60,16 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
                 .clone()
                 .unwrap_or_else(|| PathBuf::from("feature_list.json"));
 
-            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
-            if !db_path.exists() {
+            if !default_db_path.exists() {
                 anyhow::bail!(
                     "Database not found: {}. Run 'db init' first.",
-                    db_path.display()
+                    default_db_path.display()
                 );
             }
 
             println!("📤 Exporting features to {}", output_path.display());
 
-            let db = db::Database::open(&db_path)?;
+            let db = db::Database::open(&default_db_path)?;
             db.features().export_to_json(&output_path)?;
 
             let features = db.features().list_all()?;
@@ -80,15 +78,14 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
             Ok(())
         }
         DbAction::Stats => {
-            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
-            if !db_path.exists() {
+            if !default_db_path.exists() {
                 anyhow::bail!(
                     "Database not found: {}. Run 'db init' first.",
-                    db_path.display()
+                    default_db_path.display()
                 );
             }
 
-            let db = db::Database::open(&db_path)?;
+            let db = db::Database::open(&default_db_path)?;
 
             // Feature stats
             let (passing, remaining) = db.features().count()?;
@@ -203,14 +200,13 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
             Ok(())
         }
         DbAction::MarkPass { id } => {
-            let db_path = PathBuf::from(db::DEFAULT_DB_PATH);
-            if !db_path.exists() {
+            if !default_db_path.exists() {
                 anyhow::bail!(
                     "Database not found: {}. Run 'db init' first.",
-                    db_path.display()
+                    default_db_path.display()
                 );
             }
-            let db = db::Database::open(&db_path)?;
+            let db = db::Database::open(&default_db_path)?;
             let affected =
                 db.write_query(&format!("UPDATE features SET passes = 1 WHERE id = {}", id))?;
             if affected > 0 {
@@ -221,7 +217,7 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
             Ok(())
         }
         DbAction::Knowledge { action } => {
-            let db = db::Database::open_default()?;
+            let db = db::Database::open(&default_db_path)?;
             let repo = db.knowledge();
 
             match action {
@@ -275,6 +271,17 @@ pub fn handle_db(action: &DbAction) -> Result<()> {
                     println!("🗑️ Untracked server on port {}", port);
                 }
             }
+            Ok(())
+        }
+        DbAction::InitComplete => {
+            let config = Config::load(None).unwrap_or_default();
+            let db_path = PathBuf::from(&config.paths.database_file);
+            if !db_path.exists() {
+                anyhow::bail!("Database and features must exist before marking init complete.");
+            }
+            let db = db::Database::open(&db_path)?;
+            db.meta().mark_initialized()?;
+            println!("✅ Project marked as initialized in database.");
             Ok(())
         }
     }

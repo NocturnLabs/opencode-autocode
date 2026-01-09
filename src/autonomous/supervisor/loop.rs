@@ -156,7 +156,18 @@ pub fn run_supervisor_loop(
         // --- Step 5: Handle Loop Continuation ---
         match handle_session_result(result, settings, &mut consecutive_errors) {
             LoopAction::Continue => {
-                thread::sleep(Duration::from_secs(settings.delay_seconds as u64));
+                // Smart sleep: skip delay if we made progress for faster iteration
+                if made_progress {
+                    // Clear terminal between sessions for clean debugging
+                    print!("\x1b[2J\x1b[1;1H");
+                    println!("🚀 Session {} complete, fast-forwarding...\n", iteration);
+                } else {
+                    println!(
+                        "→ No progress, waiting {}s before next session...",
+                        settings.delay_seconds
+                    );
+                    thread::sleep(Duration::from_secs(settings.delay_seconds as u64));
+                }
             }
             LoopAction::Break => break,
             LoopAction::RetryWithBackoff(backoff) => {
