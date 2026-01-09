@@ -11,7 +11,6 @@ pub fn display_banner(
 ) {
     let width = 60;
 
-    println!();
     println!(
         "{}{}{}",
         crate::theming::accent(boxes::TOP_LEFT),
@@ -21,13 +20,10 @@ pub fn display_banner(
 
     // Title with sparkle
     let title = "OpenCode Autonomous Agent";
-    // Width breakdown: │ (1) + space (1) + ✨ (2 visual) + space (1) + title + padding + space (1) + │ (1)
-    // Total fixed chars: 7, but the emoji counts as 1 in len() but displays as 2
-    // Use saturating_sub to prevent underflow if title/content is unexpectedly long
-    let padding = width
-        .saturating_sub(6)
-        .saturating_sub(title.len())
-        .saturating_sub(2);
+    // Format: │ ✨ Title │
+    // Width: │ (1) + space (1) + ✨ (2 visual) + space (1) + title + padding + │ (1)
+    // Fixed: 1 + 1 + 2 + 1 + 1 = 6
+    let padding = width.saturating_sub(6).saturating_sub(title.len());
     println!(
         "{} {} {} {}{}",
         crate::theming::accent(boxes::VERTICAL),
@@ -70,9 +66,11 @@ pub fn display_banner(
     ];
 
     for (key, value) in rows {
-        // Use saturating_sub to prevent underflow if key+value is unexpectedly long
+        // Format: │ • Key: value │
+        // Width: │ (1) + space (1) + • (1) + space (1) + key + ": " (2) + value + padding + │ (1)
+        // Fixed: 1 + 1 + 1 + 1 + 2 + 1 = 7
         let padding = width
-            .saturating_sub(6)
+            .saturating_sub(7)
             .saturating_sub(key.len())
             .saturating_sub(value.len());
         println!(
@@ -88,7 +86,10 @@ pub fn display_banner(
 
     if developer_mode {
         let dev_msg = "DEVELOPER MODE ENABLED";
-        let padding = width.saturating_sub(5).saturating_sub(dev_msg.len());
+        // Format: │ ⚠ DEVELOPER MODE ENABLED │
+        // Width: │ (1) + space (1) + ⚠ (2 visual) + space (1) + msg + padding + │ (1)
+        // Fixed: 1 + 1 + 2 + 1 + 1 = 6
+        let padding = width.saturating_sub(6).saturating_sub(dev_msg.len());
         println!(
             "{} {} {} {}{}",
             crate::theming::accent(boxes::VERTICAL),
@@ -249,7 +250,9 @@ pub fn display_token_stats(stats: &super::stats::TokenStats) {
     ];
 
     for (key, value) in rows {
-        // Use saturating_sub to prevent underflow if value is unexpectedly long
+        // Format: │   Key: value │
+        // Width: │ (1) + spaces (3) + key + ": " (2) + value + padding + │ (1)
+        // Fixed: 1 + 3 + 2 + 1 = 7
         let padding = width
             .saturating_sub(7)
             .saturating_sub(key.len())
