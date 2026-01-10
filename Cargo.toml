@@ -9,11 +9,6 @@ description = "Scaffold autonomous coding plugin for OpenCode"
 authors = ["CodingInCarhartts"]
 license = "MIT"
 
-
-[[bin]]
-name = "opencode-forger"
-path = "src/main.rs"
-
 [dependencies]
 # CLI - v4.5.53 (Nov 2025, no CVEs)
 clap = { version = "4.5.53", features = ["derive"] }
