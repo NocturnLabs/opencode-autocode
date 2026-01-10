@@ -606,21 +606,21 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
 
     element! {
         View(width, height, flex_direction: FlexDirection::Column) {
-            // Header
-            View(padding: 1, border_style: BorderStyle::Round, border_color: Color::Blue) {
-                Text(content: "⚙️  Configuration Editor", weight: Weight::Bold, color: Color::Blue)
+            // Header - Clean Minimalist
+            View(padding: 1, border_style: BorderStyle::Round, border_color: Color::DarkGrey) {
+                Text(content: "⚙  Configuration", weight: Weight::Bold, color: Color::White)
             }
 
             View(flex_grow: 1.0, flex_direction: FlexDirection::Row) {
                 // Sidebar: Sections
-                View(width: 20, flex_direction: FlexDirection::Column, border_style: BorderStyle::Single, border_color: Color::Grey) {
+                View(width: 22, flex_direction: FlexDirection::Column, border_style: BorderStyle::Single, border_color: Color::DarkGrey, padding_top: 1) {
                     #(sections.iter().enumerate().map(|(i, &name)| {
                         let is_selected = i == selected_section.get();
                         element! {
                             View(padding_left: 1) {
                                 Text(
-                                    content: if is_selected { format!("▸ {}", name) } else { format!("  {}", name) },
-                                    color: if is_selected { Color::Green } else { Color::White },
+                                    content: if is_selected { format!("› {}", name) } else { format!("  {}", name) },
+                                    color: if is_selected { Color::White } else { Color::Grey },
                                     weight: if is_selected { Weight::Bold } else { Weight::Normal },
                                 )
                             }
@@ -629,31 +629,70 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                 }
 
                 // Main: Fields
-                View(flex_grow: 1.0, flex_direction: FlexDirection::Column, padding: 1, border_style: BorderStyle::Single, border_color: Color::Grey) {
-                    Text(content: format!("Section: {}", sections[selected_section.get()]), weight: Weight::Bold, color: Color::Cyan)
+                View(flex_grow: 1.0, flex_direction: FlexDirection::Column, padding: 1, border_style: BorderStyle::Single, border_color: Color::DarkGrey) {
+                    Text(content: sections[selected_section.get()].to_string(), weight: Weight::Bold, color: Color::White)
 
                    // Fields List
-                View(flex_direction: FlexDirection::Column, flex_grow: 1.0) {
+                View(flex_direction: FlexDirection::Column, flex_grow: 1.0, margin_top: 1) {
                     #(fields.iter().enumerate().map(|(i, (label, value)): (usize, &(String, String))| {
                         let label = label.to_string();
-                        let value = value.to_string();
+                        let value_str = value.to_string();
                         let is_selected = i == selected_field.get();
                         let is_on_editing = is_selected && is_editing.get();
 
+                        // Detect if this is a boolean value
+                        let is_boolean = value_str == "true" || value_str == "false";
+                        let bool_val = value_str == "true";
+
                         element! (
-                            View {
+                            View(margin_bottom: 0) {
                                 Text(
-                                    content: if is_selected { "▸ " } else { "  " },
-                                    color: Color::Green,
+                                    content: if is_selected { "› " } else { "  " },
+                                    color: Color::Cyan,
                                 )
-                                View(width: 25) {
-                                    Text(content: format!("{}: ", label))
+                                View(width: 20) {
+                                    Text(
+                                        content: label.clone(),
+                                        color: if is_selected { Color::White } else { Color::Grey },
+                                    )
                                 }
-                                Text(
-                                    content: if is_on_editing { format!("{}▮", edit_buffer.read().as_str()) } else { value.clone() },
-                                    color: if is_on_editing { Color::Yellow } else if is_selected { Color::White } else { Color::Grey },
-                                    weight: if is_selected { Weight::Bold } else { Weight::Normal },
-                                )
+                                #(if is_boolean {
+                                    // Toggle switch for booleans
+                                    element! {
+                                        View(flex_direction: FlexDirection::Row) {
+                                            Text(
+                                                content: if bool_val { "[ON] " } else { " ON  " },
+                                                color: if bool_val { Color::Cyan } else { Color::DarkGrey },
+                                                weight: if bool_val { Weight::Bold } else { Weight::Normal },
+                                            )
+                                            Text(
+                                                content: if !bool_val { "[OFF]" } else { " OFF " },
+                                                color: if !bool_val { Color::Cyan } else { Color::DarkGrey },
+                                                weight: if !bool_val { Weight::Bold } else { Weight::Normal },
+                                            )
+                                        }
+                                    }
+                                } else if is_on_editing {
+                                    // Editing mode with cursor
+                                    element! {
+                                        View(border_style: BorderStyle::Single, border_color: Color::Cyan, padding_left: 1, padding_right: 1) {
+                                            Text(
+                                                content: format!("{}▏", edit_buffer.read().as_str()),
+                                                color: Color::White,
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    // Normal display with box
+                                    element! {
+                                        View(border_style: BorderStyle::Single, border_color: if is_selected { Color::Grey } else { Color::DarkGrey }, padding_left: 1, padding_right: 1) {
+                                            Text(
+                                                content: value_str.clone(),
+                                                color: if is_selected { Color::White } else { Color::DarkGrey },
+                                            )
+                                        }
+                                    }
+                                })
                             }
                         )
                     }))
@@ -666,8 +705,8 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
             }
 
             // Footer
-            View(padding: 1, border_style: BorderStyle::Single, border_color: Color::Grey) {
-                Text(content: "Arrows/hjkl: Navigate  Enter: Edit  Esc: Back  q: Save & Quit", color: Color::Grey)
+            View(padding: 1, border_style: BorderStyle::Single, border_color: Color::DarkGrey) {
+                Text(content: "↑↓ Navigate  ←→ Sections  Enter Edit  q Save & Quit", color: Color::DarkGrey)
             }
         }
     }

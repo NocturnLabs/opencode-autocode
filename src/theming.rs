@@ -7,15 +7,18 @@
 use std::fmt;
 
 /// ANSI 256-color codes for terminal styling
+/// Clean Minimalist Palette: Professional, muted tones
 pub mod colors {
-    pub const PRIMARY: u8 = 117; // #87d7ff - soft blue
-    pub const SECONDARY: u8 = 153; // #afd7ff - lighter blue
-    pub const SUCCESS: u8 = 114; // #87d787 - soft green
-    pub const WARNING: u8 = 215; // #ffaf5f - soft orange
-    pub const ERROR: u8 = 203; // #ff5f5f - soft red
-    pub const MUTED: u8 = 245; // #8a8a8a - gray
-    pub const HIGHLIGHT: u8 = 87; // #5fffff - bright cyan
-    pub const ACCENT: u8 = 177; // #d787ff - soft purple
+    pub const PRIMARY: u8 = 110; // #87afd7 - soft slate blue
+    pub const SECONDARY: u8 = 146; // #afafd7 - lavender grey
+    pub const SUCCESS: u8 = 108; // #87af87 - muted sage green
+    pub const WARNING: u8 = 179; // #d7af5f - muted gold
+    pub const ERROR: u8 = 167; // #d75f5f - muted coral
+    pub const MUTED: u8 = 243; // #767676 - medium grey
+    pub const HIGHLIGHT: u8 = 255; // #eeeeee - bright white (for active elements)
+    pub const ACCENT: u8 = 73; // #5fafaf - soft teal
+    pub const BORDER: u8 = 240; // #585858 - charcoal grey (for borders)
+    pub const HEADER: u8 = 231; // #ffffff - pure white (for headers)
 }
 
 /// Unicode symbols for status indicators
