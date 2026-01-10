@@ -5,6 +5,12 @@
 //! across all interactive terminal displays.
 
 use std::fmt;
+use unicode_width::UnicodeWidthStr;
+
+/// Calculate the visual width of a string (handling multi-byte characters and emojis)
+pub fn visual_width(s: &str) -> usize {
+    UnicodeWidthStr::width(s)
+}
 
 /// ANSI 256-color codes for terminal styling
 /// Clean Minimalist Palette: Professional, muted tones

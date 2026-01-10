@@ -23,6 +23,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
         .use_state(|| crate::config::mcp_loader::load_global_mcp_servers().unwrap_or_default());
 
     let config_arc = props.config.clone();
+    // Only show functional config sections
     let sections = vec![
         "Models",
         "Autonomous",
@@ -32,8 +33,6 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
         "Generation",
         "Security",
         "UI",
-        "Features",
-        "Scaffolding",
         "Notifications",
         "Conductor",
         "Paths",
@@ -138,16 +137,8 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     config.generation.complexity.clone(),
                 ),
                 (
-                    "Accessibility".to_string(),
-                    config.generation.include_accessibility.to_string(),
-                ),
-                (
-                    "Security Sec".to_string(),
-                    config.generation.include_security_section.to_string(),
-                ),
-                (
-                    "Testing Sec".to_string(),
-                    config.generation.include_testing_strategy.to_string(),
+                    "Subagents".to_string(),
+                    config.generation.enable_subagents.to_string(),
                 ),
             ],
             6 => vec![
@@ -165,53 +156,9 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     "Spec Preview Lines".to_string(),
                     config.ui.spec_preview_lines.to_string(),
                 ),
-                (
-                    "Colored Output".to_string(),
-                    config.ui.colored_output.to_string(),
-                ),
-                (
-                    "Show Progress".to_string(),
-                    config.ui.show_progress.to_string(),
-                ),
                 ("Verbose".to_string(), config.ui.verbose.to_string()),
             ],
             8 => vec![
-                (
-                    "Require Verification".to_string(),
-                    config.features.require_verification_command.to_string(),
-                ),
-                (
-                    "Narrow Min Steps".to_string(),
-                    config.features.narrow_test_min_steps.to_string(),
-                ),
-                (
-                    "Narrow Max Steps".to_string(),
-                    config.features.narrow_test_max_steps.to_string(),
-                ),
-                (
-                    "Comprehensive Min".to_string(),
-                    config.features.comprehensive_test_min_steps.to_string(),
-                ),
-            ],
-            9 => vec![
-                (
-                    "Git Init".to_string(),
-                    config.scaffolding.git_init.to_string(),
-                ),
-                (
-                    "Output Dir".to_string(),
-                    config.scaffolding.output_dir.clone(),
-                ),
-                (
-                    "Create .opencode".to_string(),
-                    config.scaffolding.create_opencode_dir.to_string(),
-                ),
-                (
-                    "Create Scripts".to_string(),
-                    config.scaffolding.create_scripts_dir.to_string(),
-                ),
-            ],
-            10 => vec![
                 (
                     "Webhook Enabled".to_string(),
                     config.notifications.webhook_enabled.to_string(),
@@ -221,7 +168,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     config.notifications.webhook_url.clone().unwrap_or_default(),
                 ),
             ],
-            11 => vec![
+            9 => vec![
                 (
                     "Context Dir".to_string(),
                     config.conductor.context_dir.clone(),
@@ -243,7 +190,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     config.conductor.checkpoint_frequency.to_string(),
                 ),
             ],
-            12 => vec![
+            10 => vec![
                 ("Log Dir".to_string(), config.paths.log_dir.clone()),
                 (
                     "VS Cache Dir".to_string(),
@@ -263,6 +210,17 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
     };
 
     let fields_len = fields.len();
+
+    // Calculate dynamic label width (max label length + padding)
+    let max_label_width = fields
+        .iter()
+        .map(|(label, _)| label.len())
+        .max()
+        .unwrap_or(15)
+        + 2;
+
+    // Calculate dynamic sidebar width (max section name + indicator)
+    let max_section_width = sections.iter().map(|s| s.len()).max().unwrap_or(10) + 4;
 
     hooks.use_terminal_events(move |event| match event {
         TerminalEvent::Key(KeyEvent { code, kind, .. }) if kind != KeyEventKind::Release => {
@@ -360,15 +318,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                             5 => match field_idx {
                                 0 => config.generation.complexity = val,
                                 1 => {
-                                    config.generation.include_accessibility =
-                                        val.to_lowercase() == "true"
-                                }
-                                2 => {
-                                    config.generation.include_security_section =
-                                        val.to_lowercase() == "true"
-                                }
-                                3 => {
-                                    config.generation.include_testing_strategy =
+                                    config.generation.enable_subagents =
                                         val.to_lowercase() == "true"
                                 }
                                 _ => {}
@@ -385,45 +335,10 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                     config.ui.spec_preview_lines =
                                         val.parse().unwrap_or(config.ui.spec_preview_lines)
                                 }
-                                1 => config.ui.colored_output = val.to_lowercase() == "true",
-                                2 => config.ui.show_progress = val.to_lowercase() == "true",
-                                3 => config.ui.verbose = val.to_lowercase() == "true",
+                                1 => config.ui.verbose = val.to_lowercase() == "true",
                                 _ => {}
                             },
                             8 => match field_idx {
-                                0 => {
-                                    config.features.require_verification_command =
-                                        val.to_lowercase() == "true"
-                                }
-                                1 => {
-                                    config.features.narrow_test_min_steps =
-                                        val.parse().unwrap_or(config.features.narrow_test_min_steps)
-                                }
-                                2 => {
-                                    config.features.narrow_test_max_steps =
-                                        val.parse().unwrap_or(config.features.narrow_test_max_steps)
-                                }
-                                3 => {
-                                    config.features.comprehensive_test_min_steps = val
-                                        .parse()
-                                        .unwrap_or(config.features.comprehensive_test_min_steps)
-                                }
-                                _ => {}
-                            },
-                            9 => match field_idx {
-                                0 => config.scaffolding.git_init = val.to_lowercase() == "true",
-                                1 => config.scaffolding.output_dir = val,
-                                2 => {
-                                    config.scaffolding.create_opencode_dir =
-                                        val.to_lowercase() == "true"
-                                }
-                                3 => {
-                                    config.scaffolding.create_scripts_dir =
-                                        val.to_lowercase() == "true"
-                                }
-                                _ => {}
-                            },
-                            10 => match field_idx {
                                 0 => {
                                     config.notifications.webhook_enabled =
                                         val.to_lowercase() == "true"
@@ -434,7 +349,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 }
                                 _ => {}
                             },
-                            11 => match field_idx {
+                            9 => match field_idx {
                                 0 => config.conductor.context_dir = val,
                                 1 => config.conductor.tracks_dir = val,
                                 2 => config.conductor.auto_setup = val.to_lowercase() == "true",
@@ -445,7 +360,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 }
                                 _ => {}
                             },
-                            12 => match field_idx {
+                            10 => match field_idx {
                                 0 => config.paths.log_dir = val,
                                 1 => config.paths.vs_cache_dir = val,
                                 2 => config.paths.database_file = val,
@@ -613,7 +528,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
 
             View(flex_grow: 1.0, flex_direction: FlexDirection::Row) {
                 // Sidebar: Sections
-                View(width: 22, flex_direction: FlexDirection::Column, border_style: BorderStyle::Single, border_color: Color::DarkGrey, padding_top: 1) {
+                View(width: max_section_width as u32, flex_direction: FlexDirection::Column, border_style: BorderStyle::Single, border_color: Color::DarkGrey, padding_top: 1) {
                     #(sections.iter().enumerate().map(|(i, &name)| {
                         let is_selected = i == selected_section.get();
                         element! {
@@ -650,7 +565,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                     content: if is_selected { "› " } else { "  " },
                                     color: Color::Cyan,
                                 )
-                                View(width: 20) {
+                                View(width: max_label_width as u32) {
                                     Text(
                                         content: label.clone(),
                                         color: if is_selected { Color::White } else { Color::Grey },

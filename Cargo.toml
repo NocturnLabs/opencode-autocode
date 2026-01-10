@@ -58,6 +58,8 @@ self_update = { version = "0.42.0", features = [
     "compression-flate2",
 ] }
 num_cpus = "1.17.0"
+unicode-width = "0.2.0"
+
 
 # Unix process control (for process group termination)
 [target.'cfg(unix)'.dependencies]

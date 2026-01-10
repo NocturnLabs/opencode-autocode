@@ -22,6 +22,7 @@ pub fn run_supervisor_loop(
     settings: &LoopSettings,
     enhancement_mode: bool,
     target_feature_id: Option<i64>,
+    banner_width: usize,
 ) -> Result<()> {
     let db_path = Path::new(&settings.database_file);
     let logger = debug_logger::get();
@@ -61,7 +62,7 @@ pub fn run_supervisor_loop(
         // Now safe to print the session header
         logger.separator();
         logger.info(&format!("Session {} starting", iteration));
-        display::display_session_header(iteration);
+        display::display_session_header(iteration, banner_width);
 
         // --- Step 2: Prepare Command ---
         let ActionCommand {
@@ -150,7 +151,7 @@ pub fn run_supervisor_loop(
 
         // Display token usage
         if let Some(ref stats) = stats::fetch_token_stats() {
-            display::display_token_stats(stats);
+            display::display_token_stats(stats, banner_width);
         }
 
         // --- Step 5: Handle Loop Continuation ---
