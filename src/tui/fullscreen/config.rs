@@ -37,6 +37,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
     let mut is_editing = hooks.use_state(|| false);
     let mut edit_buffer = hooks.use_state(String::new);
     let mut should_exit = hooks.use_state(|| false);
+    let mut config_version = hooks.use_state(|| 0u32); // Used to force re-render on config change
     let global_mcp_tools = hooks
         .use_state(|| crate::config::mcp_loader::load_global_mcp_servers().unwrap_or_default());
 
@@ -351,7 +352,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
         + 2;
 
     // Calculate dynamic sidebar width (max section name + indicator)
-    let max_section_width = sections.iter().map(|s| s.len()).max().unwrap_or(10) + 4;
+    let max_section_width = sections.iter().map(|s| s.len()).max().unwrap_or(10) + 12;
 
     hooks.use_terminal_events(move |event| match event {
         TerminalEvent::Key(KeyEvent { code, kind, .. }) if kind != KeyEventKind::Release => {
@@ -587,6 +588,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                             },
                             _ => {}
                         }
+                        config_version.set(config_version.get() + 1);
                         is_editing.set(false);
                     }
                     KeyCode::Esc => {
@@ -628,11 +630,13 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                             selected_field.set(0);
                         }
                     }
-                    KeyCode::Enter => {
-                        let config = config_arc.lock().unwrap();
+                    KeyCode::Enter | KeyCode::Char(' ') => {
+                        let mut config = config_arc.lock().unwrap();
                         let section_idx = selected_section.get();
                         let field_idx = selected_field.get();
-                        let val = match section_idx {
+
+                        // Helper to get current value and check if boolean
+                        let current_val = match section_idx {
                             0 => match field_idx {
                                 0 => config.models.autonomous.clone(),
                                 1 => config.models.default.clone(),
@@ -746,8 +750,128 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                             },
                             _ => String::new(),
                         };
-                        edit_buffer.set(val);
-                        is_editing.set(true);
+
+                        let is_boolean = current_val == "true" || current_val == "false";
+
+                        if is_boolean {
+                            // Toggle the boolean value directly
+                            let new_val = if current_val == "true" {
+                                "false"
+                            } else {
+                                "true"
+                            };
+                            match section_idx {
+                                1 => match field_idx {
+                                    1 => config.generation.enable_subagents = new_val == "true",
+                                    2 => {
+                                        config.generation.include_security_section =
+                                            new_val == "true"
+                                    }
+                                    3 => {
+                                        config.generation.include_testing_strategy =
+                                            new_val == "true"
+                                    }
+                                    4 => {
+                                        config.generation.include_devops_section = new_val == "true"
+                                    }
+                                    5 => {
+                                        config.generation.include_accessibility = new_val == "true"
+                                    }
+                                    6 => {
+                                        config.generation.include_future_enhancements =
+                                            new_val == "true"
+                                    }
+                                    _ => {}
+                                },
+                                2 => {
+                                    if field_idx == 4 {
+                                        config.autonomous.auto_commit = new_val == "true";
+                                    }
+                                }
+                                3 => {
+                                    if field_idx == 3 {
+                                        config.agent.single_feature_focus = new_val == "true";
+                                    }
+                                }
+                                4 => match field_idx {
+                                    0 => config.alternative_approaches.enabled = new_val == "true",
+                                    3 => {
+                                        config.alternative_approaches.cache_results =
+                                            new_val == "true"
+                                    }
+                                    _ => {}
+                                },
+                                5 => match field_idx {
+                                    0 => config.mcp.prefer_osgrep = new_val == "true",
+                                    1 => config.mcp.use_sequential_thinking = new_val == "true",
+                                    idx => {
+                                        if let Some(tool_name) =
+                                            global_mcp_tools.read().get(idx - 2)
+                                        {
+                                            let enabled = new_val == "true";
+                                            if enabled {
+                                                if !config.mcp.required_tools.contains(tool_name) {
+                                                    config
+                                                        .mcp
+                                                        .required_tools
+                                                        .push(tool_name.clone());
+                                                }
+                                            } else {
+                                                config
+                                                    .mcp
+                                                    .required_tools
+                                                    .retain(|t| t != tool_name);
+                                            }
+                                        }
+                                    }
+                                },
+                                6 => {
+                                    if field_idx == 1 {
+                                        config.security.enforce_allowlist = new_val == "true";
+                                    }
+                                }
+                                7 => match field_idx {
+                                    0 => config.ui.colored_output = new_val == "true",
+                                    1 => config.ui.verbose = new_val == "true",
+                                    2 => config.ui.show_progress = new_val == "true",
+                                    _ => {}
+                                },
+                                8 => {
+                                    if field_idx == 0 {
+                                        config.notifications.webhook_enabled = new_val == "true";
+                                    }
+                                }
+                                9 => {
+                                    if field_idx == 2 {
+                                        config.features.require_verification_command =
+                                            new_val == "true";
+                                    }
+                                }
+                                10 => match field_idx {
+                                    0 => config.scaffolding.git_init = new_val == "true",
+                                    2 => config.scaffolding.create_opencode_dir = new_val == "true",
+                                    3 => config.scaffolding.create_scripts_dir = new_val == "true",
+                                    _ => {}
+                                },
+                                11 => {
+                                    if field_idx == 2 {
+                                        config.conductor.auto_setup = new_val == "true";
+                                    }
+                                }
+                                13 => match field_idx {
+                                    0 => config.communication.enabled = new_val == "true",
+                                    2 => config.communication.auto_ask_on_error = new_val == "true",
+                                    _ => {}
+                                },
+                                _ => {}
+                            }
+                            config_version.set(config_version.get() + 1);
+                        } else {
+                            // Non-boolean: enter edit mode
+                            drop(config); // Release the lock before setting state
+                            edit_buffer.set(current_val);
+                            is_editing.set(true);
+                        }
                     }
                     KeyCode::Char('q') => {
                         should_exit.set(true);
@@ -804,7 +928,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                         let bool_val = value_str == "true";
 
                         element! (
-                            View(margin_bottom: 0) {
+                            View(margin_bottom: 1) {
                                 Text(
                                     content: if is_selected { "› " } else { "  " },
                                     color: Color::Cyan,
@@ -818,7 +942,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 #(if is_boolean {
                                     // Toggle switch for booleans
                                     element! {
-                                        View(flex_direction: FlexDirection::Row) {
+                                        View(flex_direction: FlexDirection::Row, padding_top: 1, padding_bottom: 1) {
                                             Text(
                                                 content: if bool_val { "[ON] " } else { " ON  " },
                                                 color: if bool_val { Color::Cyan } else { Color::DarkGrey },
@@ -858,14 +982,14 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                 }
 
                     View(margin_top: 2, padding: 1, border_style: BorderStyle::Single, border_color: Color::DarkGrey) {
-                        Text(content: "Note: Press Enter to edit the selected field. Boolean values should be typed as 'true' or 'false'.", color: Color::Grey)
+                        Text(content: format!("Tip: Toggle switches with Enter/Space. Edit text fields with Enter. (v{})", config_version.get()), color: Color::Grey)
                     }
                 }
             }
 
             // Footer
             View(padding: 1, border_style: BorderStyle::Single, border_color: Color::DarkGrey) {
-                Text(content: "↑↓ Navigate  ←→ Sections  Enter Edit  q Save & Quit", color: Color::DarkGrey)
+                Text(content: "↑↓ Navigate  ←→ Sections  Enter/Space Toggle/Edit  q Save & Quit", color: Color::DarkGrey)
             }
         }
     }
