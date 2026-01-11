@@ -240,3 +240,10 @@ webhook_enabled = false
 # Webhook URL for Discord-compatible embeds
 # Environment variables like $DISCORD_WEBHOOK are expanded
 webhook_url = ""
+
+# Discord Bot Token for failure notifications with interactive buttons
+# Uses $DISCORD_BOT_TOKEN env var if set, otherwise uses this value
+bot_token = ""
+
+# Discord Channel ID for bot messages (per-project, required for bot notifications)
+channel_id = ""

@@ -72,6 +72,11 @@ pub struct NotificationsConfig {
     pub webhook_url: Option<String>,
     /// Enable webhook notifications
     pub webhook_enabled: bool,
+    /// Discord Bot Token (supports interactive buttons)
+    /// Loaded from $DISCORD_BOT_TOKEN env var, fallback to config value
+    pub bot_token: Option<String>,
+    /// Discord Channel ID for bot messages (per-project)
+    pub channel_id: Option<String>,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

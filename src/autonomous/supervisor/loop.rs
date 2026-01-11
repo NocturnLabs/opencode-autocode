@@ -10,6 +10,7 @@ use crate::autonomous::display;
 use crate::autonomous::session;
 use crate::autonomous::settings::{handle_session_result, LoopAction, LoopSettings};
 use crate::autonomous::stats;
+use crate::autonomous::webhook::{notify_failure, FailureReason};
 
 use crate::common::logging as debug_logger;
 
@@ -41,6 +42,12 @@ pub fn run_supervisor_loop(
         if iteration > settings.max_iterations {
             logger.info("Reached max iterations");
             println!("\nReached max iterations ({})", settings.max_iterations);
+            let _ = notify_failure(
+                config,
+                FailureReason::MaxIterations {
+                    iterations: settings.max_iterations,
+                },
+            );
             break;
         }
 
@@ -145,6 +152,13 @@ pub fn run_supervisor_loop(
                     no_progress_count
                 );
                 logger.warning(&format!("No progress for {} iterations", no_progress_count));
+                let _ = notify_failure(
+                    config,
+                    FailureReason::NoProgress {
+                        count: no_progress_count,
+                        limit: settings.max_no_progress,
+                    },
+                );
                 break;
             }
         }
@@ -181,6 +195,12 @@ pub fn run_supervisor_loop(
     if last_run_success {
         Ok(())
     } else {
+        let _ = notify_failure(
+            config,
+            FailureReason::FatalError {
+                message: "Last feature failed verification".to_string(),
+            },
+        );
         anyhow::bail!("Autonomous run complete but the last feature failed verification.")
     }
 }

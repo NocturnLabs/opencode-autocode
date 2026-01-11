@@ -115,6 +115,23 @@ impl Config {
         if let Some(ref url) = self.notifications.webhook_url {
             self.notifications.webhook_url = Some(expand_env_var(url));
         }
+        // Bot token: check env var first ($DISCORD_BOT_TOKEN), then config value
+        if self
+            .notifications
+            .bot_token
+            .as_ref()
+            .is_none_or(|t| t.is_empty())
+        {
+            if let Ok(token) = std::env::var("DISCORD_BOT_TOKEN") {
+                self.notifications.bot_token = Some(token);
+            }
+        } else if let Some(ref token) = self.notifications.bot_token {
+            self.notifications.bot_token = Some(expand_env_var(token));
+        }
+        // Channel ID from config (per-project)
+        if let Some(ref channel) = self.notifications.channel_id {
+            self.notifications.channel_id = Some(expand_env_var(channel));
+        }
     }
 
     /// Canonicalize relative paths based on the project root.
