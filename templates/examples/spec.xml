@@ -1,0 +1,18 @@
+<template>
+<content><![CDATA[
+# Example: App spec structure
+
+<project_specification>
+<project_name>My App</project_name>
+<overview>Brief description...</overview>
+<technology_stack> - Frontend: React, TypeScript - Backend: Node.js, Express - Database: PostgreSQL
+</technology_stack>
+<core_features> - User authentication with JWT - CRUD operations for resources - Real-time notifications
+</core_features>
+<database_schema> - users: id, email, password_hash - resources: id, name, user_id
+</database_schema>
+<success_criteria> - All E2E tests pass - <100ms API response time
+</success_criteria>
+</project_specification>
+]]></content>
+</template>

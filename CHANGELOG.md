@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+## [0.10.0] - 2026-01-13
+
+### Added
+
+- **XML Template System**: Complete migration of all templates from Markdown to XML-wrapped format with CDATA sections for better structure, validation, and future extensibility
+- **XML Template Reader**: New `src/template_xml.rs` module using `quick-xml` crate for parsing XML-wrapped templates
+- **Template Metadata Support**: XML envelope allows for future addition of template metadata (version, author, etc.)
+
+### Changed
+
+- **Template Format**: All template files converted from `.md` to `.xml` format while preserving identical content
+- **Template Loading**: Updated all template consumers to use the new XML reader:
+  - `src/templates.rs` - Core template loading
+  - `src/services/scaffold/` - Scaffold module templates
+  - `src/services/generator/prompts.rs` - Generator prompt templates
+  - `src/docs.rs` - Documentation templates
+  - `src/autonomous/templates.rs` - Autonomous agent templates
+- **Configuration**: Removed deprecated `prefer_osgrep` field from MCP configuration
+- **TUI**: Updated config editor to remove OsGrep UI elements and adjust field indices
+- **Documentation**: Updated `docs/INTERNAL_ARCHITECTURE.md` and `docs/template_costs.md` to reference `.xml` templates
+
+### Removed
+
+- **Deprecated Config**: `prefer_osgrep` field from `McpConfig` struct
+- **Code Duplication**: Removed duplicate `Default` impls for `McpConfig`
+- **Unused Code**: Fixed unused variable warning in `src/config/mcp_loader.rs`
+
+### Fixed
+
+- **JSON Formatting**: Fixed escaped braces in `format_opencode_json` function in `src/config_tui/save.rs`
+- **Code Quality**: Various warnings and code quality improvements throughout the codebase
+
 ## [0.9.0] - 2026-01-09
 
 ### Added
@@ -92,7 +126,6 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- **Defaults**: `prefer_osgrep` now defaults to `true` for 100x faster searches.
 - **Spec Generation**:
   - Added "Local Software" to Role Definition.
   - Replaced hardcoded feature minimums (e.g., "15+") with open-ended guidance scaling with project complexity.

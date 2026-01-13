@@ -929,8 +929,8 @@ fn resolve_includes(template: &str) -> String
 **Pattern**: Implements "Progressive Discovery" — templates include sub-templates on demand:
 
 ```markdown
-{{INCLUDE templates/core/identity.md}}
-{{INCLUDE templates/core/security.md}}
+{{INCLUDE templates/core/identity.xml}}
+{{INCLUDE templates/core/security.xml}}
 ```
 
 ---
@@ -1544,19 +1544,19 @@ cargo test --test integration # Integration tests
 
 ## Appendix: Command Templates
 
-### auto-init.md
+### auto-init.xml
 
 Initializes project from specification, creates feature database.
 
-### auto-continue.md
+### auto-continue.xml
 
 Continues work on next incomplete feature.
 
-### auto-context.md
+### auto-context.xml
 
 Sets up conductor context (product.md, tech_stack.md).
 
-### auto-fix.md
+### auto-fix.xml
 
 Fixes a regression based on last_error context.
 

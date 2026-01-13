@@ -15,25 +15,24 @@ use assets::*;
 ///
 /// This implements the "Progressive Discovery" pattern, where high-level
 /// command templates (like auto-init.md) include modular core logic
-/// (like identity.md or security.md) only when needed by the agent.
-pub fn resolve_includes(template: &str) -> String {
+/// (like identity.xml or security.xml) only when needed by the agent.
+pub fn resolve_includes(template: &str) -> Result<String> {
     let mut result = template.to_string();
 
-    // Map of include paths to their embedded content
-    let includes: &[(&str, &str)] = &[
-        ("core/identity.md", CORE_IDENTITY),
-        ("core/security.md", CORE_SECURITY),
-        ("core/signaling.md", CORE_SIGNALING),
-        ("core/database.md", CORE_DATABASE),
-        ("core/mcp_guide.md", CORE_MCP_GUIDE),
+    let includes = [
+        ("core/identity.xml", core_identity()?),
+        ("core/security.xml", core_security()?),
+        ("core/signaling.xml", core_signaling()?),
+        ("core/database.xml", core_database()?),
+        ("core/mcp_guide.xml", core_mcp_guide()?),
     ];
 
     for (path, content) in includes {
         let directive = format!("{{{{INCLUDE {}}}}}", path);
-        result = result.replace(&directive, content);
+        result = result.replace(&directive, &content);
     }
 
-    result
+    Ok(result)
 }
 
 /// Scaffold with the default embedded app spec
@@ -96,7 +95,8 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     // Write command files (these stay in .opencode/ for OpenCode compatibility)
     // Templates are processed to resolve {{INCLUDE}} directives
     let auto_init_path = command_dir.join("auto-init.md");
-    let auto_init_content = resolve_includes(AUTO_INIT_TEMPLATE)
+    let auto_init_template = auto_init_template()?;
+    let auto_init_content = resolve_includes(&auto_init_template)?
         .replace(
             "{{SPEC_FEATURE_COUNT}}",
             &stats.stats.feature_count.to_string(),
@@ -109,12 +109,14 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
     println!("   📄 Created .opencode/command/auto-init.md");
 
     let auto_continue_path = command_dir.join("auto-continue.md");
-    let auto_continue_content = resolve_includes(AUTO_CONTINUE_TEMPLATE);
+    let auto_continue_template = auto_continue_template()?;
+    let auto_continue_content = resolve_includes(&auto_continue_template)?;
     write_file(&auto_continue_path, &auto_continue_content)?;
     println!("   📄 Created .opencode/command/auto-continue.md");
 
     let auto_enhance_path = command_dir.join("auto-enhance.md");
-    write_file(&auto_enhance_path, AUTO_ENHANCE_TEMPLATE)?;
+    let auto_enhance_template = auto_enhance_template()?;
+    write_file(&auto_enhance_path, &auto_enhance_template)?;
     println!("   📄 Created .opencode/command/auto-enhance.md");
 
     // Write security allowlist inside .forger/
@@ -147,20 +149,20 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
 
     // Write subagent definitions for parallel spec generation
     let spec_product_path = agent_dir.join("spec-product.md");
-    write_file(&spec_product_path, SPEC_PRODUCT_AGENT)?;
+    write_file(&spec_product_path, &spec_product_agent()?)?;
     println!("   🤖 Created .opencode/agent/spec-product.md");
 
     let spec_arch_path = agent_dir.join("spec-architecture.md");
-    write_file(&spec_arch_path, SPEC_ARCHITECTURE_AGENT)?;
+    write_file(&spec_arch_path, &spec_architecture_agent()?)?;
     println!("   🤖 Created .opencode/agent/spec-architecture.md");
 
     let spec_quality_path = agent_dir.join("spec-quality.md");
-    write_file(&spec_quality_path, SPEC_QUALITY_AGENT)?;
+    write_file(&spec_quality_path, &spec_quality_agent()?)?;
     println!("   🤖 Created .opencode/agent/spec-quality.md");
 
     // Write coder subagent for dual-model architecture
     let coder_path = agent_dir.join("coder.md");
-    write_file(&coder_path, CODER_AGENT)?;
+    write_file(&coder_path, &coder_agent()?)?;
     println!("   🤖 Created .opencode/agent/coder.md");
 
     // Write .gitignore at project root if it doesn't exist
@@ -274,7 +276,6 @@ fn generate_opencode_json() -> String {
 /// Generate .gitignore content for scaffolded projects
 fn generate_gitignore() -> String {
     r#"# MCP & Tool caches (do not commit)
-.osgrep/
 .approach-cache/
 .vs-cache/
 

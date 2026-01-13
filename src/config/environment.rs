@@ -90,8 +90,6 @@ pub struct McpConfig {
     pub priority_order: Vec<String>,
     /// Required MCP tools (set by spec generator based on project type)
     pub required_tools: Vec<String>,
-    /// Prefer osgrep over grep
-    pub prefer_osgrep: bool,
     /// Use sequential thinking for complex decisions
     pub use_sequential_thinking: bool,
 }
@@ -104,7 +102,6 @@ impl Default for McpConfig {
             priority_order: vec![],
             // Empty by default - spec generator populates for web projects
             required_tools: vec![],
-            prefer_osgrep: true,
             use_sequential_thinking: true,
         }
     }

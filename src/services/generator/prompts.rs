@@ -1,17 +1,18 @@
 use crate::config::Config;
+use crate::template_xml;
 
 /// Embedded prompt template for spec generation (legacy single-pass)
-const GENERATOR_PROMPT: &str = include_str!("../../../templates/generator_prompt.md");
+const GENERATOR_PROMPT: &str = include_str!("../../../templates/generator_prompt.xml");
 
 /// Embedded prompt template for subagent-based parallel generation
-const SUBAGENT_PROMPT: &str = include_str!("../../../templates/generator/subagent_prompt.md");
+const SUBAGENT_PROMPT: &str = include_str!("../../../templates/generator/subagent_prompt.xml");
 
 /// Embedded prompt template for spec refinement
-const REFINE_PROMPT: &str = include_str!("../../../templates/refine_prompt.md");
+const REFINE_PROMPT: &str = include_str!("../../../templates/refine_prompt.xml");
 
 /// Embedded prompt template for fixing malformed XML
 const FIX_MALFORMED_PROMPT: &str =
-    include_str!("../../../templates/generator/fix_malformed_xml.md");
+    include_str!("../../../templates/generator/fix_malformed_xml.xml");
 
 /// Build the generation prompt by inserting the user's idea and configuration constraints.
 pub fn build_generation_prompt(
@@ -33,7 +34,10 @@ pub fn build_generation_prompt(
         "The target is a comprehensive, production-ready specification with deep detail."
     };
 
-    GENERATOR_PROMPT
+    let generator_prompt = template_xml::render_template(GENERATOR_PROMPT)
+        .unwrap_or_else(|_| GENERATOR_PROMPT.to_string());
+
+    generator_prompt
         .replace("{{IDEA}}", idea)
         .replace("{{TESTING_PREFERENCE}}", &pref_text)
         .replace("{{COMPLEXITY_GUIDANCE}}", guidance)
@@ -53,7 +57,10 @@ pub fn build_subagent_prompt(
         _ => String::new(),
     };
 
-    SUBAGENT_PROMPT
+    let subagent_prompt = template_xml::render_template(SUBAGENT_PROMPT)
+        .unwrap_or_else(|_| SUBAGENT_PROMPT.to_string());
+
+    subagent_prompt
         .replace("{{IDEA}}", idea)
         .replace("{{TESTING_PREFERENCE}}", &pref_text)
         .replace("{{BLUEPRINT}}", "[The blueprint you generated above]")
@@ -61,14 +68,18 @@ pub fn build_subagent_prompt(
 
 /// Build the refinement prompt by inserting the current spec and refinement instructions.
 pub fn build_refine_prompt(current_spec: &str, refinement: &str) -> String {
-    REFINE_PROMPT
+    let refine_prompt =
+        template_xml::render_template(REFINE_PROMPT).unwrap_or_else(|_| REFINE_PROMPT.to_string());
+
+    refine_prompt
         .replace("{{EXISTING_SPEC}}", current_spec)
         .replace("{{REFINEMENT}}", refinement)
 }
 
 /// Build the fix prompt by inserting the original idea and error message.
 pub fn build_fix_prompt(idea: &str, errors: &str, partial_output: Option<&str>) -> String {
-    let fix_prompt = FIX_MALFORMED_PROMPT
+    let fix_prompt = template_xml::render_template(FIX_MALFORMED_PROMPT)
+        .unwrap_or_else(|_| FIX_MALFORMED_PROMPT.to_string())
         .replace("{{IDEA}}", idea)
         .replace("{{ERRORS}}", errors);
 

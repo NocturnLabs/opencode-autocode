@@ -177,13 +177,10 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                 ),
             ],
             5 => {
-                let mut tools = vec![
-                    ("OsGrep".to_string(), config.mcp.prefer_osgrep.to_string()),
-                    (
-                        "Sequential".to_string(),
-                        config.mcp.use_sequential_thinking.to_string(),
-                    ),
-                ];
+                let mut tools = vec![(
+                    "Sequential".to_string(),
+                    config.mcp.use_sequential_thinking.to_string(),
+                )];
                 for tool in global_mcp_tools.read().iter() {
                     let enabled = config.mcp.required_tools.contains(tool);
                     tools.push((tool.clone(), enabled.to_string()));
@@ -443,13 +440,12 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 _ => {}
                             },
                             5 => match field_idx {
-                                0 => config.mcp.prefer_osgrep = val.to_lowercase() == "true",
-                                1 => {
+                                0 => {
                                     config.mcp.use_sequential_thinking =
                                         val.to_lowercase() == "true"
                                 }
                                 idx => {
-                                    if let Some(tool_name) = global_mcp_tools.read().get(idx - 2) {
+                                    if let Some(tool_name) = global_mcp_tools.read().get(idx - 1) {
                                         let enabled = val.to_lowercase() == "true";
                                         if enabled {
                                             if !config.mcp.required_tools.contains(tool_name) {
@@ -638,10 +634,9 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 _ => String::new(),
                             },
                             5 => match field_idx {
-                                0 => config.mcp.prefer_osgrep.to_string(),
-                                1 => config.mcp.use_sequential_thinking.to_string(),
+                                0 => config.mcp.use_sequential_thinking.to_string(),
                                 idx => {
-                                    if let Some(tool_name) = global_mcp_tools.read().get(idx - 2) {
+                                    if let Some(tool_name) = global_mcp_tools.read().get(idx - 1) {
                                         config.mcp.required_tools.contains(tool_name).to_string()
                                     } else {
                                         String::new()
@@ -752,11 +747,10 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                     _ => {}
                                 },
                                 5 => match field_idx {
-                                    0 => config.mcp.prefer_osgrep = new_val == "true",
-                                    1 => config.mcp.use_sequential_thinking = new_val == "true",
+                                    0 => config.mcp.use_sequential_thinking = new_val == "true",
                                     idx => {
                                         if let Some(tool_name) =
-                                            global_mcp_tools.read().get(idx - 2)
+                                            global_mcp_tools.read().get(idx - 1)
                                         {
                                             let enabled = new_val == "true";
                                             if enabled {

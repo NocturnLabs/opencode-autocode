@@ -105,13 +105,7 @@ pub fn load_global_mcp_servers() -> Result<Vec<String>> {
     let mut tools: Vec<String> = config
         .mcp
         .into_iter()
-        .filter(|(k, v)| {
-            // Filter out internal/builtin tools we already handle separately
-            // osgrep and sequential-thinking are builtin fields in our Config,
-            // so we don't return them as "optional" string tools here to avoid duplication.
-            let key = k.as_str();
-            key != "osgrep" && key != "sequential-thinking" && v.enabled
-        })
+        .filter(|(_, v)| v.enabled)
         .map(|(k, _)| k)
         .collect();
 

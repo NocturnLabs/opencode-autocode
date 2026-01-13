@@ -5,12 +5,13 @@
 use anyhow::{bail, Result};
 use std::path::Path;
 
+use crate::template_xml;
 use crate::tui::prompts::input;
 
 /// Embedded project templates
-const WEB_APP_TEMPLATE: &str = include_str!("../templates/projects/web-app-fullstack.md");
-const CLI_TOOL_TEMPLATE: &str = include_str!("../templates/projects/cli-tool.md");
-const API_REST_TEMPLATE: &str = include_str!("../templates/projects/api-rest.md");
+const WEB_APP_TEMPLATE: &str = include_str!("../templates/projects/web-app-fullstack.xml");
+const CLI_TOOL_TEMPLATE: &str = include_str!("../templates/projects/cli-tool.xml");
+const API_REST_TEMPLATE: &str = include_str!("../templates/projects/api-rest.xml");
 
 /// Template metadata
 #[derive(Debug, Clone)]
@@ -18,36 +19,42 @@ pub struct Template {
     pub name: &'static str,
     pub display_name: &'static str,
     pub description: &'static str,
-    pub content: &'static str,
+    pub content: String,
 }
 
 /// Get all available templates
-pub fn get_templates() -> Vec<Template> {
-    vec![
+pub fn get_templates() -> Result<Vec<Template>> {
+    Ok(vec![
         Template {
             name: "web-app-fullstack",
             display_name: "🌐 Full-Stack Web App",
             description: "React + Node.js/Express with SQLite",
-            content: WEB_APP_TEMPLATE,
+            content: template_xml::render_template(WEB_APP_TEMPLATE)?,
         },
         Template {
             name: "cli-tool",
             display_name: "🔧 CLI Tool",
             description: "Rust CLI with clap, config file support",
-            content: CLI_TOOL_TEMPLATE,
+            content: template_xml::render_template(CLI_TOOL_TEMPLATE)?,
         },
         Template {
             name: "api-rest",
             display_name: "🔌 REST API",
             description: "Python/FastAPI with PostgreSQL",
-            content: API_REST_TEMPLATE,
+            content: template_xml::render_template(API_REST_TEMPLATE)?,
         },
-    ]
+    ])
 }
 
 /// List all available templates
 pub fn list_templates() {
-    let templates = get_templates();
+    let templates = match get_templates() {
+        Ok(templates) => templates,
+        Err(err) => {
+            println!("Error loading templates: {}", err);
+            return;
+        }
+    };
 
     println!("\n📚 Available Templates");
     println!("{}", "─".repeat(50));
@@ -63,13 +70,13 @@ pub fn list_templates() {
 }
 
 /// Get a template by name
-pub fn get_template_by_name(name: &str) -> Option<Template> {
-    get_templates().into_iter().find(|t| t.name == name)
+pub fn get_template_by_name(name: &str) -> Result<Option<Template>> {
+    Ok(get_templates()?.into_iter().find(|t| t.name == name))
 }
 
 /// Use a template by name, prompting for project name and description
 pub fn use_template(name: &str, output_dir: &Path) -> Result<()> {
-    let template = match get_template_by_name(name) {
+    let template = match get_template_by_name(name)? {
         Some(t) => t,
         None => {
             println!("Error: Template '{}' not found.", name);
@@ -111,20 +118,20 @@ mod tests {
 
     #[test]
     fn test_templates_exist() {
-        let templates = get_templates();
+        let templates = get_templates().unwrap();
         assert_eq!(templates.len(), 3);
     }
 
     #[test]
     fn test_get_template_by_name() {
-        let template = get_template_by_name("cli-tool");
+        let template = get_template_by_name("cli-tool").unwrap();
         assert!(template.is_some());
         assert_eq!(template.unwrap().name, "cli-tool");
     }
 
     #[test]
     fn test_template_has_placeholders() {
-        let templates = get_templates();
+        let templates = get_templates().unwrap();
         for template in templates {
             assert!(template.content.contains("{{PROJECT_NAME}}"));
         }
@@ -141,12 +148,12 @@ mod tests {
     fn test_project_template_token_counts() {
         println!("\n=== PROJECT TEMPLATE TOKEN COUNTS ===\n");
 
-        let templates = get_templates();
+        let templates = get_templates().unwrap();
         let mut total_tokens = 0;
 
         for template in &templates {
             let chars = template.content.len();
-            let tokens = estimate_tokens(template.content);
+            let tokens = estimate_tokens(&template.content);
             total_tokens += tokens;
 
             println!(
@@ -164,26 +171,36 @@ mod tests {
     #[test]
     fn test_command_template_token_counts() {
         // Import the command templates from scaffold module
-        const AUTO_INIT: &str = include_str!("../templates/commands/auto-init.md");
-        const AUTO_CONTINUE: &str = include_str!("../templates/commands/auto-continue.md");
-        const AUTO_ENHANCE: &str = include_str!("../templates/commands/auto-enhance.md");
+        const AUTO_INIT: &str = include_str!("../templates/commands/auto-init.xml");
+        const AUTO_CONTINUE: &str = include_str!("../templates/commands/auto-continue.xml");
+        const AUTO_ENHANCE: &str = include_str!("../templates/commands/auto-enhance.xml");
 
         // Core modules that get included
-        const CORE_IDENTITY: &str = include_str!("../templates/core/identity.md");
-        const CORE_SECURITY: &str = include_str!("../templates/core/security.md");
-        const CORE_DATABASE: &str = include_str!("../templates/core/database.md");
-        const CORE_MCP_GUIDE: &str = include_str!("../templates/core/mcp_guide.md");
-        const CORE_SIGNALING: &str = include_str!("../templates/core/signaling.md");
+        const CORE_IDENTITY: &str = include_str!("../templates/core/identity.xml");
+        const CORE_SECURITY: &str = include_str!("../templates/core/security.xml");
+        const CORE_DATABASE: &str = include_str!("../templates/core/database.xml");
+        const CORE_MCP_GUIDE: &str = include_str!("../templates/core/mcp_guide.xml");
+        const CORE_SIGNALING: &str = include_str!("../templates/core/signaling.xml");
+
+        let auto_init = template_xml::render_template(AUTO_INIT).unwrap();
+        let auto_continue = template_xml::render_template(AUTO_CONTINUE).unwrap();
+        let auto_enhance = template_xml::render_template(AUTO_ENHANCE).unwrap();
+
+        let core_identity = template_xml::render_template(CORE_IDENTITY).unwrap();
+        let core_security = template_xml::render_template(CORE_SECURITY).unwrap();
+        let core_database = template_xml::render_template(CORE_DATABASE).unwrap();
+        let core_mcp_guide = template_xml::render_template(CORE_MCP_GUIDE).unwrap();
+        let core_signaling = template_xml::render_template(CORE_SIGNALING).unwrap();
 
         println!("\n=== COMMAND TEMPLATE TOKEN COUNTS ===\n");
         println!("--- Core Modules (included via {{{{INCLUDE}}}}) ---\n");
 
         let core_modules = [
-            ("core/identity.md", CORE_IDENTITY),
-            ("core/security.md", CORE_SECURITY),
-            ("core/database.md", CORE_DATABASE),
-            ("core/mcp_guide.md", CORE_MCP_GUIDE),
-            ("core/signaling.md", CORE_SIGNALING),
+            ("core/identity.xml", &core_identity),
+            ("core/security.xml", &core_security),
+            ("core/database.xml", &core_database),
+            ("core/mcp_guide.xml", &core_mcp_guide),
+            ("core/signaling.xml", &core_signaling),
         ];
 
         for (name, content) in &core_modules {
@@ -199,9 +216,9 @@ mod tests {
         println!("\n--- Command Templates (Raw, before include resolution) ---\n");
 
         let commands_raw = [
-            ("auto-init.md", AUTO_INIT),
-            ("auto-continue.md", AUTO_CONTINUE),
-            ("auto-enhance.md", AUTO_ENHANCE),
+            ("auto-init.xml", &auto_init),
+            ("auto-continue.xml", &auto_continue),
+            ("auto-enhance.xml", &auto_enhance),
         ];
 
         for (name, content) in &commands_raw {
@@ -219,16 +236,16 @@ mod tests {
         // Use the public resolve_includes from scaffold module
         let commands_resolved = [
             (
-                "auto-init.md (resolved)",
-                crate::services::scaffold::resolve_includes(AUTO_INIT),
+                "auto-init.xml (resolved)",
+                crate::services::scaffold::resolve_includes(&auto_init).unwrap(),
             ),
             (
-                "auto-continue.md (resolved)",
-                crate::services::scaffold::resolve_includes(AUTO_CONTINUE),
+                "auto-continue.xml (resolved)",
+                crate::services::scaffold::resolve_includes(&auto_continue).unwrap(),
             ),
             (
-                "auto-enhance.md (resolved)",
-                crate::services::scaffold::resolve_includes(AUTO_ENHANCE),
+                "auto-enhance.xml (resolved)",
+                crate::services::scaffold::resolve_includes(&auto_enhance).unwrap(),
             ),
         ];
 
@@ -248,15 +265,16 @@ mod tests {
     /// Reports token count for the generator prompt
     #[test]
     fn test_generator_prompt_token_count() {
-        const GENERATOR_PROMPT: &str = include_str!("../templates/generator_prompt.md");
+        const GENERATOR_PROMPT: &str = include_str!("../templates/generator_prompt.xml");
 
         println!("\n=== GENERATOR PROMPT TOKEN COUNT ===\n");
 
-        let tokens = estimate_tokens(GENERATOR_PROMPT);
+        let generator_prompt = template_xml::render_template(GENERATOR_PROMPT).unwrap();
+        let tokens = estimate_tokens(&generator_prompt);
         println!(
             "{:<30} {:>6} chars  ~{:>5} tokens",
-            "generator_prompt.md",
-            GENERATOR_PROMPT.len(),
+            "generator_prompt.xml",
+            generator_prompt.len(),
             tokens
         );
         println!();

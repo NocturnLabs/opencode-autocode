@@ -1,5 +1,6 @@
 use crate::config::Config;
 use crate::db::features::Feature;
+use crate::template_xml;
 use crate::utils::write_file;
 use anyhow::Result;
 use std::io::{self, BufRead, Write};
@@ -15,9 +16,10 @@ pub fn generate_fix_template(
     dual_model: bool,
 ) -> Result<()> {
     // Read template
-    let template_path = Path::new("templates/commands/auto-fix.md");
+    let template_path = Path::new("templates/commands/auto-fix.xml");
     let template = if template_path.exists() {
-        std::fs::read_to_string(template_path)?
+        let raw_template = std::fs::read_to_string(template_path)?;
+        template_xml::render_template(&raw_template).unwrap_or(raw_template)
     } else {
         // Fallback
         "# Regression Fix\nFix {{failing_feature}}\nError: {{error_message}}\n\n{{dual_model_instructions}}\n\n{{explore_instructions}}".to_string()
@@ -44,7 +46,7 @@ pub fn generate_fix_template(
         );
 
     // Resolve includes (e.g. core/database.md)
-    let content = crate::services::scaffold::resolve_includes(&content);
+    let content = crate::services::scaffold::resolve_includes(&content)?;
 
     // Write to active command file
     let target = Path::new(".opencode/command/auto-fix-active.md");

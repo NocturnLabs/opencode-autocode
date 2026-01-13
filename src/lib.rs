@@ -20,6 +20,7 @@ pub mod regression;
 // pub mod scaffold; // moved to services
 
 pub mod spec;
+pub mod template_xml;
 pub mod templates;
 pub mod theming;
 pub mod tui;
