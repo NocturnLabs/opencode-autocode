@@ -33,7 +33,6 @@ opencode-forger/
 │   └── main.rs         # Entry point
 ├── templates/          # Project templates for progressive discovery
 ├── tests/              # Integration and regression tests
-├── feature_list.json   # Comprehensive test cases for all features
 ├── init.sh             # Environment setup script
 ├── Makefile            # Build and test automation
 └── README.md           # This file
@@ -78,7 +77,7 @@ make install
 
 ## Testing
 
-All features are documented in `feature_list.json` with comprehensive test cases. Run the setup script to verify all tests:
+Run the setup script to verify all tests:
 
 ```bash
 ./init.sh
