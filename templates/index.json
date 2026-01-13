@@ -10,7 +10,6 @@
     "on_demand": {
       "signaling": "core/signaling.md",
       "database": "core/database.md",
-      "communication": "core/communication.md",
       "mcp": "core/mcp_guide.md"
     }
   },

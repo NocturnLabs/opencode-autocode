@@ -80,37 +80,6 @@ pub struct NotificationsConfig {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Communication Configuration (Agent-User Channel)
-// ─────────────────────────────────────────────────────────────────────────────
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(default)]
-pub struct CommunicationConfig {
-    /// Enable communication channel
-    pub enabled: bool,
-    /// Path to communication file
-    pub file_path: String,
-    /// Auto-post questions on repeated failures
-    pub auto_ask_on_error: bool,
-    /// Check for responses every N sessions
-    pub check_interval_sessions: u32,
-    /// Maximum pending questions
-    pub max_pending_questions: u32,
-}
-
-impl Default for CommunicationConfig {
-    fn default() -> Self {
-        Self {
-            enabled: true,
-            file_path: ".forger/COMMUNICATION.md".to_string(),
-            auto_ask_on_error: true,
-            check_interval_sessions: 1,
-            max_pending_questions: 5,
-        }
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // MCP Tool Configuration
 // ─────────────────────────────────────────────────────────────────────────────
 

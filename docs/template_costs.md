@@ -26,7 +26,6 @@ These modules are included into the command templates above via `{{INCLUDE}}`.
 | ----------------------- | ------- | ------------------------------- |
 | `core/database.md`      | ~475    | KB operations, feature tracking |
 | `core/mcp_guide.md`     | ~290    | Tool usage instructions         |
-| `core/communication.md` | ~175    | User interaction protocols      |
 | `core/identity.md`      | ~165    | System role and constraints     |
 | `core/security.md`      | ~160    | File access rules               |
 | `core/signaling.md`     | ~85     | Session control signals         |

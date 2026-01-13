@@ -25,7 +25,6 @@ pub fn resolve_includes(template: &str) -> String {
         ("core/security.md", CORE_SECURITY),
         ("core/signaling.md", CORE_SIGNALING),
         ("core/database.md", CORE_DATABASE),
-        ("core/communication.md", CORE_COMMUNICATION),
         ("core/mcp_guide.md", CORE_MCP_GUIDE),
     ];
 
@@ -131,11 +130,19 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
 
     // Write user configuration file inside .forger/ (if not already configured)
     let config_path = forger_dir.join("config.toml");
-    if !config_path.exists() {
+    let config_content = if !config_path.exists() {
         write_file(&config_path, USER_CONFIG_TEMPLATE)?;
         println!("   ⚙️  Created .forger/config.toml");
+        USER_CONFIG_TEMPLATE.to_string()
     } else {
         println!("   ⚙️  Using existing .forger/config.toml");
+        std::fs::read_to_string(&config_path).unwrap_or_else(|_| USER_CONFIG_TEMPLATE.to_string())
+    };
+
+    let root_config_path = output_dir.join("forger.toml");
+    if !root_config_path.exists() {
+        write_file(&root_config_path, &config_content)?;
+        println!("   ⚙️  Created forger.toml");
     }
 
     // Write subagent definitions for parallel spec generation
@@ -213,11 +220,12 @@ pub fn preview_scaffold(output_dir: &Path) {
     );
     println!("   🗃️  {}", forger_dir.join("progress.db").display());
     println!("   ⚙️  {}", forger_dir.join("config.toml").display());
+    println!("   ⚙️  {}", output_dir.join("forger.toml").display());
     println!("   ⚙️  {}", output_dir.join("opencode.json").display());
     println!("   📝 {}", output_dir.join("AGENTS.md").display());
 
     println!("\n{}", "─".repeat(50));
-    println!("Total: 3 directories, 8 files");
+    println!("Total: 3 directories, 9 files");
     println!("Run without --dry-run to create these files.");
 }
 
@@ -226,6 +234,7 @@ fn generate_opencode_json() -> String {
     r#"{
   "$schema": "https://opencode.ai/config.json",
   "instructions": [
+    "forger.toml",
     ".forger/config.toml",
     ".forger/app_spec.md"
   ],

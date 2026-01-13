@@ -115,15 +115,21 @@ pub fn create_worktree(
         let main_file = std::env::current_dir()?.join(db_parent).join(filename);
         let worktree_file = worktree_path.join(db_parent).join(filename);
 
-        if main_file.exists() && !worktree_file.exists() {
-            #[cfg(unix)]
-            std::os::unix::fs::symlink(&main_file, &worktree_file)
-                .with_context(|| format!("Failed to symlink {}", filename))?;
-
-            #[cfg(windows)]
-            std::os::windows::fs::symlink_file(&main_file, &worktree_file)
-                .with_context(|| format!("Failed to symlink {}", filename))?;
+        if let Ok(meta) = worktree_file.symlink_metadata() {
+            if meta.file_type().is_dir() {
+                std::fs::remove_dir_all(&worktree_file).ok();
+            } else {
+                std::fs::remove_file(&worktree_file).ok();
+            }
         }
+
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&main_file, &worktree_file)
+            .with_context(|| format!("Failed to symlink {}", filename))?;
+
+        #[cfg(windows)]
+        std::os::windows::fs::symlink_file(&main_file, &worktree_file)
+            .with_context(|| format!("Failed to symlink {}", filename))?;
     }
 
     // Also symlink forger.toml if it exists
@@ -136,7 +142,6 @@ pub fn create_worktree(
         std::os::windows::fs::symlink_file(&main_config, &worktree_config).ok();
     }
 
-    // Symlink .conductor context directory (shared planning context)
     let main_conductor = base_path.join(".conductor");
     let worktree_conductor = worktree_path.join(".conductor");
     if main_conductor.exists() && !worktree_conductor.exists() {
@@ -170,6 +175,10 @@ pub fn remove_worktree(worktree_path: &Path, _branch_name: &str) -> Result<()> {
         let _ = Command::new("git")
             .args(["worktree", "remove", "--force", path_str])
             .status();
+    }
+
+    if worktree_path.exists() {
+        std::fs::remove_dir_all(worktree_path).ok();
     }
     Ok(())
 }

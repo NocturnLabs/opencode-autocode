@@ -60,8 +60,8 @@ All notable changes to this project will be documented in this file.
   - **Robustness**: Added smart "stuck detection" for broken verification commands and real-time session termination on completion signals.
   - **Graceful Shutdown**: Implemented Ctrl+C signal handling for clean exit.
 - **Configuration & TUI**:
-  - **Exhaustive Config Wiring**: Fully integrated `ui.spec_preview_lines`, `alternative_approaches`, `communication`, `ui.colored_output`, `ui.verbose`, and `ui.show_progress` fields into the application logic.
-  - **TUI Expansion**: Added configuration sections for Communication, Features, Scaffolding, and MCP to the interactive TUI.
+  - **Exhaustive Config Wiring**: Fully integrated `ui.spec_preview_lines`, `alternative_approaches`, `ui.colored_output`, `ui.verbose`, and `ui.show_progress` fields into the application logic.
+  - **TUI Expansion**: Added configuration sections for Features, Scaffolding, and MCP to the interactive TUI.
   - **Refined Selection**: Users can now specify testing framework preferences during interactive setup.
 - **Scaffolding & AI Generation**:
   - **Dynamic Guidance**: Refactored generator prompts to use open-ended, complexity-based constraints instead of hardcoded ranges.

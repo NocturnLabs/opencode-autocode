@@ -89,6 +89,9 @@ session_timeout_minutes = 60
 # Auto-commit after each feature completion
 auto_commit = true
 
+# Warn after this many non-progress iterations (0 = unlimited)
+max_no_progress = 5
+
 # ─────────────────────────────────────────────────────────────────────────────
 # AGENT - Agent behavior and retry settings
 # ─────────────────────────────────────────────────────────────────────────────

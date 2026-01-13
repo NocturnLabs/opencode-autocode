@@ -174,7 +174,6 @@ mod tests {
         const CORE_DATABASE: &str = include_str!("../templates/core/database.md");
         const CORE_MCP_GUIDE: &str = include_str!("../templates/core/mcp_guide.md");
         const CORE_SIGNALING: &str = include_str!("../templates/core/signaling.md");
-        const CORE_COMMUNICATION: &str = include_str!("../templates/core/communication.md");
 
         println!("\n=== COMMAND TEMPLATE TOKEN COUNTS ===\n");
         println!("--- Core Modules (included via {{{{INCLUDE}}}}) ---\n");
@@ -185,7 +184,6 @@ mod tests {
             ("core/database.md", CORE_DATABASE),
             ("core/mcp_guide.md", CORE_MCP_GUIDE),
             ("core/signaling.md", CORE_SIGNALING),
-            ("core/communication.md", CORE_COMMUNICATION),
         ];
 
         for (name, content) in &core_modules {

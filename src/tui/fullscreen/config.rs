@@ -57,7 +57,6 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
         "Scaffolding",   // 10
         "Conductor",     // 11
         "Paths",         // 12
-        "Communication", // 13
     ];
     let sections_len = sections.len();
 
@@ -315,28 +314,6 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     format_array(&config.paths.opencode_paths),
                 ),
             ],
-            13 => vec![
-                (
-                    "Enabled".to_string(),
-                    config.communication.enabled.to_string(),
-                ),
-                (
-                    "File Path".to_string(),
-                    config.communication.file_path.clone(),
-                ),
-                (
-                    "Auto Ask on Error".to_string(),
-                    config.communication.auto_ask_on_error.to_string(),
-                ),
-                (
-                    "Check Interval (sessions)".to_string(),
-                    config.communication.check_interval_sessions.to_string(),
-                ),
-                (
-                    "Max Pending Questions".to_string(),
-                    config.communication.max_pending_questions.to_string(),
-                ),
-            ],
             _ => vec![("Placeholder".to_string(), "Value".to_string())],
         }
     };
@@ -567,25 +544,6 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 4 => config.paths.opencode_paths = parse_array(&val),
                                 _ => {}
                             },
-                            13 => match field_idx {
-                                0 => config.communication.enabled = val.to_lowercase() == "true",
-                                1 => config.communication.file_path = val,
-                                2 => {
-                                    config.communication.auto_ask_on_error =
-                                        val.to_lowercase() == "true"
-                                }
-                                3 => {
-                                    config.communication.check_interval_sessions = val
-                                        .parse()
-                                        .unwrap_or(config.communication.check_interval_sessions)
-                                }
-                                4 => {
-                                    config.communication.max_pending_questions = val
-                                        .parse()
-                                        .unwrap_or(config.communication.max_pending_questions)
-                                }
-                                _ => {}
-                            },
                             _ => {}
                         }
                         config_version.set(config_version.get() + 1);
@@ -740,14 +698,6 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 4 => format_array(&config.paths.opencode_paths),
                                 _ => String::new(),
                             },
-                            13 => match field_idx {
-                                0 => config.communication.enabled.to_string(),
-                                1 => config.communication.file_path.clone(),
-                                2 => config.communication.auto_ask_on_error.to_string(),
-                                3 => config.communication.check_interval_sessions.to_string(),
-                                4 => config.communication.max_pending_questions.to_string(),
-                                _ => String::new(),
-                            },
                             _ => String::new(),
                         };
 
@@ -858,11 +808,6 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                         config.conductor.auto_setup = new_val == "true";
                                     }
                                 }
-                                13 => match field_idx {
-                                    0 => config.communication.enabled = new_val == "true",
-                                    2 => config.communication.auto_ask_on_error = new_val == "true",
-                                    _ => {}
-                                },
                                 _ => {}
                             }
                             config_version.set(config_version.get() + 1);

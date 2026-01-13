@@ -12,7 +12,6 @@ pub const CORE_IDENTITY: &str = include_str!("../../../templates/core/identity.m
 pub const CORE_SECURITY: &str = include_str!("../../../templates/core/security.md");
 pub const CORE_SIGNALING: &str = include_str!("../../../templates/core/signaling.md");
 pub const CORE_DATABASE: &str = include_str!("../../../templates/core/database.md");
-pub const CORE_COMMUNICATION: &str = include_str!("../../../templates/core/communication.md");
 pub const CORE_MCP_GUIDE: &str = include_str!("../../../templates/core/mcp_guide.md");
 
 /// Embedded security allowlist

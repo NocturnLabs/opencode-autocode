@@ -40,15 +40,29 @@ pub fn run_supervisor_loop(
 
         // --- Exit Condition 1: Max Iterations ---
         if iteration > settings.max_iterations {
-            logger.info("Reached max iterations");
-            println!("\nReached max iterations ({})", settings.max_iterations);
+            if settings.enforce_max_iterations {
+                logger.info("Reached max iterations; stopping as requested");
+                println!("\nReached max iterations ({})", settings.max_iterations);
+                let _ = notify_failure(
+                    config,
+                    FailureReason::MaxIterations {
+                        iterations: settings.max_iterations,
+                    },
+                );
+                break;
+            }
+
+            logger.info("Reached max iterations; continuing until user stop");
+            println!(
+                "\nReached max iterations ({}), continuing until user stop",
+                settings.max_iterations
+            );
             let _ = notify_failure(
                 config,
                 FailureReason::MaxIterations {
                     iterations: settings.max_iterations,
                 },
             );
-            break;
         }
 
         // --- Exit Condition 2: Stop Signal ---
@@ -93,6 +107,26 @@ pub fn run_supervisor_loop(
 
         if action_no_progress {
             no_progress_count += 1;
+            if settings.max_no_progress != u32::MAX && no_progress_count == settings.max_no_progress
+            {
+                println!(
+                    "⚠️ No progress for {} iterations, continuing with backoff",
+                    no_progress_count
+                );
+                logger.warning(&format!("No progress for {} iterations", no_progress_count));
+                let _ = notify_failure(
+                    config,
+                    FailureReason::NoProgress {
+                        count: no_progress_count,
+                        limit: settings.max_no_progress,
+                    },
+                );
+            }
+            let exponent = (no_progress_count.saturating_sub(1)).min(6);
+            let factor = 1_u32.checked_shl(exponent).unwrap_or(u32::MAX);
+            let backoff = settings.delay_seconds.saturating_mul(factor);
+            println!("→ No actionable work, waiting {}s before retry...", backoff);
+            thread::sleep(Duration::from_secs(backoff as u64));
             continue;
         }
 
@@ -138,6 +172,8 @@ pub fn run_supervisor_loop(
                     iteration,
                     &mut last_run_success,
                 )?;
+            } else {
+                made_progress = true;
             }
         }
 
@@ -146,9 +182,10 @@ pub fn run_supervisor_loop(
             no_progress_count = 0;
         } else {
             no_progress_count += 1;
-            if no_progress_count >= settings.max_no_progress {
+            if settings.max_no_progress != u32::MAX && no_progress_count == settings.max_no_progress
+            {
                 println!(
-                    "⚠️ No progress for {} iterations, stopping",
+                    "⚠️ No progress for {} iterations, continuing with backoff",
                     no_progress_count
                 );
                 logger.warning(&format!("No progress for {} iterations", no_progress_count));
@@ -159,7 +196,6 @@ pub fn run_supervisor_loop(
                         limit: settings.max_no_progress,
                     },
                 );
-                break;
             }
         }
 
@@ -177,11 +213,11 @@ pub fn run_supervisor_loop(
                     print!("\x1b[2J\x1b[1;1H");
                     println!("🚀 Session {} complete, fast-forwarding...\n", iteration);
                 } else {
-                    println!(
-                        "→ No progress, waiting {}s before next session...",
-                        settings.delay_seconds
-                    );
-                    thread::sleep(Duration::from_secs(settings.delay_seconds as u64));
+                    let exponent = (no_progress_count.saturating_sub(1)).min(6);
+                    let factor = 1_u32.checked_shl(exponent).unwrap_or(u32::MAX);
+                    let backoff = settings.delay_seconds.saturating_mul(factor);
+                    println!("→ No progress, waiting {}s before next session...", backoff);
+                    thread::sleep(Duration::from_secs(backoff as u64));
                 }
             }
             LoopAction::Break => break,

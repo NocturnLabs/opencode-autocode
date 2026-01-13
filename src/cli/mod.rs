@@ -64,7 +64,7 @@ pub enum Commands {
         #[arg(short, long)]
         limit: Option<usize>,
 
-        /// Path to custom config file (default: forger.toml)
+        /// Path to custom config file (default: forger.toml or .forger/config.toml)
         #[arg(long, value_name = "FILE")]
         config_file: Option<PathBuf>,
 
@@ -90,7 +90,7 @@ pub enum Commands {
         #[arg(short, long)]
         limit: Option<usize>,
 
-        /// Path to custom config file (default: forger.toml)
+        /// Path to custom config file (default: forger.toml or .forger/config.toml)
         #[arg(long, value_name = "FILE")]
         config_file: Option<PathBuf>,
 

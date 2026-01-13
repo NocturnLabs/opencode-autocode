@@ -15,13 +15,13 @@ pub mod mcp_loader;
 pub mod project;
 
 pub use autonomous::{AgentConfig, AlternativeApproachesConfig, AutonomousConfig, ConductorConfig};
-pub use environment::{
-    CommunicationConfig, McpConfig, NotificationsConfig, SecurityConfig, UiConfig,
-};
+pub use environment::{McpConfig, NotificationsConfig, SecurityConfig, UiConfig};
 pub use project::{FeaturesConfig, GenerationConfig, ModelsConfig, PathsConfig, ScaffoldingConfig};
 
-/// Default config filename
-const CONFIG_FILENAME: &str = ".forger/config.toml";
+/// Default config filename (preferred)
+const CONFIG_FILENAME: &str = "forger.toml";
+/// Legacy config filename (scaffolded)
+const LEGACY_CONFIG_FILENAME: &str = ".forger/config.toml";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Config Struct
@@ -44,7 +44,6 @@ pub struct Config {
     pub ui: UiConfig,
     pub notifications: NotificationsConfig,
     pub conductor: ConductorConfig,
-    pub communication: CommunicationConfig,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,17 +51,21 @@ pub struct Config {
 // ─────────────────────────────────────────────────────────────────────────────
 
 impl Config {
+    /// Resolve the config path using preferred and legacy filenames.
+    pub fn resolve_config_path(dir: Option<&Path>) -> PathBuf {
+        resolve_config_path(dir)
+    }
+
     /// Load configuration from the specified directory or search upwards for project root.
+    ///
+    /// Prefers `forger.toml` when present, otherwise falls back to `.forger/config.toml`.
     pub fn load(dir: Option<&Path>) -> Result<Self> {
         let root = match dir {
             Some(d) => Some(d.to_path_buf()),
-            None => find_project_root(),
+            None => find_project_root().or_else(|| env::current_dir().ok()),
         };
 
-        let config_path = match root {
-            Some(ref r) => r.join(CONFIG_FILENAME),
-            None => PathBuf::from(CONFIG_FILENAME),
-        };
+        let config_path = resolve_config_path(root.as_deref());
 
         if config_path.exists() {
             let content = fs::read_to_string(&config_path).with_context(|| {
@@ -150,6 +153,26 @@ impl Config {
         self.paths.vs_cache_dir = canonicalize(&self.paths.vs_cache_dir);
         self.conductor.context_dir = canonicalize(&self.conductor.context_dir);
         self.conductor.tracks_dir = canonicalize(&self.conductor.tracks_dir);
+    }
+}
+
+/// Resolve the most appropriate config file path.
+fn resolve_config_path(root: Option<&Path>) -> PathBuf {
+    let resolve_from_root = |root: &Path| {
+        let preferred = root.join(CONFIG_FILENAME);
+        if preferred.exists() {
+            return preferred;
+        }
+        let legacy = root.join(LEGACY_CONFIG_FILENAME);
+        if legacy.exists() {
+            return legacy;
+        }
+        preferred
+    };
+
+    match root {
+        Some(root) => resolve_from_root(root),
+        None => PathBuf::from(CONFIG_FILENAME),
     }
 }
 

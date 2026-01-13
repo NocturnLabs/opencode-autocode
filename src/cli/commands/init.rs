@@ -7,7 +7,14 @@ pub fn handle_init(
     default: bool,
     spec: Option<&std::path::Path>,
     no_subagents: bool,
+    dry_run: bool,
 ) -> Result<()> {
+    if dry_run {
+        println!("🔍 Dry run mode - no files will be created");
+        scaffold::preview_scaffold(output_dir);
+        return Ok(());
+    }
+
     if default {
         println!("🚀 Scaffolding with default app spec...");
         scaffold::scaffold_default(output_dir)?;

@@ -26,11 +26,6 @@
 <model_orchestration>Vercel AI SDK</model_orchestration>
 <caching>In-memory caching for battle session state</caching>
 </backend>
-<communication>
-<api>RESTful endpoints</api>
-<streaming>Server-Sent Events (SSE) for parallel dual-streaming</streaming>
-<local_inference>Ollama API integration</local_inference>
-</communication>
 </technology_stack>
 
   <prerequisites>

@@ -79,24 +79,39 @@ pub fn determine_action(
         .map(|p| p.to_path_buf())
         .unwrap_or_else(|| std::env::current_dir().unwrap_or_default());
 
-    let signal_exists = init_signal_exists(&project_root);
+    let signal = read_init_signal(&project_root);
 
     eprintln!(
-        "[DEBUG] Decision check: db_path={:?}, is_initialized={}, has_features={}, signal_exists={}",
-        db_path, is_initialized, has_features, signal_exists
+        "[DEBUG] Decision check: db_path={:?}, is_initialized={}, has_features={}, signal={:?}",
+        db_path, is_initialized, has_features, signal
     );
 
     // Initialized if marker exists OR we have features
     let actually_initialized = is_initialized || has_features;
 
     if !actually_initialized {
-        if signal_exists {
-            println!("[WARN] Signal file exists but project not marked initialized - trusting signal to prevent re-init");
-            println!("[DEBUG] Selected: auto-continue (signal exists)");
-            return Ok(SupervisorAction::Command("auto-continue"));
+        if let Some(ref value) = signal {
+            if value.eq_ignore_ascii_case("continue") {
+                println!(
+                    "[WARN] Signal file exists but project not marked initialized - trusting signal once"
+                );
+                println!("[DEBUG] Selected: auto-continue (signal exists)");
+                clear_init_signal(&project_root);
+                return Ok(SupervisorAction::Command("auto-continue"));
+            }
+            if value.eq_ignore_ascii_case("complete") {
+                println!(
+                    "[WARN] Complete signal present but project not initialized - rerunning init"
+                );
+                clear_init_signal(&project_root);
+            }
         }
         println!("[DEBUG] Selected: auto-init (project not initialized)");
         return Ok(SupervisorAction::Command("auto-init"));
+    }
+
+    if signal.is_some() {
+        clear_init_signal(&project_root);
     }
 
     // --- Phase 2: Context ---
@@ -243,36 +258,40 @@ fn check_for_regressions(
     Ok(None)
 }
 
-/// Check if the initialization signal file exists with valid content.
-fn init_signal_exists(project_root: &Path) -> bool {
+/// Read the initialization signal file, if present.
+fn read_init_signal(project_root: &Path) -> Option<String> {
     const SIGNAL_FILE: &str = ".opencode-signal";
     let path = project_root.join(SIGNAL_FILE);
     let exists = path.exists();
     eprintln!(
-        "[DEBUG] init_signal_exists: path={:?}, exists={}",
+        "[DEBUG] read_init_signal: path={:?}, exists={}",
         path, exists
     );
 
     if !exists {
-        return false;
+        return None;
     }
 
     match std::fs::read_to_string(&path) {
         Ok(content) => {
             let trimmed = content.trim();
-            let result = !trimmed.is_empty();
-            eprintln!(
-                "[DEBUG] init_signal_exists: content_len={}, result={}",
-                trimmed.len(),
-                result
-            );
-            result
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
         }
         Err(e) => {
-            eprintln!("[DEBUG] init_signal_exists: read error: {}", e);
-            false
+            eprintln!("[DEBUG] read_init_signal: read error: {}", e);
+            None
         }
     }
+}
+
+/// Clear the initialization signal file after consuming it.
+fn clear_init_signal(project_root: &Path) {
+    let path = project_root.join(".opencode-signal");
+    let _ = std::fs::remove_file(path);
 }
 
 #[cfg(test)]
@@ -281,8 +300,9 @@ mod tests {
     use std::fs;
 
     #[test]
-    fn test_init_signal_exists_returns_false_when_missing() {
-        let _ = fs::remove_file(".opencode-signal-test");
-        let _ = init_signal_exists(Path::new("."));
+    fn test_read_init_signal_returns_none_when_missing() {
+        let _ = fs::remove_file(".opencode-signal");
+        let result = read_init_signal(Path::new("."));
+        assert!(result.is_none());
     }
 }

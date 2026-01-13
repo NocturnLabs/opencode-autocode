@@ -19,9 +19,6 @@ responsive design, and database persistence.
 <database>SQLite with better-sqlite3</database>
 <authentication>JWT with bcrypt</authentication>
 </backend>
-<communication>
-<api>RESTful JSON API</api>
-</communication>
 </technology_stack>
 
 <prerequisites>
