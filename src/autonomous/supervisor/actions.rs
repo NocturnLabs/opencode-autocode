@@ -111,14 +111,14 @@ pub fn prepare_command(
                         no_progress: false,
                     })
                 } else {
-                    // No pending features - skip this session rather than running blind
+                    // No pending features - continue without feature context (fallback template)
                     logger.warning("No pending feature found for auto-continue");
-                    println!("⚠️ No pending feature found, skipping session");
+                    println!("⚠️ No pending feature found, running fallback template");
                     Ok(ActionCommand {
-                        name: String::new(),
+                        name: "auto-continue".to_string(),
                         active_feature: None,
                         should_break: false,
-                        no_progress: true,
+                        no_progress: false,
                     })
                 }
             } else {

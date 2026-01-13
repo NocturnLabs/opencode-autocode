@@ -89,6 +89,9 @@ session_timeout_minutes = 60
 # Auto-commit after each feature completion
 auto_commit = true
 
+# Warn after this many non-progress iterations (0 = unlimited)
+max_no_progress = 5
+
 # ─────────────────────────────────────────────────────────────────────────────
 # AGENT - Agent behavior and retry settings
 # ─────────────────────────────────────────────────────────────────────────────
@@ -132,21 +135,17 @@ cache_dir = ".approach-cache"
 # Leave empty if you don't have custom MCPs - the agent will use standard tools.
 #
 # Recommended tools for the full NocturnLabs workflow:
-#   osgrep              - Semantic code search    (https://github.com/Ryandonofrio3/osgrep)
 #   perplexica          - Self-hosted AI search   (https://github.com/ItzCrazyKns/Perplexica)
 #   deepwiki            - GitHub docs lookup      (https://deepwiki.com)
 #   sequential-thinking - Structured reasoning    (https://github.com/modelcontextprotocol/servers)
 #
-# Example: priority_order = ["osgrep", "sequential-thinking"]
+# Example: priority_order = ["sequential-thinking"]
 priority_order = []
 
 # Required MCP tools for this project (set by spec generator based on project type)
 # For web projects, this will be populated with ["chrome-devtools"]
 # Leave empty - spec generator will set this automatically
 required_tools = []
-
-# Prefer osgrep over grep for code search (set true if osgrep is installed)
-prefer_osgrep = false
 
 # Use sequential-thinking for complex decisions
 use_sequential_thinking = true
@@ -240,3 +239,10 @@ webhook_enabled = false
 # Webhook URL for Discord-compatible embeds
 # Environment variables like $DISCORD_WEBHOOK are expanded
 webhook_url = ""
+
+# Discord Bot Token for failure notifications with interactive buttons
+# Uses $DISCORD_BOT_TOKEN env var if set, otherwise uses this value
+bot_token = ""
+
+# Discord Channel ID for bot messages (per-project, required for bot notifications)
+channel_id = ""

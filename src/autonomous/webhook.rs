@@ -7,6 +7,59 @@ use std::process::Command;
 use crate::config::Config;
 use crate::db::{features::Feature, Database};
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Failure Notification Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Reason for autonomous loop failure
+#[derive(Debug, Clone)]
+pub enum FailureReason {
+    /// Reached maximum iteration limit
+    MaxIterations { iterations: usize },
+    /// No progress for consecutive iterations
+    NoProgress { count: u32, limit: u32 },
+    /// Fatal error during execution
+    FatalError { message: String },
+}
+
+impl FailureReason {
+    fn title(&self) -> &'static str {
+        match self {
+            FailureReason::MaxIterations { .. } => "🛑 Max Iterations Reached",
+            FailureReason::NoProgress { .. } => "⚠️ No Progress Detected",
+            FailureReason::FatalError { .. } => "❌ Fatal Error",
+        }
+    }
+
+    fn description(&self) -> String {
+        match self {
+            FailureReason::MaxIterations { iterations } => {
+                format!(
+                    "The autonomous loop reached its maximum iteration limit of **{}**.",
+                    iterations
+                )
+            }
+            FailureReason::NoProgress { count, limit } => {
+                format!(
+                    "No progress was made for **{}** consecutive iterations (limit: {}).",
+                    count, limit
+                )
+            }
+            FailureReason::FatalError { message } => {
+                format!("A fatal error occurred: {}", message)
+            }
+        }
+    }
+
+    fn color(&self) -> u32 {
+        match self {
+            FailureReason::MaxIterations { .. } => 15158332, // Red
+            FailureReason::NoProgress { .. } => 16776960,    // Yellow
+            FailureReason::FatalError { .. } => 10038562,    // Dark Red
+        }
+    }
+}
+
 /// Trait for sending webhook requests (allows mocking)
 pub trait WebhookSender {
     fn send(&self, url: &str, payload: &str, method: &str) -> Result<()>;
@@ -97,6 +150,140 @@ pub fn notify_feature_complete(
         &CurlSender,
         &config.paths.database_file,
     )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Failure Notifications (Discord Bot API with Button)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Send failure notification via Discord Bot API with restart button
+pub fn notify_failure(config: &Config, reason: FailureReason) -> Result<()> {
+    notify_failure_with_sender(config, reason, &CurlSender)
+}
+
+/// Internal failure notification logic with injectable sender
+fn notify_failure_with_sender<S: WebhookSender>(
+    config: &Config,
+    reason: FailureReason,
+    sender: &S,
+) -> Result<()> {
+    // Check if notifications are enabled
+    if !config.notifications.webhook_enabled {
+        return Ok(());
+    }
+
+    // Require both bot_token and channel_id for failure notifications
+    let bot_token = match &config.notifications.bot_token {
+        Some(t) if !t.is_empty() => t,
+        _ => {
+            println!("⚠️ Failure notification skipped: no bot_token configured");
+            return Ok(());
+        }
+    };
+
+    let channel_id = match &config.notifications.channel_id {
+        Some(c) if !c.is_empty() => c,
+        _ => {
+            println!("⚠️ Failure notification skipped: no channel_id configured");
+            return Ok(());
+        }
+    };
+
+    println!("→ Sending failure notification: {}", reason.title());
+
+    let payload = build_failure_payload(&reason)?;
+    let url = format!(
+        "https://discord.com/api/v10/channels/{}/messages",
+        channel_id
+    );
+
+    // Use BotApiSender wrapper to add authorization header
+    send_with_bot_auth(sender, &url, &payload, bot_token)?;
+
+    Ok(())
+}
+
+/// Send request with Discord Bot authorization header
+fn send_with_bot_auth<S: WebhookSender>(
+    _sender: &S,
+    url: &str,
+    payload: &str,
+    bot_token: &str,
+) -> Result<()> {
+    use std::io::Write;
+    use std::process::Stdio;
+
+    // SECURITY: Pass payload via stdin, token via header arg
+    let mut child = Command::new("curl")
+        .arg("-X")
+        .arg("POST")
+        .arg("-H")
+        .arg("Content-Type: application/json")
+        .arg("-H")
+        .arg(format!("Authorization: Bot {}", bot_token))
+        .arg("-d")
+        .arg("@-")
+        .arg(url)
+        .arg("--silent")
+        .arg("--fail")
+        .stdin(Stdio::piped())
+        .spawn()?;
+
+    if let Some(ref mut stdin) = child.stdin {
+        stdin.write_all(payload.as_bytes())?;
+    }
+
+    let status = child.wait()?;
+    if !status.success() {
+        anyhow::bail!("Discord Bot API request failed (curl exit {})", status);
+    }
+    Ok(())
+}
+
+/// Build failure notification payload with embed and restart button
+fn build_failure_payload(reason: &FailureReason) -> Result<String> {
+    let project_name = std::env::current_dir()?
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("Unknown Project")
+        .to_string();
+
+    let timestamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+
+    // Build JSON payload with embed and button component
+    let payload = serde_json::json!({
+        "embeds": [{
+            "title": reason.title(),
+            "description": reason.description(),
+            "color": reason.color(),
+            "fields": [
+                {
+                    "name": "📁 Project",
+                    "value": project_name,
+                    "inline": true
+                },
+                {
+                    "name": "🕐 Time",
+                    "value": timestamp,
+                    "inline": true
+                }
+            ],
+            "footer": {
+                "text": "OpenCode Forger Autonomous Loop"
+            }
+        }],
+        "components": [{
+            "type": 1,  // Action Row
+            "components": [{
+                "type": 2,       // Button
+                "style": 3,      // Success (green)
+                "label": "🔄 Restart Process",
+                "custom_id": "restart_autonomous_loop"
+            }]
+        }]
+    });
+
+    Ok(payload.to_string())
 }
 
 /// Internal notification logic with injectable sender and DB path

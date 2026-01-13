@@ -1,0 +1,41 @@
+<template>
+<content><![CDATA[
+# Conductor Tracks and Planning Guide
+
+The Conductor system manages multi-session work through "tracks". Each track represents a major objective broken down into a plan.
+
+## 1. Directory Structure
+
+```text
+.conductor/
+├── product.md       # Product requirements and objectives
+├── tech_stack.md    # Technology choices and constraints
+└── tracks/
+    └── [track_id]/
+        ├── plan.md      # Checklist of tasks for this track
+        └── sessions/    # History of agent sessions for this track
+```
+
+## 2. Plan State Machine
+
+The `plan.md` file uses a standard checklist format:
+
+- `[ ]` **Unstarted**: Task has not been attempted.
+- `[/]` **In Progress**: An agent is currently working on this task.
+- `[x]` **Completed**: Task is finished and verified.
+
+**AGENT RULE**: Never work on more than one `[/]` task at a time.
+
+## 3. Session Lifecycle
+
+1. **Pick a Task**: Find the first `[ ]` task in `plan.md`.
+2. **Mark In Progress**: Change it to `[/]`.
+3. **Execute**: Do the coding work.
+4. **Verify**: Run tests to prove completion.
+5. **Mark Done**: Change it to `[x]`.
+
+## 4. Retiring Tracks
+
+When all tasks in `plan.md` are marked `[x]`, the Conductor will automatically retire the track. If you find the plan is no longer valid, document the reason in a new session log and let the Conductor re-plan.
+]]></content>
+</template>

@@ -75,15 +75,20 @@ pub fn run(
 
     log_startup_info(logger, &settings, developer_mode, single_model);
 
-    display::display_banner(
+    let banner_width = display::display_banner(
         &settings.model,
         settings.max_iterations,
         settings.delay_seconds,
         developer_mode,
     );
 
-    let result =
-        supervisor::run_supervisor_loop(&config, &settings, enhancement_mode, target_feature_id);
+    let result = supervisor::run_supervisor_loop(
+        &config,
+        &settings,
+        enhancement_mode,
+        target_feature_id,
+        banner_width,
+    );
 
     // Final status display and cleanup
     log_final_status(&settings, developer_mode);

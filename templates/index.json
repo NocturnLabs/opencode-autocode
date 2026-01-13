@@ -4,41 +4,40 @@
   
   "core": {
     "always_include": [
-      "core/identity.md",
-      "core/security.md"
+      "core/identity.xml",
+      "core/security.xml"
     ],
     "on_demand": {
-      "signaling": "core/signaling.md",
-      "database": "core/database.md",
-      "communication": "core/communication.md",
-      "mcp": "core/mcp_guide.md"
+      "signaling": "core/signaling.xml",
+      "database": "core/database.xml",
+      "mcp": "core/mcp_guide.xml"
     }
   },
   
   "project_types": {
     "web": {
-      "modules": ["modules/javascript.md", "modules/testing.md"],
+      "modules": ["modules/javascript.xml", "modules/testing.xml"],
       "detection": ["React", "Vue", "HTML", "HTMX", "frontend", "web app", "PWA", "SPA", "Vite"]
     },
     "cli": {
-      "modules": ["modules/rust.md"],
+      "modules": ["modules/rust.xml"],
       "detection": ["CLI", "command-line", "terminal", "Rust", "clap"]
     },
     "api": {
-      "modules": ["modules/testing.md"],
+      "modules": ["modules/testing.xml"],
       "detection": ["REST", "API", "backend", "Express", "FastAPI", "Flask"]
     }
   },
   
   "states": {
     "initialization": {
-      "entry_point": "commands/auto-init.md"
+      "entry_point": "commands/auto-init.xml"
     },
     "development": {
-      "entry_point": "commands/auto-continue.md"
+      "entry_point": "commands/auto-continue.xml"
     },
     "stuck": {
-      "modules": ["modules/recovery.md"],
+      "modules": ["modules/recovery.xml"],
       "trigger": "3+ failed attempts on same feature"
     }
   }

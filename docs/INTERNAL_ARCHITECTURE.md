@@ -86,7 +86,6 @@ graph TD
 ```rust
 pub mod autonomous;
 pub mod cli;
-pub mod communication;
 pub mod conductor;
 pub mod config;
 pub mod config_tui;
@@ -731,7 +730,6 @@ pub struct Config {
     pub stuck_recovery: StuckRecoveryConfig,
     pub security: SecurityConfig,
     pub notifications: NotificationsConfig,
-    pub communication: CommunicationConfig,
     pub features: FeaturesConfig,
     pub scaffolding: ScaffoldingConfig,
     pub ui: UiConfig,
@@ -931,8 +929,8 @@ fn resolve_includes(template: &str) -> String
 **Pattern**: Implements "Progressive Discovery" — templates include sub-templates on demand:
 
 ```markdown
-{{INCLUDE templates/core/identity.md}}
-{{INCLUDE templates/core/security.md}}
+{{INCLUDE templates/core/identity.xml}}
+{{INCLUDE templates/core/security.xml}}
 ```
 
 ---
@@ -1190,35 +1188,6 @@ RETURN RegressionSummary { ... }
 
 ---
 
-## Communication Module
-
-**Location**: [communication.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/communication.rs) (339 lines)
-
-### Purpose
-
-Polling-based agent-user communication via markdown file.
-
-### Struct: CommunicationChannel
-
-```rust
-pub struct CommunicationChannel {
-    path: PathBuf,
-}
-```
-
-**Default Path**: `.forger/COMMUNICATION.md`
-
-**Methods**:
-| Method | Purpose |
-|--------|---------|
-| `init()` | Create communication file with template |
-| `post_question(session, title, body, options)` | Agent posts question |
-| `check_responses()` | Check for user responses |
-| `get_pending_questions()` | List unanswered questions |
-| `mark_resolved(question_id)` | Mark question answered |
-
----
-
 ## Theming Module
 
 **Location**: [theming.rs](file:///home/yum/Work/gh-repos/yumlabs-tools/opencode-forger/src/theming.rs) (117 lines)
@@ -1367,7 +1336,6 @@ main.rs
 ├─ conductor.rs
 ├─ validation.rs
 ├─ regression.rs
-├─ communication.rs
 ├─ theming.rs
 └─ updater.rs
 ```
@@ -1468,7 +1436,6 @@ src/
 | `conductor.rs`     | ✓ (slugify, parse_plan) | -           |
 | `db/features.rs`   | ✓ (CRUD ops)            | -           |
 | `db/sessions.rs`   | ✓ (lifecycle)           | -           |
-| `communication.rs` | ✓ (init, post)          | -           |
 | `regression.rs`    | ✓ (check run)           | -           |
 | `validation.rs`    | ✓ (spec validation)     | -           |
 | `templates.rs`     | ✓ (token counts)        | -           |
@@ -1566,7 +1533,6 @@ cargo test --test integration # Integration tests
 | `templates.rs`               | 343   | Template library              |
 | `validation.rs`              | 374   | Spec validation               |
 | `regression.rs`              | 199   | Regression testing            |
-| `communication.rs`           | 339   | Agent-user comms              |
 | `tui/mod.rs`                 | 184   | Interactive TUI               |
 | `config_tui/mod.rs`          | 85    | Config editor                 |
 | `theming.rs`                 | 117   | TUI styling                   |
@@ -1578,19 +1544,19 @@ cargo test --test integration # Integration tests
 
 ## Appendix: Command Templates
 
-### auto-init.md
+### auto-init.xml
 
 Initializes project from specification, creates feature database.
 
-### auto-continue.md
+### auto-continue.xml
 
 Continues work on next incomplete feature.
 
-### auto-context.md
+### auto-context.xml
 
 Sets up conductor context (product.md, tech_stack.md).
 
-### auto-fix.md
+### auto-fix.xml
 
 Fixes a regression based on last_error context.
 

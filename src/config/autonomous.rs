@@ -19,6 +19,8 @@ pub struct AutonomousConfig {
     pub idle_timeout_seconds: u32,
     /// Auto-commit after feature completion
     pub auto_commit: bool,
+    /// Number of iterations without progress before warning (0 = unlimited)
+    pub max_no_progress: u32,
 }
 
 impl Default for AutonomousConfig {
@@ -30,6 +32,7 @@ impl Default for AutonomousConfig {
             session_timeout_minutes: 15,
             idle_timeout_seconds: 600,
             auto_commit: true,
+            max_no_progress: 5,
         }
     }
 }

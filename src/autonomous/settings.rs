@@ -9,9 +9,12 @@ use std::path::Path;
 pub struct LoopSettings {
     pub delay_seconds: u32,
     pub max_iterations: usize,
+    pub enforce_max_iterations: bool,
     pub max_retries: u32,
+    /// Warn after this many iterations without progress (0 = unlimited)
     pub max_no_progress: u32,
     pub model: String,
+
     pub log_level: String,
     pub database_file: String,
     pub session_timeout: u32,
@@ -29,6 +32,7 @@ impl LoopSettings {
         } else {
             limit.unwrap_or(config.autonomous.max_iterations as usize)
         };
+        let enforce_max_iterations = limit.is_some() || config.autonomous.max_iterations > 0;
 
         let db_path = Path::new(&config.paths.database_file);
         let database_file = if db_path.is_relative() {
@@ -41,11 +45,18 @@ impl LoopSettings {
             config.paths.database_file.clone()
         };
 
+        let max_no_progress = if config.autonomous.max_no_progress == 0 {
+            u32::MAX
+        } else {
+            config.autonomous.max_no_progress
+        };
+
         Self {
             delay_seconds: config.autonomous.delay_between_sessions,
             max_iterations,
+            enforce_max_iterations,
             max_retries: config.agent.max_retry_attempts,
-            max_no_progress: 5, // Default: stop after 5 iterations with no progress
+            max_no_progress,
             model: config.models.autonomous.clone(),
             log_level: config.autonomous.log_level.clone(),
             database_file,
@@ -103,15 +114,15 @@ pub fn handle_session_result(
                 consecutive_errors, settings.max_retries, msg
             );
 
-            if *consecutive_errors >= settings.max_retries {
+            if *consecutive_errors == settings.max_retries {
                 println!(
-                    "❌ Exceeded max retries ({}), stopping.",
+                    "⚠️ Exceeded max retries ({}), continuing with backoff.",
                     settings.max_retries
                 );
-                return LoopAction::Break;
             }
 
-            let backoff = settings.delay_seconds * (1 << (*consecutive_errors - 1).min(4));
+            let exponent = (*consecutive_errors - 1).min(6);
+            let backoff = settings.delay_seconds.saturating_mul(1 << exponent);
             println!("→ Retrying in {}s (exponential backoff)...", backoff);
             LoopAction::RetryWithBackoff(backoff)
         }

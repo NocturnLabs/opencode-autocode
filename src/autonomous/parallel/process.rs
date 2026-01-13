@@ -1,5 +1,7 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
+use std::collections::VecDeque;
 use std::path::Path;
+use std::sync::mpsc;
 use std::time::Duration;
 
 use crate::autonomous::{display, features, session};
@@ -47,9 +49,17 @@ pub fn run_parallel(
         iteration += 1;
 
         if iteration > settings.max_iterations {
-            logger.info("Reached max iterations");
-            println!("\nReached max iterations ({})", settings.max_iterations);
-            break;
+            if settings.enforce_max_iterations {
+                logger.info("Reached max iterations; stopping as requested");
+                println!("\nReached max iterations ({})", settings.max_iterations);
+                break;
+            }
+
+            logger.info("Reached max iterations; continuing until user stop");
+            println!(
+                "\nReached max iterations ({}), continuing until user stop",
+                settings.max_iterations
+            );
         }
 
         if session::stop_signal_exists() {
@@ -58,15 +68,21 @@ pub fn run_parallel(
         }
 
         // Get pending features
-        let pending = features::get_pending_features(db_path, worker_count)?;
+        let pending = features::get_pending_features(db_path, usize::MAX)?;
         if pending.is_empty() {
             println!("✅ No pending features to work on");
             break;
         }
 
+        // Calculate width for parallel mode (similar to banner logic)
+        let title = "OpenCode Autonomous Agent";
+        let title_w = 7 + crate::theming::visual_width(title);
+        let model_w = 7 + 5 + crate::theming::visual_width(&settings.model); // "Model: " label is 7 chars + value
+        let width = title_w.max(model_w).max(60); // Minimum 60 for parallel mode info
+
         logger.separator();
         logger.info(&format!("Parallel Iteration {} starting", iteration));
-        display::display_session_header(iteration);
+        display::display_session_header(iteration, width);
 
         println!("📋 Selected {} features for parallel work:", pending.len());
         for f in &pending {
@@ -75,59 +91,83 @@ pub fn run_parallel(
 
         let base_path = std::env::current_dir()?;
         let mut coordinator = Coordinator::new(worker_count, base_path.clone());
+        let mut pending_queue: VecDeque<_> = pending.into();
+        let (tx, rx) = mpsc::channel::<WorkerResult>();
+        let mut active_workers = 0usize;
+        let mut stop_requested = false;
 
-        // Create worktrees and spawn workers
-        let mut handles = Vec::new();
-        for feature in pending {
+        let spawn_worker = |feature: crate::db::features::Feature| -> Result<()> {
             let (worktree_path, branch_name) = create_worktree(&feature, &base_path, &config)?;
             println!("🌳 Created worktree: {}", branch_name);
 
             let feature_id = feature.id.unwrap_or(0);
             let wt = worktree_path.clone();
             let bn = branch_name.clone();
+            let tx = tx.clone();
 
-            // Spawn worker thread
-            let handle = std::thread::spawn(move || {
-                let status = std::process::Command::new("opencode-forger")
-                    .args([
-                        "vibe",
-                        "--limit",
-                        "1",
-                        "--feature-id",
-                        &feature_id.to_string(),
-                    ])
-                    .current_dir(&wt)
-                    .status();
+            std::thread::spawn(move || {
+                let success = match std::panic::catch_unwind(|| {
+                    std::process::Command::new("opencode-forger")
+                        .args([
+                            "vibe",
+                            "--limit",
+                            "1",
+                            "--feature-id",
+                            &feature_id.to_string(),
+                        ])
+                        .current_dir(&wt)
+                        .status()
+                        .map(|s| s.success())
+                        .unwrap_or(false)
+                }) {
+                    Ok(success) => success,
+                    Err(_) => {
+                        eprintln!("Worker {} panicked", feature_id);
+                        false
+                    }
+                };
 
-                WorkerResult {
+                let _ = tx.send(WorkerResult {
                     feature_id,
                     branch_name: bn,
                     worktree_path: wt,
-                    success: status.map(|s| s.success()).unwrap_or(false),
-                }
+                    success,
+                });
             });
-            handles.push(handle);
+
+            Ok(())
+        };
+
+        while active_workers < worker_count {
+            if let Some(feature) = pending_queue.pop_front() {
+                spawn_worker(feature)?;
+                active_workers += 1;
+            } else {
+                break;
+            }
         }
 
-        // Wait for workers and queue results
-        for handle in handles {
-            match handle.join() {
-                Ok(result) => {
-                    println!(
-                        "{}  Worker {} finished ({})",
-                        if result.success { "✅" } else { "❌" },
-                        result.feature_id,
-                        if result.success { "success" } else { "failed" }
-                    );
-                    coordinator.queue_for_merge(result);
-                }
-                Err(e) => {
-                    let msg = if let Some(s) = e.downcast_ref::<&str>() {
-                        s
-                    } else {
-                        "unknown panic"
-                    };
-                    logger.error(&format!("Worker thread panicked: {}", msg));
+        while active_workers > 0 {
+            if !stop_requested && session::stop_signal_exists() {
+                stop_requested = true;
+                logger.info("Parallel Coordinator: Stop signal received; waiting for workers.");
+            }
+
+            let result = rx.recv().context("Worker result channel closed")?;
+            active_workers = active_workers.saturating_sub(1);
+
+            println!(
+                "{}  Worker {} finished ({})",
+                if result.success { "✅" } else { "❌" },
+                result.feature_id,
+                if result.success { "success" } else { "failed" }
+            );
+            coordinator.queue_for_merge(result);
+
+            if !stop_requested {
+                if let Some(feature) = pending_queue.pop_front() {
+                    spawn_worker(feature)?;
+                    active_workers += 1;
                 }
             }
         }

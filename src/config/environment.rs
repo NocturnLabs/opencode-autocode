@@ -72,37 +72,11 @@ pub struct NotificationsConfig {
     pub webhook_url: Option<String>,
     /// Enable webhook notifications
     pub webhook_enabled: bool,
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Communication Configuration (Agent-User Channel)
-// ─────────────────────────────────────────────────────────────────────────────
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(default)]
-pub struct CommunicationConfig {
-    /// Enable communication channel
-    pub enabled: bool,
-    /// Path to communication file
-    pub file_path: String,
-    /// Auto-post questions on repeated failures
-    pub auto_ask_on_error: bool,
-    /// Check for responses every N sessions
-    pub check_interval_sessions: u32,
-    /// Maximum pending questions
-    pub max_pending_questions: u32,
-}
-
-impl Default for CommunicationConfig {
-    fn default() -> Self {
-        Self {
-            enabled: true,
-            file_path: ".forger/COMMUNICATION.md".to_string(),
-            auto_ask_on_error: true,
-            check_interval_sessions: 1,
-            max_pending_questions: 5,
-        }
-    }
+    /// Discord Bot Token (supports interactive buttons)
+    /// Loaded from $DISCORD_BOT_TOKEN env var, fallback to config value
+    pub bot_token: Option<String>,
+    /// Discord Channel ID for bot messages (per-project)
+    pub channel_id: Option<String>,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -116,8 +90,6 @@ pub struct McpConfig {
     pub priority_order: Vec<String>,
     /// Required MCP tools (set by spec generator based on project type)
     pub required_tools: Vec<String>,
-    /// Prefer osgrep over grep
-    pub prefer_osgrep: bool,
     /// Use sequential thinking for complex decisions
     pub use_sequential_thinking: bool,
 }
@@ -130,7 +102,6 @@ impl Default for McpConfig {
             priority_order: vec![],
             // Empty by default - spec generator populates for web projects
             required_tools: vec![],
-            prefer_osgrep: true,
             use_sequential_thinking: true,
         }
     }

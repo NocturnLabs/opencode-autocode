@@ -130,7 +130,7 @@ fn InteractiveSetup(
         system.exit();
     }
 
-    let current_mode = modes.get(selected_mode.get()).copied().unwrap_or_default();
+    let _current_mode = modes.get(selected_mode.get()).copied().unwrap_or_default();
 
     element! {
         View(
@@ -138,19 +138,32 @@ fn InteractiveSetup(
             height,
             flex_direction: FlexDirection::Column,
         ) {
-            // Header
+            // Header with progress indicator
             View(
                 border_style: BorderStyle::Round,
-                border_color: Color::Blue,
+                border_color: Color::DarkGrey,
                 padding: 1,
                 margin_bottom: 1,
-                align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::SpaceBetween,
             ) {
                 Text(
-                    content: "✨ OpenCode Forger - Interactive Setup",
+                    content: "OpenCode Forger",
                     weight: Weight::Bold,
-                    color: Color::Cyan,
+                    color: Color::White,
                 )
+                // Progress indicator
+                View(flex_direction: FlexDirection::Row) {
+                    Text(
+                        content: format!("Step {} of 2", if phase.get() == Phase::SetupChoice { 1 } else { 2 }),
+                        color: Color::Grey,
+                    )
+                    Text(content: "  ", color: Color::DarkGrey)
+                    Text(
+                        content: if phase.get() == Phase::SetupChoice { "● ○" } else { "● ●" },
+                        color: Color::Cyan,
+                    )
+                }
             }
 
             // Main content area
@@ -165,27 +178,27 @@ fn InteractiveSetup(
                             element! {
                                 View(flex_direction: FlexDirection::Column) {
                                     Text(
-                                        content: "Found existing configuration.",
-                                        color: Color::Yellow,
+                                        content: "Existing configuration found.",
+                                        color: Color::White,
                                         weight: Weight::Bold,
                                     )
                                     View(margin_top: 1) {
-                                        Text(content: "Reconfigure settings? ", color: Color::White)
+                                        Text(content: "Reconfigure? ", color: Color::Grey)
                                         Text(
                                             content: "[Yes]",
-                                            color: if reconfigure_selected.get() { Color::Green } else { Color::Grey },
+                                            color: if reconfigure_selected.get() { Color::White } else { Color::DarkGrey },
                                             weight: if reconfigure_selected.get() { Weight::Bold } else { Weight::Normal },
                                         )
-                                        Text(content: " / ")
+                                        Text(content: " / ", color: Color::DarkGrey)
                                         Text(
                                             content: "[No]",
-                                            color: if !reconfigure_selected.get() { Color::Green } else { Color::Grey },
+                                            color: if !reconfigure_selected.get() { Color::White } else { Color::DarkGrey },
                                             weight: if !reconfigure_selected.get() { Weight::Bold } else { Weight::Normal },
                                         )
                                     }
                                     Text(
-                                        content: "(←/→ to toggle, Enter to confirm)",
-                                        color: Color::Grey,
+                                        content: "←/→ toggle, Enter confirm",
+                                        color: Color::DarkGrey,
                                     )
                                 }
                             }
@@ -195,28 +208,28 @@ fn InteractiveSetup(
                                     Text(
                                         content: "Setup Mode",
                                         weight: Weight::Bold,
-                                        color: Color::Green,
+                                        color: Color::White,
                                     )
                                     View(margin_top: 1, flex_direction: FlexDirection::Column) {
                                         View {
                                             Text(
-                                                content: if setup_choice.get() == 0 { "▸ " } else { "  " },
-                                                color: Color::Green,
+                                                content: if setup_choice.get() == 0 { "› " } else { "  " },
+                                                color: Color::Cyan,
                                             )
                                             Text(
-                                                content: "⚡ Quick start (use defaults)",
-                                                color: if setup_choice.get() == 0 { Color::Green } else { Color::White },
+                                                content: "Quick start (use defaults)",
+                                                color: if setup_choice.get() == 0 { Color::White } else { Color::Grey },
                                                 weight: if setup_choice.get() == 0 { Weight::Bold } else { Weight::Normal },
                                             )
                                         }
                                         View {
                                             Text(
-                                                content: if setup_choice.get() == 1 { "▸ " } else { "  " },
-                                                color: Color::Green,
+                                                content: if setup_choice.get() == 1 { "› " } else { "  " },
+                                                color: Color::Cyan,
                                             )
                                             Text(
-                                                content: "⚙️  Configure settings first",
-                                                color: if setup_choice.get() == 1 { Color::Green } else { Color::White },
+                                                content: "Configure settings first",
+                                                color: if setup_choice.get() == 1 { Color::White } else { Color::Grey },
                                                 weight: if setup_choice.get() == 1 { Weight::Bold } else { Weight::Normal },
                                             )
                                         }
@@ -229,39 +242,42 @@ fn InteractiveSetup(
                         element! {
                             View(flex_direction: FlexDirection::Column) {
                                 Text(
-                                    content: "How would you like to create your project spec?",
+                                    content: "Select Project Mode",
                                     weight: Weight::Bold,
-                                    color: Color::Green,
+                                    color: Color::White,
                                 )
-                                View(margin_top: 1, flex_direction: FlexDirection::Column) {
+                                // Mode cards in a 2x2 grid-like layout
+                                View(margin_top: 2, flex_direction: FlexDirection::Column) {
                                     #(modes.iter().enumerate().map(|(i, mode)| {
                                         let is_selected = i == selected_mode.get();
                                         element! {
-                                            View {
-                                                Text(
-                                                    content: if is_selected { "▸ " } else { "  " },
-                                                    color: Color::Green,
-                                                )
-                                                Text(
-                                                    content: mode.label(),
-                                                    color: if is_selected { Color::Green } else { Color::White },
-                                                    weight: if is_selected { Weight::Bold } else { Weight::Normal },
-                                                )
+                                            View(
+                                                border_style: BorderStyle::Round,
+                                                border_color: if is_selected { Color::Cyan } else { Color::DarkGrey },
+                                                padding: 1,
+                                                margin_bottom: 1,
+                                                flex_direction: FlexDirection::Column,
+                                            ) {
+                                                View(flex_direction: FlexDirection::Row) {
+                                                    Text(
+                                                        content: if is_selected { "› " } else { "  " },
+                                                        color: Color::Cyan,
+                                                    )
+                                                    Text(
+                                                        content: mode.label(),
+                                                        color: if is_selected { Color::White } else { Color::Grey },
+                                                        weight: if is_selected { Weight::Bold } else { Weight::Normal },
+                                                    )
+                                                }
+                                                View(padding_left: 2, margin_top: 0) {
+                                                    Text(
+                                                        content: mode.description(),
+                                                        color: Color::DarkGrey,
+                                                    )
+                                                }
                                             }
                                         }
                                     }))
-                                }
-                                // Description of selected mode
-                                View(
-                                    margin_top: 2,
-                                    padding: 1,
-                                    border_style: BorderStyle::Single,
-                                    border_color: Color::Grey,
-                                ) {
-                                    Text(
-                                        content: current_mode.description(),
-                                        color: Color::Grey,
-                                    )
                                 }
                             }
                         }
@@ -279,12 +295,12 @@ fn InteractiveSetup(
             // Footer
             View(
                 border_style: BorderStyle::Single,
-                border_color: Color::Grey,
+                border_color: Color::DarkGrey,
                 padding: 1,
             ) {
                 Text(
-                    content: "↑/↓: Navigate  Enter: Select  q: Quit",
-                    color: Color::Grey,
+                    content: "↑↓ Navigate  Enter Select  q Quit",
+                    color: Color::DarkGrey,
                 )
             }
         }

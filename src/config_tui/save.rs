@@ -73,7 +73,6 @@ cache_results = {}
 # MCP Tools - Model Context Protocol configuration
 # ─────────────────────────────────────────────────────────────────────────────
 [mcp]
-prefer_osgrep = {}            # Use semantic code search
 use_sequential_thinking = {}  # Complex reasoning MCP
 required_tools = [{}]         # Required MCP tools
 
@@ -169,7 +168,6 @@ create_scripts_dir = {}
         config.alternative_approaches.num_approaches,
         config.alternative_approaches.cache_results,
         // MCP
-        config.mcp.prefer_osgrep,
         config.mcp.use_sequential_thinking,
         config
             .mcp
@@ -222,7 +220,6 @@ create_scripts_dir = {}
 }
 
 fn format_opencode_json(config: &Config) -> String {
-    let osgrep_enabled = config.mcp.prefer_osgrep;
     let sequential_thinking_enabled = config.mcp.use_sequential_thinking;
     let chrome_devtools_enabled = config
         .mcp
@@ -238,11 +235,6 @@ fn format_opencode_json(config: &Config) -> String {
     ".forger/app_spec.md"
   ],
   "mcp": {{
-    "osgrep": {{
-      "type": "local",
-      "command": ["osgrep", "mcp"],
-      "enabled": {}
-    }},
     "sequential-thinking": {{
       "type": "local",
       "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
@@ -261,6 +253,6 @@ fn format_opencode_json(config: &Config) -> String {
   }}
 }}
 "#,
-        osgrep_enabled, sequential_thinking_enabled, chrome_devtools_enabled,
+        sequential_thinking_enabled, chrome_devtools_enabled,
     )
 }

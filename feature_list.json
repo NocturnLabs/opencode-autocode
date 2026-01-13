@@ -303,18 +303,6 @@
   },
   {
     "category": "functional",
-    "description": "Agent-user communication channel: .forger/COMMUNICATION.md enables async Q&A",
-    "steps": [
-      "Enable communication in config",
-      "Run vibe loop until it needs user input",
-      "Write response to COMMUNICATION.md",
-      "Verify agent reads the response",
-      "Verify agent continues execution based on response"
-    ],
-    "passes": false
-  },
-  {
-    "category": "functional",
     "description": "Database statistics: 'db stats' displays feature and session statistics",
     "steps": [
       "Create project with multiple features and sessions",

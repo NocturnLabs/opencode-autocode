@@ -10,6 +10,24 @@ struct ConfigEditorProps {
     available_models: Vec<String>,
 }
 
+/// Format a Vec<String> as a comma-separated string for display
+fn format_array(items: &[String]) -> String {
+    if items.is_empty() {
+        "(empty)".to_string()
+    } else {
+        items.join(", ")
+    }
+}
+
+/// Parse a comma-separated string into Vec<String>
+fn parse_array(input: &str) -> Vec<String> {
+    input
+        .split(',')
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect()
+}
+
 #[component]
 fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>> {
     let (width, height) = hooks.use_terminal_size();
@@ -19,24 +37,26 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
     let mut is_editing = hooks.use_state(|| false);
     let mut edit_buffer = hooks.use_state(String::new);
     let mut should_exit = hooks.use_state(|| false);
+    let mut config_version = hooks.use_state(|| 0u32); // Used to force re-render on config change
     let global_mcp_tools = hooks
         .use_state(|| crate::config::mcp_loader::load_global_mcp_servers().unwrap_or_default());
 
     let config_arc = props.config.clone();
+    // Only show functional config sections
     let sections = vec![
-        "Models",
-        "Autonomous",
-        "Agent",
-        "Recovery",
-        "MCP",
-        "Generation",
-        "Security",
-        "UI",
-        "Features",
-        "Scaffolding",
-        "Notifications",
-        "Conductor",
-        "Paths",
+        "Models",        // 0
+        "Generation",    // 1
+        "Autonomous",    // 2
+        "Agent",         // 3
+        "Recovery",      // 4
+        "MCP",           // 5
+        "Security",      // 6
+        "UI",            // 7
+        "Notifications", // 8
+        "Features",      // 9
+        "Scaffolding",   // 10
+        "Conductor",     // 11
+        "Paths",         // 12
     ];
     let sections_len = sections.len();
 
@@ -65,6 +85,36 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
             ],
             1 => vec![
                 (
+                    "Complexity".to_string(),
+                    config.generation.complexity.clone(),
+                ),
+                (
+                    "Subagents".to_string(),
+                    config.generation.enable_subagents.to_string(),
+                ),
+                (
+                    "Security Section".to_string(),
+                    config.generation.include_security_section.to_string(),
+                ),
+                (
+                    "Testing Section".to_string(),
+                    config.generation.include_testing_strategy.to_string(),
+                ),
+                (
+                    "DevOps Section".to_string(),
+                    config.generation.include_devops_section.to_string(),
+                ),
+                (
+                    "Accessibility".to_string(),
+                    config.generation.include_accessibility.to_string(),
+                ),
+                (
+                    "Future Enhancements".to_string(),
+                    config.generation.include_future_enhancements.to_string(),
+                ),
+            ],
+            2 => vec![
+                (
                     "Max Iterations".to_string(),
                     config.autonomous.max_iterations.to_string(),
                 ),
@@ -77,12 +127,16 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     config.autonomous.session_timeout_minutes.to_string(),
                 ),
                 (
+                    "Idle Timeout (sec)".to_string(),
+                    config.autonomous.idle_timeout_seconds.to_string(),
+                ),
+                (
                     "Auto Commit".to_string(),
                     config.autonomous.auto_commit.to_string(),
                 ),
                 ("Log Level".to_string(), config.autonomous.log_level.clone()),
             ],
-            2 => vec![
+            3 => vec![
                 (
                     "Max Retries".to_string(),
                     config.agent.max_retry_attempts.to_string(),
@@ -92,11 +146,15 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     config.agent.max_research_attempts.to_string(),
                 ),
                 (
+                    "Verify Sample Size".to_string(),
+                    config.agent.verification_sample_size.to_string(),
+                ),
+                (
                     "Single Focus".to_string(),
                     config.agent.single_feature_focus.to_string(),
                 ),
             ],
-            3 => vec![
+            4 => vec![
                 (
                     "Enabled".to_string(),
                     config.alternative_approaches.enabled.to_string(),
@@ -118,38 +176,17 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     config.alternative_approaches.cache_dir.clone(),
                 ),
             ],
-            4 => {
-                let mut tools = vec![
-                    ("OsGrep".to_string(), config.mcp.prefer_osgrep.to_string()),
-                    (
-                        "Sequential".to_string(),
-                        config.mcp.use_sequential_thinking.to_string(),
-                    ),
-                ];
+            5 => {
+                let mut tools = vec![(
+                    "Sequential".to_string(),
+                    config.mcp.use_sequential_thinking.to_string(),
+                )];
                 for tool in global_mcp_tools.read().iter() {
                     let enabled = config.mcp.required_tools.contains(tool);
                     tools.push((tool.clone(), enabled.to_string()));
                 }
                 tools
             }
-            5 => vec![
-                (
-                    "Complexity".to_string(),
-                    config.generation.complexity.clone(),
-                ),
-                (
-                    "Accessibility".to_string(),
-                    config.generation.include_accessibility.to_string(),
-                ),
-                (
-                    "Security Sec".to_string(),
-                    config.generation.include_security_section.to_string(),
-                ),
-                (
-                    "Testing Sec".to_string(),
-                    config.generation.include_testing_strategy.to_string(),
-                ),
-            ],
             6 => vec![
                 (
                     "Allowlist File".to_string(),
@@ -159,25 +196,47 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     "Strict".to_string(),
                     config.security.enforce_allowlist.to_string(),
                 ),
+                (
+                    "Blocked Patterns".to_string(),
+                    format_array(&config.security.blocked_patterns),
+                ),
             ],
             7 => vec![
-                (
-                    "Spec Preview Lines".to_string(),
-                    config.ui.spec_preview_lines.to_string(),
-                ),
                 (
                     "Colored Output".to_string(),
                     config.ui.colored_output.to_string(),
                 ),
+                ("Verbose".to_string(), config.ui.verbose.to_string()),
                 (
                     "Show Progress".to_string(),
                     config.ui.show_progress.to_string(),
                 ),
-                ("Verbose".to_string(), config.ui.verbose.to_string()),
+                (
+                    "Spec Preview Lines".to_string(),
+                    config.ui.spec_preview_lines.to_string(),
+                ),
             ],
             8 => vec![
                 (
-                    "Require Verification".to_string(),
+                    "Webhook Enabled".to_string(),
+                    config.notifications.webhook_enabled.to_string(),
+                ),
+                (
+                    "Webhook URL".to_string(),
+                    config.notifications.webhook_url.clone().unwrap_or_default(),
+                ),
+            ],
+            9 => vec![
+                (
+                    "Categories".to_string(),
+                    format_array(&config.features.categories),
+                ),
+                (
+                    "Priorities".to_string(),
+                    format_array(&config.features.priorities),
+                ),
+                (
+                    "Require Verify Cmd".to_string(),
                     config.features.require_verification_command.to_string(),
                 ),
                 (
@@ -189,11 +248,11 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     config.features.narrow_test_max_steps.to_string(),
                 ),
                 (
-                    "Comprehensive Min".to_string(),
+                    "Comprehensive Min Steps".to_string(),
                     config.features.comprehensive_test_min_steps.to_string(),
                 ),
             ],
-            9 => vec![
+            10 => vec![
                 (
                     "Git Init".to_string(),
                     config.scaffolding.git_init.to_string(),
@@ -203,22 +262,12 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     config.scaffolding.output_dir.clone(),
                 ),
                 (
-                    "Create .opencode".to_string(),
+                    "Create OpenCode Dir".to_string(),
                     config.scaffolding.create_opencode_dir.to_string(),
                 ),
                 (
-                    "Create Scripts".to_string(),
+                    "Create Scripts Dir".to_string(),
                     config.scaffolding.create_scripts_dir.to_string(),
-                ),
-            ],
-            10 => vec![
-                (
-                    "Webhook Enabled".to_string(),
-                    config.notifications.webhook_enabled.to_string(),
-                ),
-                (
-                    "Webhook URL".to_string(),
-                    config.notifications.webhook_url.clone().unwrap_or_default(),
                 ),
             ],
             11 => vec![
@@ -257,12 +306,27 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     "App Spec File".to_string(),
                     config.paths.app_spec_file.clone(),
                 ),
+                (
+                    "OpenCode Paths".to_string(),
+                    format_array(&config.paths.opencode_paths),
+                ),
             ],
             _ => vec![("Placeholder".to_string(), "Value".to_string())],
         }
     };
 
     let fields_len = fields.len();
+
+    // Calculate dynamic label width (max label length + padding)
+    let max_label_width = fields
+        .iter()
+        .map(|(label, _)| label.len())
+        .max()
+        .unwrap_or(15)
+        + 2;
+
+    // Calculate dynamic sidebar width (max section name + indicator)
+    let max_section_width = sections.iter().map(|s| s.len()).max().unwrap_or(10) + 12;
 
     hooks.use_terminal_events(move |event| match event {
         TerminalEvent::Key(KeyEvent { code, kind, .. }) if kind != KeyEventKind::Release => {
@@ -284,6 +348,34 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 _ => {}
                             },
                             1 => match field_idx {
+                                0 => config.generation.complexity = val,
+                                1 => {
+                                    config.generation.enable_subagents =
+                                        val.to_lowercase() == "true"
+                                }
+                                2 => {
+                                    config.generation.include_security_section =
+                                        val.to_lowercase() == "true"
+                                }
+                                3 => {
+                                    config.generation.include_testing_strategy =
+                                        val.to_lowercase() == "true"
+                                }
+                                4 => {
+                                    config.generation.include_devops_section =
+                                        val.to_lowercase() == "true"
+                                }
+                                5 => {
+                                    config.generation.include_accessibility =
+                                        val.to_lowercase() == "true"
+                                }
+                                6 => {
+                                    config.generation.include_future_enhancements =
+                                        val.to_lowercase() == "true"
+                                }
+                                _ => {}
+                            },
+                            2 => match field_idx {
                                 0 => {
                                     config.autonomous.max_iterations =
                                         val.parse().unwrap_or(config.autonomous.max_iterations)
@@ -298,11 +390,16 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                         .parse()
                                         .unwrap_or(config.autonomous.session_timeout_minutes)
                                 }
-                                3 => config.autonomous.auto_commit = val.to_lowercase() == "true",
-                                4 => config.autonomous.log_level = val,
+                                3 => {
+                                    config.autonomous.idle_timeout_seconds = val
+                                        .parse()
+                                        .unwrap_or(config.autonomous.idle_timeout_seconds)
+                                }
+                                4 => config.autonomous.auto_commit = val.to_lowercase() == "true",
+                                5 => config.autonomous.log_level = val,
                                 _ => {}
                             },
-                            2 => match field_idx {
+                            3 => match field_idx {
                                 0 => {
                                     config.agent.max_retry_attempts =
                                         val.parse().unwrap_or(config.agent.max_retry_attempts)
@@ -312,11 +409,15 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                         val.parse().unwrap_or(config.agent.max_research_attempts)
                                 }
                                 2 => {
+                                    config.agent.verification_sample_size =
+                                        val.parse().unwrap_or(config.agent.verification_sample_size)
+                                }
+                                3 => {
                                     config.agent.single_feature_focus = val.to_lowercase() == "true"
                                 }
                                 _ => {}
                             },
-                            3 => match field_idx {
+                            4 => match field_idx {
                                 0 => {
                                     config.alternative_approaches.enabled =
                                         val.to_lowercase() == "true"
@@ -338,14 +439,13 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 4 => config.alternative_approaches.cache_dir = val,
                                 _ => {}
                             },
-                            4 => match field_idx {
-                                0 => config.mcp.prefer_osgrep = val.to_lowercase() == "true",
-                                1 => {
+                            5 => match field_idx {
+                                0 => {
                                     config.mcp.use_sequential_thinking =
                                         val.to_lowercase() == "true"
                                 }
                                 idx => {
-                                    if let Some(tool_name) = global_mcp_tools.read().get(idx - 2) {
+                                    if let Some(tool_name) = global_mcp_tools.read().get(idx - 1) {
                                         let enabled = val.to_lowercase() == "true";
                                         if enabled {
                                             if !config.mcp.required_tools.contains(tool_name) {
@@ -357,60 +457,58 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                     }
                                 }
                             },
-                            5 => match field_idx {
-                                0 => config.generation.complexity = val,
-                                1 => {
-                                    config.generation.include_accessibility =
-                                        val.to_lowercase() == "true"
-                                }
-                                2 => {
-                                    config.generation.include_security_section =
-                                        val.to_lowercase() == "true"
-                                }
-                                3 => {
-                                    config.generation.include_testing_strategy =
-                                        val.to_lowercase() == "true"
-                                }
-                                _ => {}
-                            },
                             6 => match field_idx {
                                 0 => config.security.allowlist_file = val,
                                 1 => {
                                     config.security.enforce_allowlist = val.to_lowercase() == "true"
                                 }
+                                2 => config.security.blocked_patterns = parse_array(&val),
                                 _ => {}
                             },
                             7 => match field_idx {
-                                0 => {
+                                0 => config.ui.colored_output = val.to_lowercase() == "true",
+                                1 => config.ui.verbose = val.to_lowercase() == "true",
+                                2 => config.ui.show_progress = val.to_lowercase() == "true",
+                                3 => {
                                     config.ui.spec_preview_lines =
                                         val.parse().unwrap_or(config.ui.spec_preview_lines)
                                 }
-                                1 => config.ui.colored_output = val.to_lowercase() == "true",
-                                2 => config.ui.show_progress = val.to_lowercase() == "true",
-                                3 => config.ui.verbose = val.to_lowercase() == "true",
                                 _ => {}
                             },
                             8 => match field_idx {
                                 0 => {
-                                    config.features.require_verification_command =
+                                    config.notifications.webhook_enabled =
                                         val.to_lowercase() == "true"
                                 }
                                 1 => {
+                                    config.notifications.webhook_url =
+                                        if val.is_empty() { None } else { Some(val) }
+                                }
+                                _ => {}
+                            },
+                            9 => match field_idx {
+                                0 => config.features.categories = parse_array(&val),
+                                1 => config.features.priorities = parse_array(&val),
+                                2 => {
+                                    config.features.require_verification_command =
+                                        val.to_lowercase() == "true"
+                                }
+                                3 => {
                                     config.features.narrow_test_min_steps =
                                         val.parse().unwrap_or(config.features.narrow_test_min_steps)
                                 }
-                                2 => {
+                                4 => {
                                     config.features.narrow_test_max_steps =
                                         val.parse().unwrap_or(config.features.narrow_test_max_steps)
                                 }
-                                3 => {
+                                5 => {
                                     config.features.comprehensive_test_min_steps = val
                                         .parse()
                                         .unwrap_or(config.features.comprehensive_test_min_steps)
                                 }
                                 _ => {}
                             },
-                            9 => match field_idx {
+                            10 => match field_idx {
                                 0 => config.scaffolding.git_init = val.to_lowercase() == "true",
                                 1 => config.scaffolding.output_dir = val,
                                 2 => {
@@ -420,17 +518,6 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 3 => {
                                     config.scaffolding.create_scripts_dir =
                                         val.to_lowercase() == "true"
-                                }
-                                _ => {}
-                            },
-                            10 => match field_idx {
-                                0 => {
-                                    config.notifications.webhook_enabled =
-                                        val.to_lowercase() == "true"
-                                }
-                                1 => {
-                                    config.notifications.webhook_url =
-                                        if val.is_empty() { None } else { Some(val) }
                                 }
                                 _ => {}
                             },
@@ -450,10 +537,12 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 1 => config.paths.vs_cache_dir = val,
                                 2 => config.paths.database_file = val,
                                 3 => config.paths.app_spec_file = val,
+                                4 => config.paths.opencode_paths = parse_array(&val),
                                 _ => {}
                             },
                             _ => {}
                         }
+                        config_version.set(config_version.get() + 1);
                         is_editing.set(false);
                     }
                     KeyCode::Esc => {
@@ -495,11 +584,13 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                             selected_field.set(0);
                         }
                     }
-                    KeyCode::Enter => {
-                        let config = config_arc.lock().unwrap();
+                    KeyCode::Enter | KeyCode::Char(' ') => {
+                        let mut config = config_arc.lock().unwrap();
                         let section_idx = selected_section.get();
                         let field_idx = selected_field.get();
-                        let val = match section_idx {
+
+                        // Helper to get current value and check if boolean
+                        let current_val = match section_idx {
                             0 => match field_idx {
                                 0 => config.models.autonomous.clone(),
                                 1 => config.models.default.clone(),
@@ -509,65 +600,81 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 _ => String::new(),
                             },
                             1 => match field_idx {
-                                0 => config.autonomous.max_iterations.to_string(),
-                                1 => config.autonomous.delay_between_sessions.to_string(),
-                                2 => config.autonomous.session_timeout_minutes.to_string(),
-                                3 => config.autonomous.auto_commit.to_string(),
-                                4 => config.autonomous.log_level.clone(),
+                                0 => config.generation.complexity.clone(),
+                                1 => config.generation.enable_subagents.to_string(),
+                                2 => config.generation.include_security_section.to_string(),
+                                3 => config.generation.include_testing_strategy.to_string(),
+                                4 => config.generation.include_devops_section.to_string(),
+                                5 => config.generation.include_accessibility.to_string(),
+                                6 => config.generation.include_future_enhancements.to_string(),
                                 _ => String::new(),
                             },
                             2 => match field_idx {
-                                0 => config.agent.max_retry_attempts.to_string(),
-                                1 => config.agent.max_research_attempts.to_string(),
-                                2 => config.agent.single_feature_focus.to_string(),
+                                0 => config.autonomous.max_iterations.to_string(),
+                                1 => config.autonomous.delay_between_sessions.to_string(),
+                                2 => config.autonomous.session_timeout_minutes.to_string(),
+                                3 => config.autonomous.idle_timeout_seconds.to_string(),
+                                4 => config.autonomous.auto_commit.to_string(),
+                                5 => config.autonomous.log_level.clone(),
                                 _ => String::new(),
                             },
                             3 => match field_idx {
-                                0 => config.alternative_approaches.enabled.to_string(),
-                                1 => config.alternative_approaches.num_approaches.to_string(),
-                                2 => config.alternative_approaches.retry_threshold.to_string(),
+                                0 => config.agent.max_retry_attempts.to_string(),
+                                1 => config.agent.max_research_attempts.to_string(),
+                                2 => config.agent.verification_sample_size.to_string(),
+                                3 => config.agent.single_feature_focus.to_string(),
                                 _ => String::new(),
                             },
                             4 => match field_idx {
-                                0 => config.mcp.prefer_osgrep.to_string(),
-                                1 => config.mcp.use_sequential_thinking.to_string(),
+                                0 => config.alternative_approaches.enabled.to_string(),
+                                1 => config.alternative_approaches.num_approaches.to_string(),
+                                2 => config.alternative_approaches.retry_threshold.to_string(),
+                                3 => config.alternative_approaches.cache_results.to_string(),
+                                4 => config.alternative_approaches.cache_dir.clone(),
                                 _ => String::new(),
                             },
                             5 => match field_idx {
-                                0 => config.generation.complexity.clone(),
-                                1 => config.generation.include_accessibility.to_string(),
-                                2 => config.generation.include_security_section.to_string(),
-                                3 => config.generation.include_testing_strategy.to_string(),
-                                _ => String::new(),
+                                0 => config.mcp.use_sequential_thinking.to_string(),
+                                idx => {
+                                    if let Some(tool_name) = global_mcp_tools.read().get(idx - 1) {
+                                        config.mcp.required_tools.contains(tool_name).to_string()
+                                    } else {
+                                        String::new()
+                                    }
+                                }
                             },
                             6 => match field_idx {
                                 0 => config.security.allowlist_file.clone(),
                                 1 => config.security.enforce_allowlist.to_string(),
+                                2 => format_array(&config.security.blocked_patterns),
                                 _ => String::new(),
                             },
                             7 => match field_idx {
-                                0 => config.ui.spec_preview_lines.to_string(),
-                                1 => config.ui.colored_output.to_string(),
+                                0 => config.ui.colored_output.to_string(),
+                                1 => config.ui.verbose.to_string(),
                                 2 => config.ui.show_progress.to_string(),
+                                3 => config.ui.spec_preview_lines.to_string(),
                                 _ => String::new(),
                             },
                             8 => match field_idx {
-                                0 => config.features.require_verification_command.to_string(),
-                                1 => config.features.narrow_test_min_steps.to_string(),
-                                2 => config.features.narrow_test_max_steps.to_string(),
-                                3 => config.features.comprehensive_test_min_steps.to_string(),
+                                0 => config.notifications.webhook_enabled.to_string(),
+                                1 => config.notifications.webhook_url.clone().unwrap_or_default(),
                                 _ => String::new(),
                             },
                             9 => match field_idx {
+                                0 => format_array(&config.features.categories),
+                                1 => format_array(&config.features.priorities),
+                                2 => config.features.require_verification_command.to_string(),
+                                3 => config.features.narrow_test_min_steps.to_string(),
+                                4 => config.features.narrow_test_max_steps.to_string(),
+                                5 => config.features.comprehensive_test_min_steps.to_string(),
+                                _ => String::new(),
+                            },
+                            10 => match field_idx {
                                 0 => config.scaffolding.git_init.to_string(),
                                 1 => config.scaffolding.output_dir.clone(),
                                 2 => config.scaffolding.create_opencode_dir.to_string(),
                                 3 => config.scaffolding.create_scripts_dir.to_string(),
-                                _ => String::new(),
-                            },
-                            10 => match field_idx {
-                                0 => config.notifications.webhook_enabled.to_string(),
-                                1 => config.notifications.webhook_url.clone().unwrap_or_default(),
                                 _ => String::new(),
                             },
                             11 => match field_idx {
@@ -583,12 +690,127 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 1 => config.paths.vs_cache_dir.clone(),
                                 2 => config.paths.database_file.clone(),
                                 3 => config.paths.app_spec_file.clone(),
+                                4 => format_array(&config.paths.opencode_paths),
                                 _ => String::new(),
                             },
                             _ => String::new(),
                         };
-                        edit_buffer.set(val);
-                        is_editing.set(true);
+
+                        let is_boolean = current_val == "true" || current_val == "false";
+
+                        if is_boolean {
+                            // Toggle the boolean value directly
+                            let new_val = if current_val == "true" {
+                                "false"
+                            } else {
+                                "true"
+                            };
+                            match section_idx {
+                                1 => match field_idx {
+                                    1 => config.generation.enable_subagents = new_val == "true",
+                                    2 => {
+                                        config.generation.include_security_section =
+                                            new_val == "true"
+                                    }
+                                    3 => {
+                                        config.generation.include_testing_strategy =
+                                            new_val == "true"
+                                    }
+                                    4 => {
+                                        config.generation.include_devops_section = new_val == "true"
+                                    }
+                                    5 => {
+                                        config.generation.include_accessibility = new_val == "true"
+                                    }
+                                    6 => {
+                                        config.generation.include_future_enhancements =
+                                            new_val == "true"
+                                    }
+                                    _ => {}
+                                },
+                                2 => {
+                                    if field_idx == 4 {
+                                        config.autonomous.auto_commit = new_val == "true";
+                                    }
+                                }
+                                3 => {
+                                    if field_idx == 3 {
+                                        config.agent.single_feature_focus = new_val == "true";
+                                    }
+                                }
+                                4 => match field_idx {
+                                    0 => config.alternative_approaches.enabled = new_val == "true",
+                                    3 => {
+                                        config.alternative_approaches.cache_results =
+                                            new_val == "true"
+                                    }
+                                    _ => {}
+                                },
+                                5 => match field_idx {
+                                    0 => config.mcp.use_sequential_thinking = new_val == "true",
+                                    idx => {
+                                        if let Some(tool_name) =
+                                            global_mcp_tools.read().get(idx - 1)
+                                        {
+                                            let enabled = new_val == "true";
+                                            if enabled {
+                                                if !config.mcp.required_tools.contains(tool_name) {
+                                                    config
+                                                        .mcp
+                                                        .required_tools
+                                                        .push(tool_name.clone());
+                                                }
+                                            } else {
+                                                config
+                                                    .mcp
+                                                    .required_tools
+                                                    .retain(|t| t != tool_name);
+                                            }
+                                        }
+                                    }
+                                },
+                                6 => {
+                                    if field_idx == 1 {
+                                        config.security.enforce_allowlist = new_val == "true";
+                                    }
+                                }
+                                7 => match field_idx {
+                                    0 => config.ui.colored_output = new_val == "true",
+                                    1 => config.ui.verbose = new_val == "true",
+                                    2 => config.ui.show_progress = new_val == "true",
+                                    _ => {}
+                                },
+                                8 => {
+                                    if field_idx == 0 {
+                                        config.notifications.webhook_enabled = new_val == "true";
+                                    }
+                                }
+                                9 => {
+                                    if field_idx == 2 {
+                                        config.features.require_verification_command =
+                                            new_val == "true";
+                                    }
+                                }
+                                10 => match field_idx {
+                                    0 => config.scaffolding.git_init = new_val == "true",
+                                    2 => config.scaffolding.create_opencode_dir = new_val == "true",
+                                    3 => config.scaffolding.create_scripts_dir = new_val == "true",
+                                    _ => {}
+                                },
+                                11 => {
+                                    if field_idx == 2 {
+                                        config.conductor.auto_setup = new_val == "true";
+                                    }
+                                }
+                                _ => {}
+                            }
+                            config_version.set(config_version.get() + 1);
+                        } else {
+                            // Non-boolean: enter edit mode
+                            drop(config); // Release the lock before setting state
+                            edit_buffer.set(current_val);
+                            is_editing.set(true);
+                        }
                     }
                     KeyCode::Char('q') => {
                         should_exit.set(true);
@@ -606,21 +828,21 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
 
     element! {
         View(width, height, flex_direction: FlexDirection::Column) {
-            // Header
-            View(padding: 1, border_style: BorderStyle::Round, border_color: Color::Blue) {
-                Text(content: "⚙️  Configuration Editor", weight: Weight::Bold, color: Color::Blue)
+            // Header - Clean Minimalist
+            View(padding: 1, border_style: BorderStyle::Round, border_color: Color::DarkGrey) {
+                Text(content: "⚙  Configuration", weight: Weight::Bold, color: Color::White)
             }
 
             View(flex_grow: 1.0, flex_direction: FlexDirection::Row) {
                 // Sidebar: Sections
-                View(width: 20, flex_direction: FlexDirection::Column, border_style: BorderStyle::Single, border_color: Color::Grey) {
+                View(width: max_section_width as u32, flex_direction: FlexDirection::Column, border_style: BorderStyle::Single, border_color: Color::DarkGrey, padding_top: 1) {
                     #(sections.iter().enumerate().map(|(i, &name)| {
                         let is_selected = i == selected_section.get();
                         element! {
                             View(padding_left: 1) {
                                 Text(
-                                    content: if is_selected { format!("▸ {}", name) } else { format!("  {}", name) },
-                                    color: if is_selected { Color::Green } else { Color::White },
+                                    content: if is_selected { format!("› {}", name) } else { format!("  {}", name) },
+                                    color: if is_selected { Color::White } else { Color::Grey },
                                     weight: if is_selected { Weight::Bold } else { Weight::Normal },
                                 )
                             }
@@ -629,45 +851,84 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                 }
 
                 // Main: Fields
-                View(flex_grow: 1.0, flex_direction: FlexDirection::Column, padding: 1, border_style: BorderStyle::Single, border_color: Color::Grey) {
-                    Text(content: format!("Section: {}", sections[selected_section.get()]), weight: Weight::Bold, color: Color::Cyan)
+                View(flex_grow: 1.0, flex_direction: FlexDirection::Column, padding: 1, border_style: BorderStyle::Single, border_color: Color::DarkGrey) {
+                    Text(content: sections[selected_section.get()].to_string(), weight: Weight::Bold, color: Color::White)
 
                    // Fields List
-                View(flex_direction: FlexDirection::Column, flex_grow: 1.0) {
+                View(flex_direction: FlexDirection::Column, flex_grow: 1.0, margin_top: 1) {
                     #(fields.iter().enumerate().map(|(i, (label, value)): (usize, &(String, String))| {
                         let label = label.to_string();
-                        let value = value.to_string();
+                        let value_str = value.to_string();
                         let is_selected = i == selected_field.get();
                         let is_on_editing = is_selected && is_editing.get();
 
+                        // Detect if this is a boolean value
+                        let is_boolean = value_str == "true" || value_str == "false";
+                        let bool_val = value_str == "true";
+
                         element! (
-                            View {
+                            View(margin_bottom: 1) {
                                 Text(
-                                    content: if is_selected { "▸ " } else { "  " },
-                                    color: Color::Green,
+                                    content: if is_selected { "› " } else { "  " },
+                                    color: Color::Cyan,
                                 )
-                                View(width: 25) {
-                                    Text(content: format!("{}: ", label))
+                                View(width: max_label_width as u32) {
+                                    Text(
+                                        content: label.clone(),
+                                        color: if is_selected { Color::White } else { Color::Grey },
+                                    )
                                 }
-                                Text(
-                                    content: if is_on_editing { format!("{}▮", edit_buffer.read().as_str()) } else { value.clone() },
-                                    color: if is_on_editing { Color::Yellow } else if is_selected { Color::White } else { Color::Grey },
-                                    weight: if is_selected { Weight::Bold } else { Weight::Normal },
-                                )
+                                #(if is_boolean {
+                                    // Toggle switch for booleans
+                                    element! {
+                                        View(flex_direction: FlexDirection::Row, padding_top: 1, padding_bottom: 1) {
+                                            Text(
+                                                content: if bool_val { "[ON] " } else { " ON  " },
+                                                color: if bool_val { Color::Cyan } else { Color::DarkGrey },
+                                                weight: if bool_val { Weight::Bold } else { Weight::Normal },
+                                            )
+                                            Text(
+                                                content: if !bool_val { "[OFF]" } else { " OFF " },
+                                                color: if !bool_val { Color::Cyan } else { Color::DarkGrey },
+                                                weight: if !bool_val { Weight::Bold } else { Weight::Normal },
+                                            )
+                                        }
+                                    }
+                                } else if is_on_editing {
+                                    // Editing mode with cursor
+                                    element! {
+                                        View(border_style: BorderStyle::Single, border_color: Color::Cyan, padding_left: 1, padding_right: 1) {
+                                            Text(
+                                                content: format!("{}▏", edit_buffer.read().as_str()),
+                                                color: Color::White,
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    // Normal display with box
+                                    element! {
+                                        View(border_style: BorderStyle::Single, border_color: if is_selected { Color::Grey } else { Color::DarkGrey }, padding_left: 1, padding_right: 1) {
+                                            Text(
+                                                content: value_str.clone(),
+                                                color: if is_selected { Color::White } else { Color::DarkGrey },
+                                            )
+                                        }
+                                    }
+                                })
                             }
                         )
                     }))
                 }
 
                     View(margin_top: 2, padding: 1, border_style: BorderStyle::Single, border_color: Color::DarkGrey) {
-                        Text(content: "Note: Press Enter to edit the selected field. Boolean values should be typed as 'true' or 'false'.", color: Color::Grey)
+                        Text(content: format!("Tip: Toggle switches with Enter/Space. Edit text fields with Enter. (v{})", config_version.get()), color: Color::Grey)
                     }
                 }
             }
 
             // Footer
-            View(padding: 1, border_style: BorderStyle::Single, border_color: Color::Grey) {
-                Text(content: "Arrows/hjkl: Navigate  Enter: Edit  Esc: Back  q: Save & Quit", color: Color::Grey)
+            View(padding: 1, border_style: BorderStyle::Single, border_color: Color::DarkGrey) {
+                Text(content: "↑↓ Navigate  ←→ Sections  Enter/Space Toggle/Edit  q Save & Quit", color: Color::DarkGrey)
             }
         }
     }

@@ -7,6 +7,7 @@
 //! - Default: Built-in template
 
 mod actions;
+pub mod components;
 mod fullscreen;
 mod generated;
 mod manual;

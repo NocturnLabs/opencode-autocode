@@ -3,7 +3,7 @@ members = ["tests/regression"]
 
 [package]
 name = "opencode-forger"
-version = "0.9.0"
+version = "0.10.0"
 edition = "2021"
 description = "Scaffold autonomous coding plugin for OpenCode"
 authors = ["CodingInCarhartts"]
@@ -58,6 +58,8 @@ self_update = { version = "0.42.0", features = [
     "compression-flate2",
 ] }
 num_cpus = "1.17.0"
+unicode-width = "0.2.0"
+
 
 # Unix process control (for process group termination)
 [target.'cfg(unix)'.dependencies]

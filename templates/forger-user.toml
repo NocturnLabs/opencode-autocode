@@ -39,6 +39,9 @@ max_iterations = 0
 # Auto-commit after each feature completion
 auto_commit = true
 
+# Warn after this many non-progress iterations (0 = unlimited)
+max_no_progress = 5
+
 # Session timeout in minutes (0 = no timeout)
 session_timeout_minutes = 60
 
@@ -57,19 +60,17 @@ single_feature_focus = true
 # ─────────────────────────────────────────────────────────────────────────────
 [mcp]
 # Configure your available MCPs here (in priority order).
-# Leave empty if you don't have custom MCPs - the agent will use standard tools.
+# Leave empty if you don't have custom MCPs - agent will use standard tools.
 #
-# Recommended tools for the full NocturnLabs workflow:
-#   osgrep              - Semantic code search    (https://github.com/Ryandonofrio3/osgrep)
+# Recommended tools for full NocturnLabs workflow:
 #   perplexica          - Self-hosted AI search   (https://github.com/ItzCrazyKns/Perplexica)
 #   deepwiki            - GitHub docs lookup      (https://deepwiki.com)
 #   sequential-thinking - Structured reasoning    (https://github.com/modelcontextprotocol/servers)
 #
-# Example: priority_order = ["osgrep", "sequential-thinking"]
+# Example: priority_order = ["sequential-thinking"]
 priority_order = []
 
-# Prefer osgrep over grep for code search (set true if osgrep is installed)
-prefer_osgrep = false
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # UI - User interface and output settings

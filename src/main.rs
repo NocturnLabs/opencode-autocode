@@ -23,6 +23,7 @@ mod regression;
 // mod scaffold; // moved to services
 
 mod spec;
+mod template_xml;
 mod templates;
 mod theming;
 mod tui;
