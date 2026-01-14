@@ -370,6 +370,9 @@ enum VerificationFailure {
 **Lines**: 470-492  
 **Purpose**: Classify verification failures to determine corrective action.
 
+**Command error expectations**:
+- Treat CLI errors like "unrecognized CLI parameter" or "unknown option" as command failures so the loop can prompt for a verification command update.
+
 ---
 
 ## Session Execution Module
