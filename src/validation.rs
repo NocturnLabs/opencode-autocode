@@ -56,7 +56,9 @@ impl ValidationResult {
     /// # Examples
     ///
     /// ```rust
-    /// let result = validate_spec(&spec_text)?;
+    /// use opencode_forger::validation::validate_spec;
+    /// let spec_text = "<project_specification><project_name>Test</project_name><overview>Overview</overview></project_specification>";
+    /// let result = validate_spec(&spec_text).unwrap();
     /// result.print();
     /// ```
     pub fn print(&self) {
@@ -165,7 +167,9 @@ impl ValidationRules {
     /// # Examples
     ///
     /// ```rust
-    /// let config = Config::load(None)?;
+    /// use opencode_forger::config::Config;
+    /// use opencode_forger::validation::ValidationRules;
+    /// let config = Config::default();
     /// let rules = ValidationRules::from_config(&config);
     /// ```
     pub fn from_config(config: &Config) -> Self {
@@ -196,7 +200,7 @@ impl ValidationRules {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// let clean_text = strip_xml_comments("<root><!-- bad --><item/></root>");
 /// assert_eq!(clean_text, "<root><item/></root>");
 /// ```
@@ -256,8 +260,9 @@ fn strip_xml_comments(text: &str) -> String {
 /// # Examples
 ///
 /// ```rust
-/// let spec = "<project_specification>...</project_specification>";
-/// let result = validate_spec(spec)?;
+/// use opencode_forger::validation::validate_spec;
+/// let spec = "<project_specification><project_name>Test</project_name><overview>Overview</overview></project_specification>";
+/// let result = validate_spec(spec).unwrap();
 /// if result.is_valid {
 ///     println!("Spec is valid!");
 /// }
@@ -283,9 +288,11 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
 /// # Examples
 ///
 /// ```rust
-/// let spec = "<project_specification>...</project_specification>";
-/// let config = Config::load(None)?;
-/// let result = validate_spec_with_config(spec, &config)?;
+/// use opencode_forger::config::Config;
+/// use opencode_forger::validation::validate_spec_with_config;
+/// let spec = "<project_specification><project_name>Test</project_name><overview>Overview</overview></project_specification>";
+/// let config = Config::default();
+/// let result = validate_spec_with_config(spec, &config).unwrap();
 /// ```
 pub fn validate_spec_with_config(spec_text: &str, config: &Config) -> Result<ValidationResult> {
     validate_spec_with_rules(spec_text, Some(ValidationRules::from_config(config)))
@@ -551,6 +558,7 @@ fn validate_spec_with_rules(
 /// # Examples
 ///
 /// ```rust
+/// use opencode_forger::validation::print_diff;
 /// let old_spec = "<project>...</project>";
 /// let new_spec = "<project>...</project>";
 /// print_diff(old_spec, new_spec);

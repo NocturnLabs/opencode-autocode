@@ -102,6 +102,7 @@ impl StyledString {
 /// # Examples
 ///
 /// ```rust
+/// use opencode_forger::theming::set_colored_output;
 /// set_colored_output(true); // Enable colored output
 /// set_colored_output(false); // Disable colored output
 /// ```

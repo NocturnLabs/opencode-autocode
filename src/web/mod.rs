@@ -21,7 +21,7 @@ pub mod static_files;
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// run_server(8080, true).await?;
 /// ```
 #[actix_web::main]

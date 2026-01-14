@@ -67,6 +67,8 @@ impl Config {
     /// # Examples
     ///
     /// ```rust
+    /// use opencode_forger::config::Config;
+    /// use std::path::Path;
     /// let config_path = Config::resolve_config_path(Some(Path::new("/my/project")));
     /// ```
     pub fn resolve_config_path(dir: Option<&Path>) -> PathBuf {
@@ -89,11 +91,13 @@ impl Config {
     /// # Examples
     ///
     /// ```rust
+    /// use opencode_forger::config::Config;
+    /// use std::path::Path;
     /// // Load config from current directory
-    /// let config = Config::load(None)?;
+    /// let config = Config::load(None);
     ///
     /// // Load config from specific directory
-    /// let config = Config::load(Some(Path::new("/my/project")))?;
+    /// let config = Config::load(Some(Path::new("/my/project")));
     /// ```
     pub fn load(dir: Option<&Path>) -> Result<Self> {
         let root = match dir {
@@ -141,7 +145,9 @@ impl Config {
     /// # Examples
     ///
     /// ```rust
-    /// let config = Config::load_from_file(Path::new("/path/to/forger.toml"))?;
+    /// use opencode_forger::config::Config;
+    /// use std::path::Path;
+    /// let config = Config::load_from_file(Path::new("/path/to/forger.toml"));
     /// ```
     pub fn load_from_file(path: &Path) -> Result<Self> {
         let content = fs::read_to_string(path)
@@ -282,6 +288,7 @@ fn resolve_config_path(root: Option<&Path>) -> PathBuf {
 /// # Examples
 ///
 /// ```rust
+/// use opencode_forger::config::find_project_root;
 /// if let Some(root) = find_project_root() {
 ///     println!("Project root: {}", root.display());
 /// }
@@ -324,7 +331,7 @@ pub fn find_project_root() -> Option<PathBuf> {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// let expanded = expand_env_var("$HOME/.config");
 /// // Returns something like "/home/user/.config"
 /// ```

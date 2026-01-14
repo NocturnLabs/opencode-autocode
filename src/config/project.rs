@@ -80,6 +80,7 @@ impl ComplexityLevel {
     /// # Examples
     ///
     /// ```rust
+    /// use opencode_forger::config::ComplexityLevel;
     /// let level = ComplexityLevel::Comprehensive;
     /// assert_eq!(level.as_str(), "comprehensive");
     /// ```
@@ -99,6 +100,7 @@ impl ComplexityLevel {
     /// # Examples
     ///
     /// ```rust
+    /// use opencode_forger::config::ComplexityLevel;
     /// let comprehensive = ComplexityLevel::Comprehensive;
     /// let minimal = comprehensive.toggle();
     /// assert_eq!(minimal, ComplexityLevel::Minimal);
@@ -127,6 +129,8 @@ impl std::str::FromStr for ComplexityLevel {
     /// # Examples
     ///
     /// ```rust
+    /// use opencode_forger::config::ComplexityLevel;
+    /// use std::str::FromStr;
     /// let level = ComplexityLevel::from_str("minimal").unwrap();
     /// assert_eq!(level, ComplexityLevel::Minimal);
     /// ```
@@ -152,6 +156,7 @@ impl fmt::Display for ComplexityLevel {
     /// # Examples
     ///
     /// ```rust
+    /// use opencode_forger::config::ComplexityLevel;
     /// let level = ComplexityLevel::Comprehensive;
     /// println!("{}", level); // Prints "comprehensive"
     /// ```
@@ -218,6 +223,7 @@ impl GenerationConfig {
     /// # Examples
     ///
     /// ```rust
+    /// use opencode_forger::config::GenerationConfig;
     /// let config = GenerationConfig::default();
     /// let requirements = config.requirements();
     /// println!("Minimum features: {}", requirements.min_features);
