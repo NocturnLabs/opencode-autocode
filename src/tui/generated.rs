@@ -5,6 +5,7 @@ use std::io::Write;
 use std::path::Path;
 
 use crate::services::generator::generate_spec_from_idea;
+use crate::theming::{accent, highlight, muted, primary, symbols};
 
 use crate::tui::prompts::{confirm, multiline_input, print_error, print_info};
 
@@ -17,9 +18,17 @@ pub fn run_generated_mode(
     config: &crate::config::Config,
     use_subagents: bool,
 ) -> Result<()> {
-    println!("\n─── AI Spec Generation ───");
+    println!(
+        "\n{} {}",
+        accent(symbols::CHEVRON),
+        highlight("AI Spec Generation")
+    );
     print_info("Describe your project and AI will create a comprehensive spec.");
-    println!("Using model: {}", config.models.default);
+    println!(
+        "{} {}",
+        muted("Using model:"),
+        primary(&config.models.default)
+    );
 
     // Use model from config directly (config was set before generation)
     let model = Some(config.models.default.as_str());
@@ -74,7 +83,10 @@ fn generate_initial_spec(
     print!("\x1B[2K\r");
     let _ = std::io::stdout().flush();
 
-    println!("\n─────────────────────────────────────────────");
+    println!(
+        "\n{}",
+        muted("─────────────────────────────────────────────")
+    );
 
     generate_spec_from_idea(idea, testing_pref, model, use_subagents, config, |msg| {
         print!("{}", msg);

@@ -13,6 +13,7 @@ mod generated;
 mod manual;
 pub mod prompts;
 pub mod stats;
+pub mod theme;
 mod validation;
 
 // Re-export the main entry points

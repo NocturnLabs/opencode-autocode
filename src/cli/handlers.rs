@@ -8,6 +8,7 @@ use std::path::PathBuf;
 
 use crate::config_tui;
 use crate::services::scaffold;
+use crate::theming::{accent, error, highlight, muted, primary, symbols};
 use crate::tui;
 use crate::updater;
 
@@ -68,7 +69,11 @@ pub fn run(cli: Cli) -> Result<()> {
             Commands::Update => match updater::update() {
                 Ok(_) => Ok(()),
                 Err(e) => {
-                    eprintln!("❌ Failed to update: {}", e);
+                    eprintln!(
+                        "{} {}",
+                        error(symbols::ERROR),
+                        error(format!("Failed to update: {}", e))
+                    );
                     std::process::exit(1);
                 }
             },
@@ -81,7 +86,11 @@ pub fn run(cli: Cli) -> Result<()> {
         Mode::Config => config_tui::run_config_tui(None).map(|_| ()),
         Mode::Default => {
             if cli.dry_run {
-                println!("🔍 Dry run mode - no files will be created");
+                println!(
+                    "{} {}",
+                    accent(symbols::INFO),
+                    muted("Dry run mode - no files will be created")
+                );
                 scaffold::preview_scaffold(&output_dir);
                 return Ok(());
             }
@@ -91,11 +100,20 @@ pub fn run(cli: Cli) -> Result<()> {
         }
         Mode::Custom(spec_path) => {
             if cli.dry_run {
-                println!("🔍 Dry run mode - no files will be created");
+                println!(
+                    "{} {}",
+                    accent(symbols::INFO),
+                    muted("Dry run mode - no files will be created")
+                );
                 scaffold::preview_scaffold(&output_dir);
                 return Ok(());
             }
-            println!("📄 Scaffolding with custom spec: {}", spec_path.display());
+            println!(
+                "{} {} {}",
+                accent(symbols::CHEVRON),
+                highlight("Scaffolding with custom spec:"),
+                primary(spec_path.display())
+            );
             scaffold::scaffold_custom(&output_dir, &spec_path)?;
             init::print_next_steps(&output_dir);
             Ok(())
@@ -105,13 +123,20 @@ pub fn run(cli: Cli) -> Result<()> {
             // Check for updates
             if let Ok(Some(new_version)) = updater::check_for_update() {
                 println!(
-                    "\n🚀 A new version is available: {} (Run 'opencode-forger update' to upgrade)\n",
-                    new_version
+                    "\n{} {} {} {}\n",
+                    accent(symbols::SPARKLE),
+                    highlight("New version available:"),
+                    primary(new_version),
+                    muted("(Run 'opencode-forger update' to upgrade)")
                 );
             }
 
             if cli.dry_run {
-                println!("🔍 Dry run mode - no files will be created");
+                println!(
+                    "{} {}",
+                    accent(symbols::INFO),
+                    muted("Dry run mode - no files will be created")
+                );
                 scaffold::preview_scaffold(&output_dir);
                 return Ok(());
             }

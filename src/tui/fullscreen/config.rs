@@ -890,7 +890,9 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                     )
                                 }
                                  #(if is_complexity {
-                                     let current_level = ComplexityLevel::from_str(&value_str);
+                                     let current_level = value_str
+                                         .parse::<ComplexityLevel>()
+                                         .unwrap_or_default();
                                      let options = [
                                          ComplexityLevel::Comprehensive,
                                          ComplexityLevel::Minimal,
