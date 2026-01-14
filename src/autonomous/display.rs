@@ -1,6 +1,39 @@
 //! Display functions for the autonomous runner
 
-use crate::theming::{boxes, muted, symbols, visual_width};
+use crate::theming::{accent, boxes, highlight, muted, symbols, visual_width, warning};
+use terminal_size::{terminal_size, Width};
+use unicode_width::UnicodeWidthChar;
+
+fn wrap_to_width(text: &str, max_width: usize) -> Vec<String> {
+    if max_width == 0 {
+        return vec![text.to_string()];
+    }
+
+    let mut lines = Vec::new();
+    let mut current = String::new();
+    let mut width = 0usize;
+
+    for ch in text.chars() {
+        let ch_width = UnicodeWidthChar::width(ch).unwrap_or(0);
+        if width + ch_width > max_width && !current.is_empty() {
+            lines.push(current);
+            current = String::new();
+            width = 0;
+        }
+        current.push(ch);
+        width += ch_width;
+    }
+
+    if !current.is_empty() {
+        lines.push(current);
+    }
+
+    if lines.is_empty() {
+        lines.push(String::new());
+    }
+
+    lines
+}
 
 /// Display the startup banner and return the calculated width
 pub fn display_banner(
@@ -37,96 +70,103 @@ pub fn display_banner(
         ("Delay", format!("{}s", delay_seconds)),
     ];
 
-    // Calculate dynamic width based on content
-    // We use visual_width to handle multi-byte characters like ✨, ⚠, •, and ∞
+    // Calculate dynamic width based on content so long values don't overflow.
+    let title_content = format!("{} {}", symbols::SPARKLE, title);
 
-    // Title Line: "│ ✨ Title │"
-    // Intrinsic parts: │ (1) + space (1) + ✨ (2) + space (1) + len + space (1) + │ (1) = 7 + len
-    let title_intrinsic_width = 7 + visual_width(title);
-
-    // Info Rows: "│ • Key: value │"
-    // Intrinsic parts: │ (1) + space (1) + • (1) + space (1) + k_len + ": " (2) + v_len + space (1) + │ (1) = 8 + k_len + v_len
-    // Wait, let's re-count: │ (1) + " " (1) + • (1) + " " (1) + key + ": " (2) + value + " " (1) + │ (1) = 8 + k_len + v_len
-    // Actually in the previous implementation I used 7. Let's be precise.
-    // │(1) " "(1) •(1) " "(1) key(k) ": "(2) value(v) " "(1) │(1) = 1+1+1+1+k+2+v+1+1 = 9 + k + v
-    // Let's re-examine the print statement: println!("{} {} {}: {}{}{}", VERTICAL, BULLET, key, highlight(value), " ".repeat(padding), VERTICAL);
-    // Fixed parts: VERTICAL (1) + " " (1) + BULLET (1) + " " (1) + ":" (1) + " " (1) + VERTICAL (1) = 6
-    // Variable parts: key + value + padding
-    // Total width = 6 + visual_width(key) + visual_width(value) + padding
-    // So intrinsic part (without padding) is 6 + visual_width(key) + visual_width(value)
-    // To have at least 1 space of padding on the right, we want width >= 7 + visual_width(key) + visual_width(value)
-
-    let max_row_intrinsic_width = rows
+    let max_row_width = rows
         .iter()
-        .map(|(k, v)| 7 + visual_width(k) + visual_width(v))
+        .map(|(key, value)| {
+            let content = format!("{} {}: {}", symbols::BULLET, key, value);
+            visual_width(&content)
+        })
         .max()
         .unwrap_or(0);
 
-    // Dev Line: "│ ⚠ MESSAGE │"
-    // Intrinsic: │(1) " "(1) ⚠(2) " "(1) msg(len) " "(1) │(1) = 7 + len
-    let dev_intrinsic_width = if developer_mode {
-        7 + visual_width(dev_msg)
+    let dev_width = if developer_mode {
+        visual_width(&format!("{} {}", symbols::WARNING, dev_msg))
     } else {
         0
     };
 
-    // Title defines the baseline minimum width
-    let width = title_intrinsic_width
-        .max(max_row_intrinsic_width)
-        .max(dev_intrinsic_width);
+    let preferred_inner = visual_width(&title_content)
+        .max(max_row_width)
+        .max(dev_width)
+        .max(10);
+
+    let terminal_inner = terminal_size()
+        .map(|(Width(w), _)| w as usize)
+        .unwrap_or(usize::MAX)
+        .saturating_sub(4);
+    let available_inner = terminal_inner.max(10);
+    let inner_width = preferred_inner.min(available_inner);
+    let width = inner_width + 4;
 
     println!(
         "{}{}{}",
-        crate::theming::accent(boxes::TOP_LEFT),
-        crate::theming::accent(boxes::line(width - 2)),
-        crate::theming::accent(boxes::TOP_RIGHT)
+        accent(boxes::TOP_LEFT),
+        accent(boxes::line(width - 2)),
+        accent(boxes::TOP_RIGHT)
     );
 
     // Title with sparkle
-    let padding = width.saturating_sub(7).saturating_sub(visual_width(title));
+    let title_padding = inner_width.saturating_sub(visual_width(&title_content));
+    let title_styled = format!("{} {}", accent(symbols::SPARKLE), highlight(title));
     println!(
-        "{} {} {} {}{}",
-        crate::theming::accent(boxes::VERTICAL),
-        symbols::SPARKLE,
-        crate::theming::primary(title).bold(),
-        " ".repeat(padding),
-        crate::theming::accent(boxes::VERTICAL)
+        "{} {}{} {}",
+        accent(boxes::VERTICAL),
+        title_styled,
+        " ".repeat(title_padding),
+        accent(boxes::VERTICAL)
     );
 
     println!(
         "{}{}{}",
-        crate::theming::accent(boxes::LEFT_T),
-        crate::theming::accent(boxes::line(width - 2)),
-        crate::theming::accent(boxes::RIGHT_T)
+        accent(boxes::TOP_LEFT),
+        accent(boxes::line(width - 2)),
+        accent(boxes::TOP_RIGHT)
     );
 
     for (key, value) in rows {
-        let padding = width
-            .saturating_sub(7)
-            .saturating_sub(visual_width(key))
-            .saturating_sub(visual_width(&value));
-        println!(
-            "{} {} {}: {}{}{}",
-            crate::theming::accent(boxes::VERTICAL),
-            muted(symbols::BULLET),
-            key,
-            crate::theming::highlight(value),
-            " ".repeat(padding),
-            crate::theming::accent(boxes::VERTICAL)
-        );
+        let prefix = format!("{} {}: ", symbols::BULLET, key);
+        let prefix_width = visual_width(&prefix);
+        let available_value_width = inner_width.saturating_sub(prefix_width).max(1);
+        let segments = wrap_to_width(&value, available_value_width);
+        let indent = " ".repeat(prefix_width);
+
+        for (idx, segment) in segments.iter().enumerate() {
+            let plain = if idx == 0 {
+                format!("{}{}", prefix, segment)
+            } else {
+                format!("{}{}", indent, segment)
+            };
+
+            let styled = if idx == 0 {
+                format!("{} {}: {}", muted(symbols::BULLET), key, highlight(segment))
+            } else {
+                format!("{}{}", indent, highlight(segment))
+            };
+
+            let padding = inner_width.saturating_sub(visual_width(&plain));
+            println!(
+                "{} {}{} {}",
+                accent(boxes::VERTICAL),
+                styled,
+                " ".repeat(padding),
+                accent(boxes::VERTICAL)
+            );
+        }
     }
 
     if developer_mode {
-        let padding = width
-            .saturating_sub(7)
-            .saturating_sub(visual_width(dev_msg));
+        let dev_content = format!("{} {}", symbols::WARNING, dev_msg);
+        let padding = inner_width.saturating_sub(visual_width(&dev_content));
+        let dev_styled = format!("{} {}", warning(symbols::WARNING), warning(dev_msg));
         println!(
-            "{} {} {} {}{}",
-            crate::theming::accent(boxes::VERTICAL),
-            crate::theming::warning(symbols::WARNING),
-            crate::theming::warning(dev_msg),
+            "{} {}{} {}",
+            accent(boxes::VERTICAL),
+            dev_styled,
             " ".repeat(padding),
-            crate::theming::accent(boxes::VERTICAL)
+            accent(boxes::VERTICAL)
         );
     }
 
@@ -233,9 +273,9 @@ pub fn display_final_status(passing: usize, total: usize, developer_mode: bool) 
 pub fn display_token_stats(stats: &super::stats::TokenStats, width: usize) {
     println!(
         "{}{}{}",
-        crate::theming::accent(boxes::TOP_LEFT),
-        crate::theming::accent(boxes::line(width - 2)),
-        crate::theming::accent(boxes::TOP_RIGHT)
+        accent(boxes::BOTTOM_LEFT),
+        accent(boxes::line(width - 2)),
+        accent(boxes::BOTTOM_RIGHT)
     );
 
     println!(

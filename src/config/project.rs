@@ -38,19 +38,14 @@ impl Default for ModelsConfig {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Complexity level selection for generated specs.
-#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum ComplexityLevel {
     /// Comprehensive specs cover production-ready detail.
+    #[default]
     Comprehensive,
     /// Minimal specs focus only on the core needs.
     Minimal,
-}
-
-impl Default for ComplexityLevel {
-    fn default() -> Self {
-        ComplexityLevel::Comprehensive
-    }
 }
 
 impl ComplexityLevel {
@@ -69,13 +64,17 @@ impl ComplexityLevel {
             ComplexityLevel::Minimal => ComplexityLevel::Comprehensive,
         }
     }
+}
 
-    /// Parse a string into the corresponding complexity level, defaulting to comprehensive.
-    pub fn from_str(value: &str) -> Self {
-        match value.trim().to_lowercase().as_str() {
+impl std::str::FromStr for ComplexityLevel {
+    type Err = ();
+
+    /// Parse a string into a complexity level, defaulting to comprehensive.
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Ok(match value.trim().to_lowercase().as_str() {
             "minimal" => ComplexityLevel::Minimal,
             _ => ComplexityLevel::Comprehensive,
-        }
+        })
     }
 }
 

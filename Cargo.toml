@@ -59,6 +59,7 @@ self_update = { version = "0.42.0", features = [
 ] }
 num_cpus = "1.17.0"
 unicode-width = "0.2.0"
+terminal_size = "0.3"
 
 
 # Unix process control (for process group termination)

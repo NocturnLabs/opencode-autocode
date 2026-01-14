@@ -7,22 +7,15 @@ use anyhow::Result;
 use iocraft::prelude::*;
 use std::io::{self, BufRead, Write};
 
-/// Color constants for consistent styling
-pub struct Colors;
-
-impl Colors {
-    pub const PRIMARY: Color = Color::Blue;
-    pub const SUCCESS: Color = Color::Green;
-    pub const ERROR: Color = Color::Red;
-    pub const MUTED: Color = Color::Grey;
-}
+use crate::theming::symbols;
+use crate::tui::theme::TuiTheme;
 
 /// Print a success message
 pub fn print_success(text: &str) {
     element! {
         View {
-            Text(content: "✓ ", color: Colors::SUCCESS, weight: Weight::Bold)
-            Text(content: text, color: Colors::SUCCESS)
+            Text(content: format!("{} ", symbols::SUCCESS), color: TuiTheme::SUCCESS, weight: Weight::Bold)
+            Text(content: text, color: TuiTheme::SUCCESS)
         }
     }
     .print();
@@ -32,8 +25,8 @@ pub fn print_success(text: &str) {
 pub fn print_error(text: &str) {
     element! {
         View {
-            Text(content: "✗ ", color: Colors::ERROR, weight: Weight::Bold)
-            Text(content: text, color: Colors::ERROR)
+            Text(content: format!("{} ", symbols::ERROR), color: TuiTheme::ERROR, weight: Weight::Bold)
+            Text(content: text, color: TuiTheme::ERROR)
         }
     }
     .print();
@@ -43,8 +36,8 @@ pub fn print_error(text: &str) {
 pub fn print_info(text: &str) {
     element! {
         View {
-            Text(content: "ℹ ", color: Colors::PRIMARY)
-            Text(content: text, color: Colors::MUTED)
+            Text(content: format!("{} ", symbols::INFO), color: TuiTheme::ACCENT)
+            Text(content: text, color: TuiTheme::MUTED)
         }
     }
     .print();
@@ -75,17 +68,17 @@ pub fn select(prompt: &str, items: &[&str], default: usize) -> Result<usize> {
         if i == default {
             element! {
                 View {
-                    Text(content: format!("  {} ", i + 1), color: Colors::MUTED)
-                    Text(content: *item, color: Colors::SUCCESS, weight: Weight::Bold)
-                    Text(content: " (default)", color: Colors::MUTED)
+                    Text(content: format!("  {} ", i + 1), color: TuiTheme::MUTED)
+                    Text(content: *item, color: TuiTheme::ACCENT, weight: Weight::Bold)
+                    Text(content: " (default)", color: TuiTheme::MUTED)
                 }
             }
             .print();
         } else {
             element! {
                 View {
-                    Text(content: format!("  {} ", i + 1), color: Colors::MUTED)
-                    Text(content: *item)
+                    Text(content: format!("  {} ", i + 1), color: TuiTheme::MUTED)
+                    Text(content: *item, color: TuiTheme::PRIMARY)
                 }
             }
             .print();
@@ -134,8 +127,8 @@ pub fn input(prompt: &str, default: Option<&str>) -> Result<String> {
 pub fn multiline_input(prompt: &str) -> Result<String> {
     element! {
         View {
-            Text(content: format!("{} ", prompt), color: Colors::SUCCESS)
-            Text(content: "(Press Enter 3 times to finish)", color: Colors::MUTED)
+            Text(content: format!("{} ", prompt), color: TuiTheme::ACCENT)
+            Text(content: "(Press Enter 3 times to finish)", color: TuiTheme::MUTED)
         }
     }
     .print();

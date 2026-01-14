@@ -4,13 +4,18 @@ use anyhow::Result;
 use std::path::Path;
 
 use crate::services::scaffold::scaffold_from_spec;
+use crate::theming::{accent, highlight, muted, primary, symbols};
 
 use crate::spec::{AppSpec, Feature, Priority, TechStack};
 use crate::tui::prompts::{confirm, input, multiline_input, print_error, print_success, select};
 
 /// Run manual step-by-step spec creation
 pub fn run_manual_mode(output_dir: &Path) -> Result<()> {
-    println!("\n─── Manual Spec Creation ───");
+    println!(
+        "\n{} {}",
+        accent(symbols::CHEVRON),
+        highlight("Manual Spec Creation")
+    );
 
     let spec = collect_spec_details()?;
     display_summary(&spec);
@@ -47,8 +52,15 @@ fn collect_spec_details() -> Result<AppSpec> {
 }
 
 fn collect_features() -> Result<Vec<Feature>> {
-    println!("\nAdd Features");
-    println!("(Enter features one at a time, empty to finish)");
+    println!(
+        "\n{} {}",
+        accent(symbols::CHEVRON),
+        highlight("Add Features")
+    );
+    println!(
+        "{}",
+        muted("Enter features one at a time, empty to finish.")
+    );
 
     let mut features = Vec::new();
     loop {
@@ -85,8 +97,15 @@ fn select_priority() -> Result<Priority> {
 }
 
 fn collect_success_criteria() -> Result<Vec<String>> {
-    println!("\nSuccess Criteria");
-    println!("(Enter criteria one at a time, empty to finish)");
+    println!(
+        "\n{} {}",
+        accent(symbols::CHEVRON),
+        highlight("Success Criteria")
+    );
+    println!(
+        "{}",
+        muted("Enter criteria one at a time, empty to finish.")
+    );
 
     let mut criteria = Vec::new();
     loop {
@@ -101,12 +120,14 @@ fn collect_success_criteria() -> Result<Vec<String>> {
 }
 
 fn display_summary(spec: &AppSpec) {
-    println!("\n═══════════════════════════════════════════════════");
-    println!("  Summary");
-    println!("═══════════════════════════════════════════════════");
-    println!("  Project: {}", spec.project_name);
-    println!("  Features: {}", spec.features.len());
-    println!("  Criteria: {}", spec.success_criteria.len());
+    println!("\n{} {}", accent(symbols::CHEVRON), highlight("Summary"));
+    println!("{} {}", muted("Project:"), primary(&spec.project_name));
+    println!("{} {}", muted("Features:"), primary(spec.features.len()));
+    println!(
+        "{} {}",
+        muted("Criteria:"),
+        primary(spec.success_criteria.len())
+    );
     println!();
 }
 
@@ -135,7 +156,11 @@ fn collect_tech_stack() -> Result<TechStack> {
 
 fn collect_with_other(prompt: &str, options: &[&str], other_prompt: &str) -> Result<Vec<String>> {
     // Simplified: just prompt for comma-separated list
-    println!("\n{} (pick from: {})", prompt, options.join(", "));
+    println!(
+        "\n{} {}",
+        accent(symbols::CHEVRON),
+        highlight(format!("{} (pick from: {})", prompt, options.join(", ")))
+    );
     let selection = input("Enter your choices (comma-separated)", Some(""))?;
 
     let mut items: Vec<String> = selection

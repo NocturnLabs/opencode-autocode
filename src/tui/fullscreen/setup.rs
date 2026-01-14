@@ -6,6 +6,8 @@ use std::sync::{Arc, Mutex};
 use super::types::{InteractiveMode, SetupResult};
 use crate::config::Config;
 use crate::services::scaffold::{scaffold_custom, scaffold_default};
+use crate::theming::symbols;
+use crate::tui::theme::TuiTheme;
 
 /// Application phase for the fullscreen TUI
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
@@ -141,7 +143,7 @@ fn InteractiveSetup(
             // Header with progress indicator
             View(
                 border_style: BorderStyle::Round,
-                border_color: Color::DarkGrey,
+                border_color: TuiTheme::BORDER,
                 padding: 1,
                 margin_bottom: 1,
                 flex_direction: FlexDirection::Row,
@@ -150,18 +152,22 @@ fn InteractiveSetup(
                 Text(
                     content: "OpenCode Forger",
                     weight: Weight::Bold,
-                    color: Color::White,
+                    color: TuiTheme::PRIMARY,
                 )
                 // Progress indicator
                 View(flex_direction: FlexDirection::Row) {
                     Text(
                         content: format!("Step {} of 2", if phase.get() == Phase::SetupChoice { 1 } else { 2 }),
-                        color: Color::Grey,
+                        color: TuiTheme::MUTED,
                     )
-                    Text(content: "  ", color: Color::DarkGrey)
+                    Text(content: "  ", color: TuiTheme::BORDER)
                     Text(
-                        content: if phase.get() == Phase::SetupChoice { "● ○" } else { "● ●" },
-                        color: Color::Cyan,
+                        content: if phase.get() == Phase::SetupChoice {
+                            format!("{} {}", symbols::RUNNING, symbols::PENDING)
+                        } else {
+                            format!("{} {}", symbols::RUNNING, symbols::RUNNING)
+                        },
+                        color: TuiTheme::ACCENT,
                     )
                 }
             }
@@ -179,26 +185,26 @@ fn InteractiveSetup(
                                 View(flex_direction: FlexDirection::Column) {
                                     Text(
                                         content: "Existing configuration found.",
-                                        color: Color::White,
+                                        color: TuiTheme::PRIMARY,
                                         weight: Weight::Bold,
                                     )
                                     View(margin_top: 1) {
-                                        Text(content: "Reconfigure? ", color: Color::Grey)
+                                        Text(content: "Reconfigure? ", color: TuiTheme::MUTED)
                                         Text(
                                             content: "[Yes]",
-                                            color: if reconfigure_selected.get() { Color::White } else { Color::DarkGrey },
+                                            color: if reconfigure_selected.get() { TuiTheme::PRIMARY } else { TuiTheme::BORDER },
                                             weight: if reconfigure_selected.get() { Weight::Bold } else { Weight::Normal },
                                         )
-                                        Text(content: " / ", color: Color::DarkGrey)
+                                        Text(content: " / ", color: TuiTheme::BORDER)
                                         Text(
                                             content: "[No]",
-                                            color: if !reconfigure_selected.get() { Color::White } else { Color::DarkGrey },
+                                            color: if !reconfigure_selected.get() { TuiTheme::PRIMARY } else { TuiTheme::BORDER },
                                             weight: if !reconfigure_selected.get() { Weight::Bold } else { Weight::Normal },
                                         )
                                     }
                                     Text(
                                         content: "←/→ toggle, Enter confirm",
-                                        color: Color::DarkGrey,
+                                        color: TuiTheme::BORDER,
                                     )
                                 }
                             }
@@ -208,28 +214,28 @@ fn InteractiveSetup(
                                     Text(
                                         content: "Setup Mode",
                                         weight: Weight::Bold,
-                                        color: Color::White,
+                                        color: TuiTheme::PRIMARY,
                                     )
                                     View(margin_top: 1, flex_direction: FlexDirection::Column) {
                                         View {
                                             Text(
                                                 content: if setup_choice.get() == 0 { "› " } else { "  " },
-                                                color: Color::Cyan,
+                                                color: TuiTheme::ACCENT,
                                             )
                                             Text(
                                                 content: "Quick start (use defaults)",
-                                                color: if setup_choice.get() == 0 { Color::White } else { Color::Grey },
+                                                color: if setup_choice.get() == 0 { TuiTheme::PRIMARY } else { TuiTheme::MUTED },
                                                 weight: if setup_choice.get() == 0 { Weight::Bold } else { Weight::Normal },
                                             )
                                         }
                                         View {
                                             Text(
                                                 content: if setup_choice.get() == 1 { "› " } else { "  " },
-                                                color: Color::Cyan,
+                                                color: TuiTheme::ACCENT,
                                             )
                                             Text(
                                                 content: "Configure settings first",
-                                                color: if setup_choice.get() == 1 { Color::White } else { Color::Grey },
+                                                color: if setup_choice.get() == 1 { TuiTheme::PRIMARY } else { TuiTheme::MUTED },
                                                 weight: if setup_choice.get() == 1 { Weight::Bold } else { Weight::Normal },
                                             )
                                         }
@@ -244,7 +250,7 @@ fn InteractiveSetup(
                                 Text(
                                     content: "Select Project Mode",
                                     weight: Weight::Bold,
-                                    color: Color::White,
+                                    color: TuiTheme::PRIMARY,
                                 )
                                 // Mode cards in a 2x2 grid-like layout
                                 View(margin_top: 2, flex_direction: FlexDirection::Column) {
@@ -253,7 +259,7 @@ fn InteractiveSetup(
                                         element! {
                                             View(
                                                 border_style: BorderStyle::Round,
-                                                border_color: if is_selected { Color::Cyan } else { Color::DarkGrey },
+                                                border_color: if is_selected { TuiTheme::ACCENT } else { TuiTheme::BORDER },
                                                 padding: 1,
                                                 margin_bottom: 1,
                                                 flex_direction: FlexDirection::Column,
@@ -261,18 +267,18 @@ fn InteractiveSetup(
                                                 View(flex_direction: FlexDirection::Row) {
                                                     Text(
                                                         content: if is_selected { "› " } else { "  " },
-                                                        color: Color::Cyan,
+                                                        color: TuiTheme::ACCENT,
                                                     )
                                                     Text(
                                                         content: mode.label(),
-                                                        color: if is_selected { Color::White } else { Color::Grey },
+                                                        color: if is_selected { TuiTheme::PRIMARY } else { TuiTheme::MUTED },
                                                         weight: if is_selected { Weight::Bold } else { Weight::Normal },
                                                     )
                                                 }
                                                 View(padding_left: 2, margin_top: 0) {
                                                     Text(
                                                         content: mode.description(),
-                                                        color: Color::DarkGrey,
+                                                        color: TuiTheme::BORDER,
                                                     )
                                                 }
                                             }
@@ -295,12 +301,12 @@ fn InteractiveSetup(
             // Footer
             View(
                 border_style: BorderStyle::Single,
-                border_color: Color::DarkGrey,
+                border_color: TuiTheme::BORDER,
                 padding: 1,
             ) {
                 Text(
                     content: "↑↓ Navigate  Enter Select  q Quit",
-                    color: Color::DarkGrey,
+                    color: TuiTheme::BORDER,
                 )
             }
         }
