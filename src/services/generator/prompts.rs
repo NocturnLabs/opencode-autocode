@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::{ComplexityLevel, Config};
 use crate::template_xml;
 
 /// Embedded prompt template for spec generation (legacy single-pass)
@@ -28,7 +28,7 @@ pub fn build_generation_prompt(
         _ => String::new(),
     };
 
-    let guidance = if config.generation.complexity == "minimal" {
+    let guidance = if config.generation.complexity == ComplexityLevel::Minimal {
         "The target is a minimal, lightweight implementation. Focus only on the absolute core."
     } else {
         "The target is a comprehensive, production-ready specification with deep detail."

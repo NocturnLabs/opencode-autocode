@@ -183,7 +183,7 @@ create_scripts_dir = {}
         config.conductor.planning_mode,
         config.conductor.checkpoint_frequency,
         // Generation
-        config.generation.complexity,
+        config.generation.complexity.as_str(),
         config.generation.include_security_section,
         config.generation.include_testing_strategy,
         config.generation.include_devops_section,

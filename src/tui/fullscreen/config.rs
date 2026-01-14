@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::{ComplexityLevel, Config};
 use anyhow::Result;
 use iocraft::prelude::*;
 use std::sync::{Arc, Mutex};
@@ -26,6 +26,11 @@ fn parse_array(input: &str) -> Vec<String> {
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
         .collect()
+}
+
+/// Identify the generation complexity selector field.
+fn is_complexity_field(section_idx: usize, field_idx: usize) -> bool {
+    section_idx == 1 && field_idx == 0
 }
 
 #[component]
@@ -86,7 +91,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
             1 => vec![
                 (
                     "Complexity".to_string(),
-                    config.generation.complexity.clone(),
+                    config.generation.complexity.to_string(),
                 ),
                 (
                     "Subagents".to_string(),
@@ -348,7 +353,6 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 _ => {}
                             },
                             1 => match field_idx {
-                                0 => config.generation.complexity = val,
                                 1 => {
                                     config.generation.enable_subagents =
                                         val.to_lowercase() == "true"
@@ -600,7 +604,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 _ => String::new(),
                             },
                             1 => match field_idx {
-                                0 => config.generation.complexity.clone(),
+                                0 => config.generation.complexity.to_string(),
                                 1 => config.generation.enable_subagents.to_string(),
                                 2 => config.generation.include_security_section.to_string(),
                                 3 => config.generation.include_testing_strategy.to_string(),
@@ -696,9 +700,14 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                             _ => String::new(),
                         };
 
+                        let is_complexity = is_complexity_field(section_idx, field_idx);
+
                         let is_boolean = current_val == "true" || current_val == "false";
 
-                        if is_boolean {
+                        if is_complexity {
+                            config.generation.complexity = config.generation.complexity.toggle();
+                            config_version.set(config_version.get() + 1);
+                        } else if is_boolean {
                             // Toggle the boolean value directly
                             let new_val = if current_val == "true" {
                                 "false"
@@ -858,12 +867,14 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                 View(flex_direction: FlexDirection::Column, flex_grow: 1.0, margin_top: 1) {
                     #(fields.iter().enumerate().map(|(i, (label, value)): (usize, &(String, String))| {
                         let label = label.to_string();
-                        let value_str = value.to_string();
-                        let is_selected = i == selected_field.get();
-                        let is_on_editing = is_selected && is_editing.get();
+                         let value_str = value.to_string();
+                         let is_selected = i == selected_field.get();
+                         let is_on_editing = is_selected && is_editing.get();
+                         let is_complexity = is_complexity_field(selected_section.get(), i);
 
-                        // Detect if this is a boolean value
-                        let is_boolean = value_str == "true" || value_str == "false";
+                         // Detect if this is a boolean value
+                         let is_boolean = value_str == "true" || value_str == "false";
+
                         let bool_val = value_str == "true";
 
                         element! (
@@ -878,43 +889,72 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                         color: if is_selected { Color::White } else { Color::Grey },
                                     )
                                 }
-                                #(if is_boolean {
-                                    // Toggle switch for booleans
-                                    element! {
-                                        View(flex_direction: FlexDirection::Row, padding_top: 1, padding_bottom: 1) {
-                                            Text(
-                                                content: if bool_val { "[ON] " } else { " ON  " },
-                                                color: if bool_val { Color::Cyan } else { Color::DarkGrey },
-                                                weight: if bool_val { Weight::Bold } else { Weight::Normal },
-                                            )
-                                            Text(
-                                                content: if !bool_val { "[OFF]" } else { " OFF " },
-                                                color: if !bool_val { Color::Cyan } else { Color::DarkGrey },
-                                                weight: if !bool_val { Weight::Bold } else { Weight::Normal },
-                                            )
-                                        }
-                                    }
-                                } else if is_on_editing {
-                                    // Editing mode with cursor
-                                    element! {
-                                        View(border_style: BorderStyle::Single, border_color: Color::Cyan, padding_left: 1, padding_right: 1) {
-                                            Text(
-                                                content: format!("{}▏", edit_buffer.read().as_str()),
-                                                color: Color::White,
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    // Normal display with box
-                                    element! {
-                                        View(border_style: BorderStyle::Single, border_color: if is_selected { Color::Grey } else { Color::DarkGrey }, padding_left: 1, padding_right: 1) {
-                                            Text(
-                                                content: value_str.clone(),
-                                                color: if is_selected { Color::White } else { Color::DarkGrey },
-                                            )
-                                        }
-                                    }
-                                })
+                                 #(if is_complexity {
+                                     let current_level = ComplexityLevel::from_str(&value_str);
+                                     let options = [
+                                         ComplexityLevel::Comprehensive,
+                                         ComplexityLevel::Minimal,
+                                     ];
+                                     element! {
+                                         View(flex_direction: FlexDirection::Row, padding_top: 1, padding_bottom: 1) {
+                                             #(options.iter().map(|option| {
+                                                 let is_active_option = *option == current_level;
+                                                 element! {
+                                                     View(
+                                                         border_style: BorderStyle::Single,
+                                                         border_color: if is_active_option { Color::Cyan } else { Color::DarkGrey },
+                                                         padding_left: 1,
+                                                         padding_right: 1,
+                                                         margin_right: 1,
+                                                     ) {
+                                                         Text(
+                                                             content: option.to_string(),
+                                                             color: if is_active_option { Color::White } else { Color::DarkGrey },
+                                                             weight: if is_active_option { Weight::Bold } else { Weight::Normal },
+                                                         )
+                                                     }
+                                                 }
+                                             }))
+                                         }
+                                     }
+                                 } else if is_boolean {
+                                     // Toggle switch for booleans
+                                     element! {
+                                         View(flex_direction: FlexDirection::Row, padding_top: 1, padding_bottom: 1) {
+                                             Text(
+                                                 content: if bool_val { "[ON] " } else { " ON  " },
+                                                 color: if bool_val { Color::Cyan } else { Color::DarkGrey },
+                                                 weight: if bool_val { Weight::Bold } else { Weight::Normal },
+                                             )
+                                             Text(
+                                                 content: if !bool_val { "[OFF]" } else { " OFF " },
+                                                 color: if !bool_val { Color::Cyan } else { Color::DarkGrey },
+                                                 weight: if !bool_val { Weight::Bold } else { Weight::Normal },
+                                             )
+                                         }
+                                     }
+                                 } else if is_on_editing {
+                                     // Editing mode with cursor
+                                     element! {
+                                         View(border_style: BorderStyle::Single, border_color: Color::Cyan, padding_left: 1, padding_right: 1) {
+                                             Text(
+                                                 content: format!("{}▏", edit_buffer.read().as_str()),
+                                                 color: Color::White,
+                                             )
+                                         }
+                                     }
+                                 } else {
+                                     // Normal display with box
+                                     element! {
+                                         View(border_style: BorderStyle::Single, border_color: if is_selected { Color::Grey } else { Color::DarkGrey }, padding_left: 1, padding_right: 1) {
+                                             Text(
+                                                 content: value_str.clone(),
+                                                 color: if is_selected { Color::White } else { Color::DarkGrey },
+                                             )
+                                         }
+                                     }
+                                 })
+
                             }
                         )
                     }))

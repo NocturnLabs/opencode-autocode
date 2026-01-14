@@ -16,7 +16,9 @@ pub mod project;
 
 pub use autonomous::{AgentConfig, AlternativeApproachesConfig, AutonomousConfig, ConductorConfig};
 pub use environment::{McpConfig, NotificationsConfig, SecurityConfig, UiConfig};
-pub use project::{FeaturesConfig, GenerationConfig, ModelsConfig, PathsConfig, ScaffoldingConfig};
+pub use project::{
+    ComplexityLevel, FeaturesConfig, GenerationConfig, ModelsConfig, PathsConfig, ScaffoldingConfig,
+};
 
 /// Default config filename (preferred)
 const CONFIG_FILENAME: &str = "forger.toml";

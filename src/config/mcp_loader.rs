@@ -11,6 +11,7 @@ struct GlobalConfig {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct McpEntry {
     #[serde(default)]
     enabled: bool,
@@ -18,7 +19,8 @@ struct McpEntry {
     _name: Option<String>,
 }
 
-/// Helper to get the global config path
+/// @returns The path to the global `opencode.jsonc` file.
+/// @throws An error when the `HOME` environment variable is missing.
 fn get_global_config_path() -> Result<PathBuf> {
     let home = std::env::var("HOME").context("Could not find HOME environment variable")?;
     Ok(PathBuf::from(home)
@@ -27,7 +29,8 @@ fn get_global_config_path() -> Result<PathBuf> {
         .join("opencode.jsonc"))
 }
 
-/// Strip JSONC comments (// and /* */)
+/// @param input The JSONC string to sanitize.
+/// @returns The JSON string with comments removed.
 fn strip_jsonc_comments(input: &str) -> String {
     let mut output = String::new();
     let mut chars = input.chars().peekable();
@@ -86,8 +89,16 @@ fn strip_jsonc_comments(input: &str) -> String {
     output
 }
 
-/// Fetch available global MCP servers
-/// Returns a list of server names that are enabled in global config
+/// @param mcp_entries The MCP entries from global configuration.
+/// @returns The sorted list of MCP tool names.
+fn collect_mcp_tool_names(mcp_entries: HashMap<String, McpEntry>) -> Vec<String> {
+    let mut tools: Vec<String> = mcp_entries.into_keys().collect();
+    tools.sort();
+    tools
+}
+
+/// @returns A sorted list of MCP server names from global configuration.
+/// @throws An error when the global config cannot be read or parsed.
 pub fn load_global_mcp_servers() -> Result<Vec<String>> {
     let path = get_global_config_path()?;
     if !path.exists() {
@@ -102,15 +113,7 @@ pub fn load_global_mcp_servers() -> Result<Vec<String>> {
     let config: GlobalConfig = serde_json::from_str(&json)
         .with_context(|| format!("Failed to parse global config: {}", path.display()))?;
 
-    let mut tools: Vec<String> = config
-        .mcp
-        .into_iter()
-        .filter(|(_, v)| v.enabled)
-        .map(|(k, _)| k)
-        .collect();
-
-    tools.sort();
-    Ok(tools)
+    Ok(collect_mcp_tool_names(config.mcp))
 }
 
 #[cfg(test)]
@@ -133,5 +136,28 @@ mod tests {
         assert!(json.contains(r#""url": "http://example.com""#));
         assert!(json.contains(r#""quoted_slashes": "foo // bar""#));
         assert!(!json.contains("comment"));
+    }
+
+    #[test]
+    fn test_collect_mcp_tool_names_includes_disabled() {
+        let mut entries = HashMap::new();
+        entries.insert(
+            "alpha".to_string(),
+            McpEntry {
+                enabled: false,
+                _name: None,
+            },
+        );
+        entries.insert(
+            "beta".to_string(),
+            McpEntry {
+                enabled: true,
+                _name: Some("Beta".to_string()),
+            },
+        );
+
+        let tools = collect_mcp_tool_names(entries);
+
+        assert_eq!(tools, vec!["alpha".to_string(), "beta".to_string()]);
     }
 }

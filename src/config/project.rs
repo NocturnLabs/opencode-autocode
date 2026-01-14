@@ -1,4 +1,5 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use std::fmt;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Models Configuration
@@ -36,11 +37,59 @@ impl Default for ModelsConfig {
 // Generation Configuration
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// Complexity level selection for generated specs.
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum ComplexityLevel {
+    /// Comprehensive specs cover production-ready detail.
+    Comprehensive,
+    /// Minimal specs focus only on the core needs.
+    Minimal,
+}
+
+impl Default for ComplexityLevel {
+    fn default() -> Self {
+        ComplexityLevel::Comprehensive
+    }
+}
+
+impl ComplexityLevel {
+    /// Return the lowercase representation used in config files.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ComplexityLevel::Comprehensive => "comprehensive",
+            ComplexityLevel::Minimal => "minimal",
+        }
+    }
+
+    /// Toggle between the two supported complexity levels.
+    pub fn toggle(&self) -> Self {
+        match self {
+            ComplexityLevel::Comprehensive => ComplexityLevel::Minimal,
+            ComplexityLevel::Minimal => ComplexityLevel::Comprehensive,
+        }
+    }
+
+    /// Parse a string into the corresponding complexity level, defaulting to comprehensive.
+    pub fn from_str(value: &str) -> Self {
+        match value.trim().to_lowercase().as_str() {
+            "minimal" => ComplexityLevel::Minimal,
+            _ => ComplexityLevel::Comprehensive,
+        }
+    }
+}
+
+impl fmt::Display for ComplexityLevel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct GenerationConfig {
-    /// Complexity level: "comprehensive" or "minimal"
-    pub complexity: String,
+    /// Complexity level guiding generated specs.
+    pub complexity: ComplexityLevel,
     /// Include security section
     pub include_security_section: bool,
     /// Include testing strategy section
@@ -58,7 +107,7 @@ pub struct GenerationConfig {
 impl Default for GenerationConfig {
     fn default() -> Self {
         Self {
-            complexity: "comprehensive".to_string(),
+            complexity: ComplexityLevel::default(),
             include_security_section: true,
             include_testing_strategy: true,
             include_devops_section: true,
