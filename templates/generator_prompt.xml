@@ -126,18 +126,10 @@ Output ONLY valid XML following this structure. Fill every section with substant
 </endpoint>
 </api_endpoints_summary>
 
-<testing_strategy>
-<unit_tests>Coverage targets and priority areas</unit_tests>
-<e2e_tests>
- - Critical flows to cover
- - **MANDATORY**: Every core feature MUST have a scriptable E2E test
- - verification_command MUST invoke E2E tests
-</e2e_tests>
-<entry_point_verification>
- - The main entry point MUST be wired to call all handlers.
- - verification_command MUST check that the application RUNS.
-</entry_point_verification>
-</testing_strategy>
+{{SECURITY_SECTION}}
+{{TESTING_STRATEGY_SECTION}}
+{{DEVOPS_SECTION}}
+{{ACCESSIBILITY_SECTION}}
 
 <implementation_steps>
 <step number="1">
@@ -155,7 +147,7 @@ Output ONLY valid XML following this structure. Fill every section with substant
 <quality>Code quality and coverage metrics</quality>
 </success_criteria>
 
-<future_enhancements>Potential post-launch features</future_enhancements>
+{{FUTURE_ENHANCEMENTS_SECTION}}
 </project_specification>
 ```
 

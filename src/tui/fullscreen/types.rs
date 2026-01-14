@@ -26,7 +26,7 @@ impl InteractiveMode {
                 "🤖 AI Generated - Let AI research and create a full spec"
             }
             InteractiveMode::Manual => "📝 Manual - Fill out project details step by step",
-            InteractiveMode::FromSpecFile => "📁 From File - Use an existing app_spec.md",
+            InteractiveMode::FromSpecFile => "📁 From File - Use an existing spec file",
             InteractiveMode::Default => "⚡ Default - Use built-in specification",
         }
     }

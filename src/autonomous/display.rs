@@ -217,7 +217,12 @@ pub fn display_session_header(iteration: usize, width: usize) {
 }
 
 /// Display the final status when runner stops
-pub fn display_final_status(passing: usize, total: usize, developer_mode: bool) {
+pub fn display_final_status(
+    passing: usize,
+    total: usize,
+    developer_mode: bool,
+    log_path: Option<&str>,
+) {
     println!();
     let status_str = if passing == total && total > 0 {
         format!(
@@ -244,11 +249,13 @@ pub fn display_final_status(passing: usize, total: usize, developer_mode: bool) 
     println!("  {}", status_color(status_str).bold());
 
     if developer_mode {
-        println!(
-            "  {} Debug log: {}",
-            muted(symbols::INFO),
-            crate::theming::highlight("opencode-debug.log")
-        );
+        if let Some(path) = log_path {
+            println!(
+                "  {} Debug log: {}",
+                muted(symbols::INFO),
+                crate::theming::highlight(path)
+            );
+        }
     }
 
     println!();

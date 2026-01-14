@@ -43,11 +43,17 @@ pub fn run_generated_mode(
 
     let testing_pref = prompt_for_testing_preference()?;
 
-    let mut spec_text =
-        match generate_initial_spec(&idea, testing_pref.as_deref(), model, use_subagents, config) {
-            Ok(spec) => spec,
-            Err(e) => return handle_generation_error(e, output_dir),
-        };
+    let mut spec_text = match generate_initial_spec(
+        &idea,
+        testing_pref.as_deref(),
+        model,
+        use_subagents,
+        config,
+        config.ui.show_progress,
+    ) {
+        Ok(spec) => spec,
+        Err(e) => return handle_generation_error(e, output_dir, config),
+    };
 
     run_validation_loop(output_dir, &mut spec_text, config)
 }
@@ -79,26 +85,35 @@ fn generate_initial_spec(
     model: Option<&str>,
     use_subagents: bool,
     config: &crate::config::Config,
+    show_progress: bool,
 ) -> Result<String> {
     print!("\x1B[2K\r");
     let _ = std::io::stdout().flush();
 
-    println!(
-        "\n{}",
-        muted("─────────────────────────────────────────────")
-    );
+    if show_progress {
+        println!(
+            "\n{}",
+            muted("─────────────────────────────────────────────")
+        );
+    }
 
     generate_spec_from_idea(idea, testing_pref, model, use_subagents, config, |msg| {
-        print!("{}", msg);
-        let _ = std::io::stdout().flush();
+        if show_progress {
+            print!("{}", msg);
+            let _ = std::io::stdout().flush();
+        }
     })
 }
 
-fn handle_generation_error(e: anyhow::Error, output_dir: &Path) -> Result<()> {
+fn handle_generation_error(
+    e: anyhow::Error,
+    output_dir: &Path,
+    config: &crate::config::Config,
+) -> Result<()> {
     print_error(&format!("{}", e));
 
     if confirm("Switch to manual mode?", true)? {
-        run_manual_mode(output_dir)
+        run_manual_mode(output_dir, config)
     } else {
         Ok(())
     }

@@ -116,6 +116,7 @@ mod tests {
                     session_id: None,
                     timeout_minutes: 0,
                     idle_timeout_seconds: 0,
+                    opencode_path: "opencode".to_string(),
                 },
                 &logger,
             )
@@ -132,6 +133,7 @@ mod tests {
                     session_id: None,
                     timeout_minutes: 0,
                     idle_timeout_seconds: 0,
+                    opencode_path: "opencode".to_string(),
                 },
                 &logger,
             )
@@ -168,6 +170,7 @@ mod tests {
                     session_id: None,
                     timeout_minutes: 0,
                     idle_timeout_seconds: 0,
+                    opencode_path: "opencode".to_string(),
                 },
                 &logger,
             )

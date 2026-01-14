@@ -98,7 +98,11 @@ pub fn prepare_command(
                 };
 
                 if let Some(feature) = feature_opt {
-                    templates::generate_continue_template(&feature, settings.dual_model_enabled)?;
+                    templates::generate_continue_template(
+                        &feature,
+                        config,
+                        settings.dual_model_enabled,
+                    )?;
                     println!(
                         "📋 Feature #{}: {}",
                         feature.id.unwrap_or(0),

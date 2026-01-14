@@ -89,6 +89,22 @@ impl fmt::Display for ComplexityLevel {
 pub struct GenerationConfig {
     /// Complexity level guiding generated specs.
     pub complexity: ComplexityLevel,
+    /// Minimum features for comprehensive specs.
+    pub min_features: u32,
+    /// Minimum database tables for comprehensive specs.
+    pub min_database_tables: u32,
+    /// Minimum API endpoints for comprehensive specs.
+    pub min_api_endpoints: u32,
+    /// Minimum implementation steps for comprehensive specs.
+    pub min_implementation_steps: u32,
+    /// Minimum features for minimal specs.
+    pub minimal_min_features: u32,
+    /// Minimum database tables for minimal specs.
+    pub minimal_min_database_tables: u32,
+    /// Minimum API endpoints for minimal specs.
+    pub minimal_min_api_endpoints: u32,
+    /// Minimum implementation steps for minimal specs.
+    pub minimal_min_implementation_steps: u32,
     /// Include security section
     pub include_security_section: bool,
     /// Include testing strategy section
@@ -103,10 +119,52 @@ pub struct GenerationConfig {
     pub enable_subagents: bool,
 }
 
+/// Minimum content requirements derived from generation settings.
+#[derive(Debug, Clone, Copy)]
+pub struct GenerationRequirements {
+    /// Minimum number of core features.
+    pub min_features: u32,
+    /// Minimum number of database tables.
+    pub min_database_tables: u32,
+    /// Minimum number of API endpoints.
+    pub min_api_endpoints: u32,
+    /// Minimum number of implementation steps.
+    pub min_implementation_steps: u32,
+}
+
+impl GenerationConfig {
+    /// @returns Minimum requirements based on the selected complexity.
+    pub fn requirements(&self) -> GenerationRequirements {
+        if self.complexity == ComplexityLevel::Minimal {
+            GenerationRequirements {
+                min_features: self.minimal_min_features,
+                min_database_tables: self.minimal_min_database_tables,
+                min_api_endpoints: self.minimal_min_api_endpoints,
+                min_implementation_steps: self.minimal_min_implementation_steps,
+            }
+        } else {
+            GenerationRequirements {
+                min_features: self.min_features,
+                min_database_tables: self.min_database_tables,
+                min_api_endpoints: self.min_api_endpoints,
+                min_implementation_steps: self.min_implementation_steps,
+            }
+        }
+    }
+}
+
 impl Default for GenerationConfig {
     fn default() -> Self {
         Self {
             complexity: ComplexityLevel::default(),
+            min_features: 15,
+            min_database_tables: 10,
+            min_api_endpoints: 30,
+            min_implementation_steps: 8,
+            minimal_min_features: 5,
+            minimal_min_database_tables: 3,
+            minimal_min_api_endpoints: 10,
+            minimal_min_implementation_steps: 4,
             include_security_section: true,
             include_testing_strategy: true,
             include_devops_section: true,

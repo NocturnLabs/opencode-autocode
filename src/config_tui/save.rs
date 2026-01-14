@@ -48,7 +48,9 @@ fixer = "{}"        # Malformed XML repair
 max_iterations = {}           # 0 = unlimited
 delay_between_sessions = {}   # Seconds between iterations
 session_timeout_minutes = {}  # 0 = no timeout
+idle_timeout_seconds = {}     # 0 = no timeout
 auto_commit = {}              # Commit on feature completion
+max_no_progress = {}          # 0 = unlimited
 log_level = "{}"
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -68,6 +70,7 @@ enabled = {}
 retry_threshold = {}
 num_approaches = {}
 cache_results = {}
+cache_dir = "{}"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MCP Tools - Model Context Protocol configuration
@@ -91,6 +94,15 @@ checkpoint_frequency = {}
 # ─────────────────────────────────────────────────────────────────────────────
 [generation]
 complexity = "{}"
+min_features = {}
+min_database_tables = {}
+min_api_endpoints = {}
+min_implementation_steps = {}
+minimal_min_features = {}
+minimal_min_database_tables = {}
+minimal_min_api_endpoints = {}
+minimal_min_implementation_steps = {}
+enable_subagents = {}
 include_security_section = {}
 include_testing_strategy = {}
 include_devops_section = {}
@@ -103,19 +115,25 @@ include_future_enhancements = {}
 [security]
 enforce_allowlist = {}
 allowlist_file = "{}"
+blocked_patterns = [{}]
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Paths - File locations
 # ─────────────────────────────────────────────────────────────────────────────
 [paths]
-database_file = "{}"
 log_dir = "{}"
+vs_cache_dir = "{}"
+database_file = "{}"
+app_spec_file = "{}"
+opencode_paths = [{}]
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Notifications - Webhook configuration
 # ─────────────────────────────────────────────────────────────────────────────
 [notifications]
 webhook_enabled = {}
+{}
+{}
 {}
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -131,6 +149,8 @@ spec_preview_lines = {}
 # Features - Feature tracking configuration
 # ─────────────────────────────────────────────────────────────────────────────
 [features]
+categories = [{}]
+priorities = [{}]
 require_verification_command = {}
 narrow_test_min_steps = {}
 narrow_test_max_steps = {}
@@ -155,7 +175,9 @@ create_scripts_dir = {}
         config.autonomous.max_iterations,
         config.autonomous.delay_between_sessions,
         config.autonomous.session_timeout_minutes,
+        config.autonomous.idle_timeout_seconds,
         config.autonomous.auto_commit,
+        config.autonomous.max_no_progress,
         config.autonomous.log_level,
         // Agent
         config.agent.max_retry_attempts,
@@ -167,6 +189,7 @@ create_scripts_dir = {}
         config.alternative_approaches.retry_threshold,
         config.alternative_approaches.num_approaches,
         config.alternative_approaches.cache_results,
+        config.alternative_approaches.cache_dir,
         // MCP
         config.mcp.use_sequential_thinking,
         config
@@ -184,6 +207,15 @@ create_scripts_dir = {}
         config.conductor.checkpoint_frequency,
         // Generation
         config.generation.complexity.as_str(),
+        config.generation.min_features,
+        config.generation.min_database_tables,
+        config.generation.min_api_endpoints,
+        config.generation.min_implementation_steps,
+        config.generation.minimal_min_features,
+        config.generation.minimal_min_database_tables,
+        config.generation.minimal_min_api_endpoints,
+        config.generation.minimal_min_implementation_steps,
+        config.generation.enable_subagents,
         config.generation.include_security_section,
         config.generation.include_testing_strategy,
         config.generation.include_devops_section,
@@ -192,14 +224,38 @@ create_scripts_dir = {}
         // Security
         config.security.enforce_allowlist,
         config.security.allowlist_file,
+        config
+            .security
+            .blocked_patterns
+            .iter()
+            .map(|t| format!("\"{}\"", t))
+            .collect::<Vec<_>>()
+            .join(", "),
         // Paths
-        config.paths.database_file,
         config.paths.log_dir,
+        config.paths.vs_cache_dir,
+        config.paths.database_file,
+        config.paths.app_spec_file,
+        config
+            .paths
+            .opencode_paths
+            .iter()
+            .map(|t| format!("\"{}\"", t))
+            .collect::<Vec<_>>()
+            .join(", "),
         // Notifications
         config.notifications.webhook_enabled,
         match &config.notifications.webhook_url {
             Some(url) => format!("webhook_url = \"{}\"", url),
             None => "# webhook_url = \"\"".to_string(),
+        },
+        match &config.notifications.bot_token {
+            Some(token) => format!("bot_token = \"{}\"", token),
+            None => "# bot_token = \"\"".to_string(),
+        },
+        match &config.notifications.channel_id {
+            Some(channel) => format!("channel_id = \"{}\"", channel),
+            None => "# channel_id = \"\"".to_string(),
         },
         // UI
         config.ui.colored_output,
@@ -207,6 +263,20 @@ create_scripts_dir = {}
         config.ui.show_progress,
         config.ui.spec_preview_lines,
         // Features
+        config
+            .features
+            .categories
+            .iter()
+            .map(|t| format!("\"{}\"", t))
+            .collect::<Vec<_>>()
+            .join(", "),
+        config
+            .features
+            .priorities
+            .iter()
+            .map(|t| format!("\"{}\"", t))
+            .collect::<Vec<_>>()
+            .join(", "),
         config.features.require_verification_command,
         config.features.narrow_test_min_steps,
         config.features.narrow_test_max_steps,
@@ -226,24 +296,29 @@ fn format_opencode_json(config: &Config) -> String {
         .required_tools
         .iter()
         .any(|t| t.eq_ignore_ascii_case("chrome-devtools"));
+    let app_spec_path = if config.paths.app_spec_file.trim().is_empty() {
+        ".forger/app_spec.md"
+    } else {
+        config.paths.app_spec_file.as_str()
+    };
 
     format!(
         r#"{{
   "$schema": "https://opencode.ai/config.json",
   "instructions": [
     ".forger/config.toml",
-    ".forger/app_spec.md"
+    "{app_spec_path}"
   ],
   "mcp": {{
     "sequential-thinking": {{
       "type": "local",
       "command": ["npx", "-y", "@modelcontextprotocol/server-sequential-thinking"],
-      "enabled": {}
+      "enabled": {sequential_thinking_enabled}
     }},
     "chrome-devtools": {{
       "type": "local",
       "command": ["npx", "-y", "chrome-devtools-mcp@latest"],
-      "enabled": {}
+      "enabled": {chrome_devtools_enabled}
     }}
   }},
   "permission": {{
@@ -253,6 +328,8 @@ fn format_opencode_json(config: &Config) -> String {
   }}
 }}
 "#,
-        sequential_thinking_enabled, chrome_devtools_enabled,
+        app_spec_path = app_spec_path,
+        sequential_thinking_enabled = sequential_thinking_enabled,
+        chrome_devtools_enabled = chrome_devtools_enabled,
     )
 }

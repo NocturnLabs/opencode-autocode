@@ -5,7 +5,11 @@
 //! across all interactive terminal displays.
 
 use std::fmt;
+use std::sync::atomic::{AtomicBool, Ordering};
 use unicode_width::UnicodeWidthStr;
+
+/// Track whether ANSI coloring is enabled for themed output.
+static COLOR_OUTPUT_ENABLED: AtomicBool = AtomicBool::new(true);
 
 /// Calculate the visual width of a string (handling multi-byte characters and emojis)
 pub fn visual_width(s: &str) -> usize {
@@ -87,6 +91,16 @@ impl StyledString {
     }
 }
 
+/// @param enabled Whether ANSI styling is enabled.
+pub fn set_colored_output(enabled: bool) {
+    COLOR_OUTPUT_ENABLED.store(enabled, Ordering::Relaxed);
+}
+
+/// @returns Whether ANSI styling is enabled.
+fn colored_output_enabled() -> bool {
+    COLOR_OUTPUT_ENABLED.load(Ordering::Relaxed)
+}
+
 impl fmt::Display for StyledString {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut codes = Vec::new();
@@ -99,7 +113,7 @@ impl fmt::Display for StyledString {
             codes.push(format!("38;5;{}", color));
         }
 
-        if codes.is_empty() {
+        if codes.is_empty() || !colored_output_enabled() {
             write!(f, "{}", self.text)
         } else {
             write!(f, "\x1b[{}m{}\x1b[0m", codes.join(";"), self.text)

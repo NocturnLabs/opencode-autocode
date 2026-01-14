@@ -17,7 +17,8 @@ pub mod project;
 pub use autonomous::{AgentConfig, AlternativeApproachesConfig, AutonomousConfig, ConductorConfig};
 pub use environment::{McpConfig, NotificationsConfig, SecurityConfig, UiConfig};
 pub use project::{
-    ComplexityLevel, FeaturesConfig, GenerationConfig, ModelsConfig, PathsConfig, ScaffoldingConfig,
+    ComplexityLevel, FeaturesConfig, GenerationConfig, GenerationRequirements, ModelsConfig,
+    PathsConfig, ScaffoldingConfig,
 };
 
 /// Default config filename (preferred)
@@ -84,10 +85,13 @@ impl Config {
             if let Some(r) = root {
                 config.canonicalize_paths(&r);
             }
+            config.apply_runtime_settings();
 
             Ok(config)
         } else {
-            Ok(Config::default())
+            let config = Config::default();
+            config.apply_runtime_settings();
+            Ok(config)
         }
     }
 
@@ -100,6 +104,7 @@ impl Config {
             .with_context(|| format!("Failed to parse config file: {}", path.display()))?;
 
         config.expand_env_vars();
+        config.apply_runtime_settings();
         Ok(config)
     }
 
@@ -107,6 +112,8 @@ impl Config {
     fn expand_env_vars(&mut self) {
         self.paths.log_dir = expand_env_var(&self.paths.log_dir);
         self.paths.vs_cache_dir = expand_env_var(&self.paths.vs_cache_dir);
+        self.paths.database_file = expand_env_var(&self.paths.database_file);
+        self.paths.app_spec_file = expand_env_var(&self.paths.app_spec_file);
         self.paths.opencode_paths = self
             .paths
             .opencode_paths
@@ -115,6 +122,8 @@ impl Config {
             .collect();
         self.scaffolding.output_dir = expand_env_var(&self.scaffolding.output_dir);
         self.security.allowlist_file = expand_env_var(&self.security.allowlist_file);
+        self.alternative_approaches.cache_dir =
+            expand_env_var(&self.alternative_approaches.cache_dir);
         self.conductor.context_dir = expand_env_var(&self.conductor.context_dir);
         self.conductor.tracks_dir = expand_env_var(&self.conductor.tracks_dir);
         if let Some(ref url) = self.notifications.webhook_url {
@@ -142,6 +151,9 @@ impl Config {
     /// Canonicalize relative paths based on the project root.
     fn canonicalize_paths(&mut self, root: &Path) {
         let canonicalize = |p: &str| -> String {
+            if p.trim().is_empty() {
+                return p.to_string();
+            }
             let path = Path::new(p);
             if path.is_relative() {
                 root.join(path).to_string_lossy().to_string()
@@ -153,8 +165,17 @@ impl Config {
         self.paths.database_file = canonicalize(&self.paths.database_file);
         self.paths.app_spec_file = canonicalize(&self.paths.app_spec_file);
         self.paths.vs_cache_dir = canonicalize(&self.paths.vs_cache_dir);
+        self.paths.log_dir = canonicalize(&self.paths.log_dir);
+        self.scaffolding.output_dir = canonicalize(&self.scaffolding.output_dir);
+        self.alternative_approaches.cache_dir =
+            canonicalize(&self.alternative_approaches.cache_dir);
         self.conductor.context_dir = canonicalize(&self.conductor.context_dir);
         self.conductor.tracks_dir = canonicalize(&self.conductor.tracks_dir);
+    }
+
+    /// Apply configuration-driven runtime settings.
+    fn apply_runtime_settings(&self) {
+        crate::theming::set_colored_output(self.ui.colored_output);
     }
 }
 

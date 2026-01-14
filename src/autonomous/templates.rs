@@ -58,12 +58,18 @@ pub fn generate_fix_template(
 /// This removes LLM responsibility for querying the database.
 /// Generate a minimal continue template with feature context injected by supervisor.
 /// This removes LLM responsibility for querying the database.
-pub fn generate_continue_template(feature: &Feature, dual_model: bool) -> Result<()> {
+pub fn generate_continue_template(
+    feature: &Feature,
+    config: &Config,
+    dual_model: bool,
+) -> Result<()> {
     let dual_model_section = if dual_model {
         "\n## Dual Model Architecture\nYou are the **Reasoning Agent**. Plan the solution and delegate implementation to `@coder`.\n"
     } else {
         ""
     };
+
+    let regression_sample = config.agent.verification_sample_size.max(1);
 
     let content = format!(
         r#"# Implement Feature
@@ -78,9 +84,9 @@ Implement this feature completely:
 {}
 
 ## 🛑 MANDATORY: GET YOUR BEARINGS
-1. Read `app_spec.md` to refresh context.
+1. Read `{}` to refresh context.
 2. Run `opencode-forger db stats` to see overall progress.
-3. **REGRESSION CHECK**: Run 1-2 of the features marked as passing to verify they still work.
+3. **REGRESSION CHECK**: Run {} of the features marked as passing to verify they still work.
 4. If you find ANY regressions, fix them BEFORE starting the new feature.
 
 ## 🚀 MINIMAL WORK SESSION
@@ -126,6 +132,8 @@ The supervisor will automatically handle after your session:
                 .join("\n")
         },
         dual_model_section,
+        config.paths.app_spec_file,
+        regression_sample,
         feature.id.unwrap_or(0),
         feature.id.unwrap_or(0),
         feature

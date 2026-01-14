@@ -27,7 +27,7 @@ The autonomous agent attempted to implement a feature but got stuck in a retry l
 
 ## Requirements
 
-Generate **7 fundamentally different** implementation approaches. Do NOT generate variations of what has already been tried—each approach should be distinct.
+Generate **{{NUM_APPROACHES}} fundamentally different** implementation approaches. Do NOT generate variations of what has already been tried—each approach should be distinct.
 
 **Approach Categories to Explore:**
 
@@ -73,6 +73,6 @@ Generate **7 fundamentally different** implementation approaches. Do NOT generat
 - Consider that the stuck condition may indicate a fundamental misunderstanding
 - Sometimes the right answer is to change the requirements, not the implementation
 
-Generate 7 alternative approaches now.
+Generate {{NUM_APPROACHES}} alternative approaches now.
 ]]></content>
 </template>

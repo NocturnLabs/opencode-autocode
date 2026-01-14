@@ -7,6 +7,8 @@ use anyhow::Result;
 use quick_xml::events::Event;
 use quick_xml::Reader;
 
+use crate::config::{Config, GenerationRequirements};
+
 /// Result of validating a spec
 #[derive(Debug, Clone, Default)]
 pub struct ValidationResult {
@@ -26,8 +28,15 @@ pub struct SpecStats {
     pub has_database: bool,
     pub has_api_endpoints: bool,
     pub has_success_criteria: bool,
+    pub has_security: bool,
+    pub has_testing_strategy: bool,
+    pub has_devops: bool,
+    pub has_accessibility: bool,
+    pub has_future_enhancements: bool,
     pub feature_count: usize,
     pub endpoint_count: usize,
+    pub database_table_count: usize,
+    pub implementation_step_count: usize,
 }
 
 impl ValidationResult {
@@ -66,11 +75,34 @@ impl ValidationResult {
             bool_icon(self.stats.has_features),
             self.stats.feature_count
         );
-        println!("   Database: {}", bool_icon(self.stats.has_database));
+        println!(
+            "   Database: {} ({})",
+            bool_icon(self.stats.has_database),
+            self.stats.database_table_count
+        );
         println!(
             "   API Endpoints: {} ({})",
             bool_icon(self.stats.has_api_endpoints),
             self.stats.endpoint_count
+        );
+        println!(
+            "   Implementation Steps: {} ({})",
+            bool_icon(self.stats.implementation_step_count > 0),
+            self.stats.implementation_step_count
+        );
+        println!("   Security: {}", bool_icon(self.stats.has_security));
+        println!(
+            "   Testing Strategy: {}",
+            bool_icon(self.stats.has_testing_strategy)
+        );
+        println!("   DevOps: {}", bool_icon(self.stats.has_devops));
+        println!(
+            "   Accessibility: {}",
+            bool_icon(self.stats.has_accessibility)
+        );
+        println!(
+            "   Future Enhancements: {}",
+            bool_icon(self.stats.has_future_enhancements)
         );
         println!(
             "   Success Criteria: {}",
@@ -84,6 +116,32 @@ fn bool_icon(val: bool) -> &'static str {
         "✓"
     } else {
         "✗"
+    }
+}
+
+/// Validation rules derived from configuration.
+#[derive(Debug, Clone, Copy)]
+pub struct ValidationRules {
+    pub requirements: GenerationRequirements,
+    pub include_security_section: bool,
+    pub include_testing_strategy: bool,
+    pub include_devops_section: bool,
+    pub include_accessibility: bool,
+    pub include_future_enhancements: bool,
+}
+
+impl ValidationRules {
+    /// @param config Loaded configuration.
+    /// @returns Validation rules based on configuration values.
+    pub fn from_config(config: &Config) -> Self {
+        Self {
+            requirements: config.generation.requirements(),
+            include_security_section: config.generation.include_security_section,
+            include_testing_strategy: config.generation.include_testing_strategy,
+            include_devops_section: config.generation.include_devops_section,
+            include_accessibility: config.generation.include_accessibility,
+            include_future_enhancements: config.generation.include_future_enhancements,
+        }
     }
 }
 
@@ -130,8 +188,25 @@ fn strip_xml_comments(text: &str) -> String {
     result
 }
 
-/// Validate a project specification
+/// Validate a project specification.
 pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
+    validate_spec_with_rules(spec_text, None)
+}
+
+/// @param spec_text XML spec text.
+/// @param config Loaded configuration.
+/// @returns Validation result with configuration-aware checks.
+pub fn validate_spec_with_config(spec_text: &str, config: &Config) -> Result<ValidationResult> {
+    validate_spec_with_rules(spec_text, Some(ValidationRules::from_config(config)))
+}
+
+/// @param spec_text XML spec text.
+/// @param rules Optional validation rules.
+/// @returns Validation result with optional strictness.
+fn validate_spec_with_rules(
+    spec_text: &str,
+    rules: Option<ValidationRules>,
+) -> Result<ValidationResult> {
     let mut errors = Vec::new();
     let mut warnings = Vec::new();
     let mut stats = SpecStats::default();
@@ -156,9 +231,15 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
     let mut current_tag = String::new();
     let mut in_features = false;
     let mut in_endpoints = false;
+    let mut in_tables = false;
+    let mut in_steps = false;
 
     let mut feature_tags_found = 0;
     let mut other_tags_in_features = 0;
+    let mut table_tags_found = 0;
+    let mut table_lines_found = 0;
+
+    let mut step_tags_found = 0;
 
     loop {
         match reader.read_event() {
@@ -173,11 +254,21 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
                         in_features = true;
                     }
                     "database_schema" | "database" => stats.has_database = true,
+                    "tables" => {
+                        stats.has_database = true;
+                        in_tables = true;
+                    }
                     "api_endpoints" | "api_endpoints_summary" => {
                         stats.has_api_endpoints = true;
                         in_endpoints = true;
                     }
+                    "implementation_steps" => in_steps = true,
                     "success_criteria" => stats.has_success_criteria = true,
+                    "security" => stats.has_security = true,
+                    "testing_strategy" => stats.has_testing_strategy = true,
+                    "devops" => stats.has_devops = true,
+                    "accessibility" => stats.has_accessibility = true,
+                    "future_enhancements" => stats.has_future_enhancements = true,
                     "feature" => {
                         if in_features {
                             feature_tags_found += 1;
@@ -188,9 +279,27 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
                             stats.endpoint_count += 1;
                         }
                     }
+                    "step" => {
+                        if in_steps {
+                            step_tags_found += 1;
+                        }
+                    }
+                    "table" => {
+                        if in_tables {
+                            table_tags_found += 1;
+                        }
+                    }
+                    "column" => {
+                        if in_tables {
+                            stats.has_database = true;
+                        }
+                    }
                     _ => {
                         if in_features && current_tag != "core_features" {
                             other_tags_in_features += 1;
+                        }
+                        if in_tables && current_tag != "tables" && current_tag != "column" {
+                            table_tags_found += 1;
                         }
                     }
                 }
@@ -203,6 +312,12 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
                 if tag == "api_endpoints" || tag == "api_endpoints_summary" {
                     in_endpoints = false;
                 }
+                if tag == "tables" {
+                    in_tables = false;
+                }
+                if tag == "implementation_steps" {
+                    in_steps = false;
+                }
             }
             Ok(Event::Text(e)) => {
                 // Count API endpoint lines (fallback for summary mode)
@@ -214,6 +329,16 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
                             && (trimmed.contains("/") || trimmed.contains("METHOD"))
                         {
                             stats.endpoint_count += 1;
+                        }
+                    }
+                }
+
+                if in_tables {
+                    let text = e.decode().unwrap_or_default();
+                    for line in text.lines() {
+                        let trimmed = line.trim();
+                        if trimmed.starts_with('-') {
+                            table_lines_found += 1;
                         }
                     }
                 }
@@ -231,12 +356,62 @@ pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
         }
     }
 
+    stats.implementation_step_count = step_tags_found;
+    stats.database_table_count = if table_tags_found > 0 {
+        table_tags_found
+    } else {
+        table_lines_found
+    };
+
     // Determine final feature count: prefer structured <feature> tags if present
     stats.feature_count = if feature_tags_found > 0 {
         feature_tags_found
     } else {
         other_tags_in_features
     };
+
+    if let Some(rules) = rules {
+        let requirements = rules.requirements;
+        if stats.feature_count < requirements.min_features as usize {
+            errors.push(format!(
+                "Spec has {} feature(s), requires at least {}",
+                stats.feature_count, requirements.min_features
+            ));
+        }
+        if stats.database_table_count < requirements.min_database_tables as usize {
+            errors.push(format!(
+                "Spec has {} database table(s), requires at least {}",
+                stats.database_table_count, requirements.min_database_tables
+            ));
+        }
+        if stats.endpoint_count < requirements.min_api_endpoints as usize {
+            errors.push(format!(
+                "Spec has {} API endpoint(s), requires at least {}",
+                stats.endpoint_count, requirements.min_api_endpoints
+            ));
+        }
+        if stats.implementation_step_count < requirements.min_implementation_steps as usize {
+            errors.push(format!(
+                "Spec has {} implementation step(s), requires at least {}",
+                stats.implementation_step_count, requirements.min_implementation_steps
+            ));
+        }
+        if rules.include_security_section && !stats.has_security {
+            errors.push("Missing <security> section in spec".to_string());
+        }
+        if rules.include_testing_strategy && !stats.has_testing_strategy {
+            errors.push("Missing <testing_strategy> section in spec".to_string());
+        }
+        if rules.include_devops_section && !stats.has_devops {
+            errors.push("Missing <devops> section in spec".to_string());
+        }
+        if rules.include_accessibility && !stats.has_accessibility {
+            errors.push("Missing <accessibility> section in spec".to_string());
+        }
+        if rules.include_future_enhancements && !stats.has_future_enhancements {
+            errors.push("Missing <future_enhancements> section in spec".to_string());
+        }
+    }
 
     // Quality checks
     if !stats.has_project_name {

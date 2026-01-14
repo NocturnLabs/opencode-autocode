@@ -3,6 +3,7 @@
 //! Runs OpenCode in batch mode with automatic session continuation
 //! until all features pass.
 
+mod alternative;
 mod decision;
 mod display;
 mod features;
@@ -40,20 +41,20 @@ pub fn run(
     // Use a simpler log name for the main "vibe" command, but still PID-scoped if needed.
     // However, if we want to allow `tail -f opencode-debug.log`, maybe we should symlink it?
     // For now, let's use a unique name so we can distinguish instances.
-    let log_path = format!("opencode-debug-{}.log", pid);
+    let log_name = format!("opencode-debug-{}.log", pid);
 
     let (config, settings) = settings::init_session(
         developer_mode,
         config_path,
         limit,
         single_model,
-        Some(&log_path),
+        Some(&log_name),
     )?;
     let logger = crate::common::logging::get();
 
     // Register instance globally
     let instance_repo = crate::db::InstanceRepository::open()?;
-    let instance_id = instance_repo.register(pid, "supervisor", Some(&log_path))?;
+    let instance_id = instance_repo.register(pid, "supervisor", settings.log_path.as_deref())?;
     logger.info(&format!("Process registered as instance #{}", instance_id));
 
     // Register Ctrl+C handler to create stop signal file AND update DB status
@@ -117,7 +118,7 @@ fn log_final_status(settings: &settings::LoopSettings, developer_mode: bool) {
     ));
     logger.separator();
 
-    display::display_final_status(passing, total, developer_mode);
+    display::display_final_status(passing, total, developer_mode, settings.log_path.as_deref());
 }
 
 fn log_startup_info(

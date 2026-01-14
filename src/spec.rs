@@ -137,7 +137,7 @@ pub struct Feature {
     pub sub_features: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum Priority {
     Critical,

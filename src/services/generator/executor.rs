@@ -129,7 +129,7 @@ where
         match parser::extract_spec_from_output(&full_output) {
             Ok(spec) => {
                 // Validate XML structure
-                match validation::validate_spec(&spec) {
+                match validation::validate_spec_with_config(&spec, config) {
                     Ok(result) => {
                         if result.is_valid {
                             // Success!

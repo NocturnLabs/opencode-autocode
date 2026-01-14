@@ -18,7 +18,7 @@ Research and propose enhancements for the current project based on popular patte
 
 ### STEP 1: UNDERSTAND THE PROJECT
 
-Read app_spec.md and .forger/features.json to understand:
+Read {{APP_SPEC_PATH}} and .forger/features.json to understand:
 
 - What the project does
 - What technology stack is used
@@ -184,6 +184,6 @@ Use structured reasoning to organize your findings and determine priority.
 
 ---
 
-Begin by reading app_spec.md to understand the project.
+Begin by reading {{APP_SPEC_PATH}} to understand the project.
 ]]></content>
 </template>

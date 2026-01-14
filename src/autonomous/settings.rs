@@ -2,8 +2,9 @@
 
 use super::session;
 use crate::config::{Config, McpConfig};
-use anyhow::Result;
-use std::path::Path;
+use crate::services::generator::executor::which_opencode;
+use anyhow::{Context, Result};
+use std::path::{Path, PathBuf};
 
 /// Settings extracted from config for the main loop
 pub struct LoopSettings {
@@ -13,10 +14,17 @@ pub struct LoopSettings {
     pub max_retries: u32,
     /// Warn after this many iterations without progress (0 = unlimited)
     pub max_no_progress: u32,
+    /// Model for standard autonomous sessions.
     pub model: String,
+    /// Model for enhancement mode sessions.
+    pub enhancement_model: String,
+    /// OpenCode binary path used for sessions.
+    pub opencode_path: String,
 
     pub log_level: String,
     pub database_file: String,
+    /// Log file path for this run.
+    pub log_path: Option<String>,
     pub session_timeout: u32,
     pub idle_timeout: u32,
     pub auto_commit: bool,
@@ -58,8 +66,16 @@ impl LoopSettings {
             max_retries: config.agent.max_retry_attempts,
             max_no_progress,
             model: config.models.autonomous.clone(),
+            enhancement_model: config.models.enhancement.clone(),
+            opencode_path: config
+                .paths
+                .opencode_paths
+                .first()
+                .cloned()
+                .unwrap_or_else(|| "opencode".to_string()),
             log_level: config.autonomous.log_level.clone(),
             database_file,
+            log_path: None,
             session_timeout: config.autonomous.session_timeout_minutes,
             idle_timeout: config.autonomous.idle_timeout_seconds,
             auto_commit: config.autonomous.auto_commit,
@@ -141,7 +157,7 @@ fn load_config(config_path: Option<&Path>) -> Result<Config> {
     }
 }
 
-/// Initialize a session, loading config and setting up logging
+/// Initialize a session, loading config and setting up logging.
 pub fn init_session(
     developer_mode: bool,
     config_path: Option<&Path>,
@@ -149,13 +165,53 @@ pub fn init_session(
     single_model: bool,
     log_path: Option<&str>,
 ) -> Result<(Config, LoopSettings)> {
-    crate::common::logging::init(developer_mode, log_path);
     let config = load_config(config_path)?;
+    let resolved_log_path = resolve_log_path(&config, log_path)?;
+    crate::common::logging::init(developer_mode, resolved_log_path.as_deref());
+
     let mut settings = LoopSettings::from_config(&config, limit);
+    settings.log_path = resolved_log_path;
+    settings.opencode_path = which_opencode(&config)?;
     settings.dual_model_enabled = !single_model;
+    settings.model = if settings.dual_model_enabled {
+        config.models.reasoning.clone()
+    } else {
+        config.models.autonomous.clone()
+    };
 
     // Clear any lingering stop signal from a previous run
     session::clear_stop_signal();
 
     Ok((config, settings))
+}
+
+/// @param config Loaded configuration.
+/// @param log_path Optional log file name or path.
+/// @returns The resolved log path, if provided.
+fn resolve_log_path(config: &Config, log_path: Option<&str>) -> Result<Option<String>> {
+    let log_path = match log_path {
+        Some(path) => path,
+        None => return Ok(None),
+    };
+
+    let path = Path::new(log_path);
+    let resolved = if path.is_absolute() {
+        PathBuf::from(path)
+    } else {
+        let log_dir = Path::new(config.paths.log_dir.trim());
+        if log_dir.as_os_str().is_empty() {
+            PathBuf::from(path)
+        } else {
+            log_dir.join(path)
+        }
+    };
+
+    if let Some(parent) = resolved.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent)
+                .with_context(|| format!("Failed to create log directory: {}", parent.display()))?;
+        }
+    }
+
+    Ok(Some(resolved.to_string_lossy().to_string()))
 }
