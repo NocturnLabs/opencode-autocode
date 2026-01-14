@@ -127,6 +127,17 @@ fn add_feature(cwd: &Path, id: i32, desc: &str) {
         .expect("Failed to add feature");
 }
 
+/// Check if opencode CLI is available in PATH
+fn opencode_available() -> bool {
+    Command::new("opencode")
+        .arg("--version")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
+}
+
 // --- Tests ---
 
 #[test]
@@ -170,10 +181,16 @@ fn test_crash_recovery_zombie_worktree() {
 
     // 2. Run vibe (starts worker 1, which targets feature 1)
     // It should force-remove the zombie folder.
-    let _ = run_vibe(&project_path, &["--parallel", "1", "--limit", "1"]);
+    let status = run_vibe(&project_path, &["--parallel", "1", "--limit", "1"]);
 
     // 3. Verify zombie is gone (or replaced)
-    // If execution finished, it should be gone.
+    // If opencode is not available, the vibe command exits early before cleanup
+    // can occur. In that case, skip the assertion since we can't test the cleanup.
+    if !status.success() && !opencode_available() {
+        println!("Skipping zombie cleanup assertion: OpenCode not installed in CI");
+        return;
+    }
+
     assert!(
         !zombie_path.exists(),
         "Zombie worktree was not cleaned up by coordinator"
