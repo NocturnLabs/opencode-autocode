@@ -7,7 +7,19 @@ use crate::config::Config;
 use crate::db;
 use crate::regression;
 
-/// Handle database subcommands
+/// Handles database subcommands including initialization, migration, export, and queries.
+///
+/// This function routes to the appropriate database operation based on the provided action.
+/// It loads the configuration to determine the default database path and handles common
+/// error cases such as missing databases.
+///
+/// # Arguments
+///
+/// * `action` - The database action to perform, wrapped in `DbAction` enum.
+///
+/// # Returns
+///
+/// Result indicating success or containing an error from the database operation.
 pub fn handle_db(action: &DbAction) -> Result<()> {
     // Load config to get database_file path (from .forger/config.toml)
     let config = Config::load(None).unwrap_or_default();

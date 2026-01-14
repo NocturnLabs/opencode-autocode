@@ -2,6 +2,16 @@
 //!
 //! Provides persistent storage for features, sessions, and audit logs.
 //! Replaces the previous file-based tracking (feature_list.json).
+//!
+//! # Modules
+//!
+//! - `connection`: Database connection management
+//! - `features`: Feature repository and models
+//! - `knowledge`: Knowledge base storage
+//! - `meta`: Metadata storage
+//! - `query`: Database query utilities
+//! - `sessions`: Session tracking and management
+//! - `instances`: Instance management
 
 pub mod connection;
 pub mod features;

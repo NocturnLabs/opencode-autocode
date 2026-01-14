@@ -5,6 +5,25 @@ pub mod routes;
 pub mod static_files;
 
 /// Main entry point to run the web server
+///
+/// Starts an Actix-web server with the OpenCode Forger web dashboard.
+/// The dashboard provides a web-based interface for managing projects, viewing instances,
+/// and monitoring autonomous sessions.
+///
+/// # Arguments
+///
+/// * `port` - TCP port to bind the web server to
+/// * `open_browser` - Whether to automatically open the browser to the dashboard URL
+///
+/// # Returns
+///
+/// Result indicating success or failure of the web server
+///
+/// # Examples
+///
+/// ```rust
+/// run_server(8080, true).await?;
+/// ```
 #[actix_web::main]
 pub async fn run_server(port: u16, open_browser: bool) -> Result<()> {
     let addr = format!("127.0.0.1:{}", port);

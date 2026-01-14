@@ -91,12 +91,29 @@ impl StyledString {
     }
 }
 
-/// @param enabled Whether ANSI styling is enabled.
+/// Set whether ANSI styling is enabled for themed output.
+///
+/// Controls whether colored output and styling are used in terminal displays.
+///
+/// # Arguments
+///
+/// * `enabled` - Whether to enable ANSI coloring and styling
+///
+/// # Examples
+///
+/// ```rust
+/// set_colored_output(true); // Enable colored output
+/// set_colored_output(false); // Disable colored output
+/// ```
 pub fn set_colored_output(enabled: bool) {
     COLOR_OUTPUT_ENABLED.store(enabled, Ordering::Relaxed);
 }
 
-/// @returns Whether ANSI styling is enabled.
+/// Check whether ANSI styling is currently enabled.
+///
+/// # Returns
+///
+/// Boolean indicating whether colored output is enabled
 fn colored_output_enabled() -> bool {
     COLOR_OUTPUT_ENABLED.load(Ordering::Relaxed)
 }
@@ -122,6 +139,16 @@ impl fmt::Display for StyledString {
 }
 
 /// Create a styled string with the given color
+///
+/// Internal helper function for creating styled strings.
+///
+/// # Arguments
+///
+/// * `text` - Text content to style
+///
+/// # Returns
+///
+/// StyledString instance ready for further styling
 fn style<D: ToString>(text: D) -> StyledString {
     StyledString::new(text)
 }

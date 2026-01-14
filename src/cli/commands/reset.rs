@@ -4,6 +4,18 @@ use anyhow::Result;
 use crate::config::Config;
 use std::path::{Path, PathBuf};
 
+/// Handles the `reset` subcommand for resetting a project.
+///
+/// This function cleans up temporary/signal files and re-scaffolds the project
+/// using the existing spec file. It preserves the database and other persistent data.
+///
+/// # Arguments
+///
+/// * `output_dir` - Base output directory for the project.
+///
+/// # Returns
+///
+/// Result indicating success or containing an error from reset operations.
 pub fn handle_reset(output_dir: &std::path::Path) -> Result<()> {
     let config = Config::load(Some(output_dir)).unwrap_or_default();
     let spec_path = resolve_spec_path(output_dir, &config.paths.app_spec_file);
@@ -45,9 +57,19 @@ pub fn handle_reset(output_dir: &std::path::Path) -> Result<()> {
     Ok(())
 }
 
-/// @param output_dir Base output directory.
-/// @param spec_path Configured spec file path.
-/// @returns Resolved spec path for the reset command.
+/// Resolves the spec file path for the reset command.
+///
+/// This function handles the spec path resolution logic, supporting both
+/// relative and absolute paths, with a fallback to the default location.
+///
+/// # Arguments
+///
+/// * `output_dir` - Base output directory.
+/// * `spec_path` - Configured spec file path (can be empty for default).
+///
+/// # Returns
+///
+/// Resolved `PathBuf` for the spec file.
 fn resolve_spec_path(output_dir: &Path, spec_path: &str) -> PathBuf {
     let trimmed = spec_path.trim();
     if trimmed.is_empty() {

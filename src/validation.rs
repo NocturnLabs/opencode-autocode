@@ -1,7 +1,15 @@
-//! Output validation and diff generationty checks
+//! Output validation and diff generation
 //!
 //! Validates generated project specifications for structural correctness
 //! and quality metrics before scaffolding.
+//!
+//! # Features
+//!
+//! - XML structure validation
+//! - Content quality checks
+//! - Configuration-aware validation rules
+//! - Statistical analysis of specifications
+//! - Diff generation for specification changes
 
 use anyhow::Result;
 use quick_xml::events::Event;
@@ -41,6 +49,16 @@ pub struct SpecStats {
 
 impl ValidationResult {
     /// Print the validation result in a user-friendly format
+    ///
+    /// Displays validation status, errors, warnings, and detailed statistics
+    /// about the specification content.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let result = validate_spec(&spec_text)?;
+    /// result.print();
+    /// ```
     pub fn print(&self) {
         if self.is_valid {
             println!("✅ Spec validation passed");
@@ -131,8 +149,25 @@ pub struct ValidationRules {
 }
 
 impl ValidationRules {
-    /// @param config Loaded configuration.
-    /// @returns Validation rules based on configuration values.
+    /// Create validation rules from configuration
+    ///
+    /// Converts generation configuration into validation rules that determine
+    /// what content is required and what quality thresholds must be met.
+    ///
+    /// # Arguments
+    ///
+    /// * `config` - Loaded configuration containing generation settings
+    ///
+    /// # Returns
+    ///
+    /// ValidationRules instance configured based on the provided config
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let config = Config::load(None)?;
+    /// let rules = ValidationRules::from_config(&config);
+    /// ```
     pub fn from_config(config: &Config) -> Self {
         Self {
             requirements: config.generation.requirements(),
@@ -147,6 +182,24 @@ impl ValidationRules {
 
 /// Strip XML comments from text to prevent bypass attacks.
 /// Comments like <!-- hidden content --> are removed before validation.
+///
+/// This prevents malicious or malformed content from being hidden in XML comments
+/// that could bypass validation checks.
+///
+/// # Arguments
+///
+/// * `text` - XML text that may contain comments
+///
+/// # Returns
+///
+/// String with XML comments removed
+///
+/// # Examples
+///
+/// ```rust
+/// let clean_text = strip_xml_comments("<root><!-- bad --><item/></root>");
+/// assert_eq!(clean_text, "<root><item/></root>");
+/// ```
 fn strip_xml_comments(text: &str) -> String {
     let mut result = String::with_capacity(text.len());
     let mut chars = text.chars().peekable();
@@ -189,20 +242,67 @@ fn strip_xml_comments(text: &str) -> String {
 }
 
 /// Validate a project specification.
+///
+/// Performs basic validation of a project specification without configuration-specific rules.
+///
+/// # Arguments
+///
+/// * `spec_text` - XML specification text to validate
+///
+/// # Returns
+///
+/// Result containing ValidationResult with validation status and details
+///
+/// # Examples
+///
+/// ```rust
+/// let spec = "<project_specification>...</project_specification>";
+/// let result = validate_spec(spec)?;
+/// if result.is_valid {
+///     println!("Spec is valid!");
+/// }
+/// ```
 pub fn validate_spec(spec_text: &str) -> Result<ValidationResult> {
     validate_spec_with_rules(spec_text, None)
 }
 
-/// @param spec_text XML spec text.
-/// @param config Loaded configuration.
-/// @returns Validation result with configuration-aware checks.
+/// Validate a project specification with configuration-aware rules.
+///
+/// Performs validation using rules derived from the provided configuration,
+/// including minimum requirements for features, database tables, API endpoints, etc.
+///
+/// # Arguments
+///
+/// * `spec_text` - XML specification text to validate
+/// * `config` - Configuration containing validation rules
+///
+/// # Returns
+///
+/// Result containing ValidationResult with validation status and details
+///
+/// # Examples
+///
+/// ```rust
+/// let spec = "<project_specification>...</project_specification>";
+/// let config = Config::load(None)?;
+/// let result = validate_spec_with_config(spec, &config)?;
+/// ```
 pub fn validate_spec_with_config(spec_text: &str, config: &Config) -> Result<ValidationResult> {
     validate_spec_with_rules(spec_text, Some(ValidationRules::from_config(config)))
 }
 
-/// @param spec_text XML spec text.
-/// @param rules Optional validation rules.
-/// @returns Validation result with optional strictness.
+/// Internal function to validate specification with optional rules.
+///
+/// Core validation logic that handles both basic and configuration-aware validation.
+///
+/// # Arguments
+///
+/// * `spec_text` - XML specification text to validate
+/// * `rules` - Optional validation rules for configuration-aware checks
+///
+/// # Returns
+///
+/// Result containing ValidationResult with validation status and details
 fn validate_spec_with_rules(
     spec_text: &str,
     rules: Option<ValidationRules>,
@@ -439,6 +539,22 @@ fn validate_spec_with_rules(
 }
 
 /// Print a colored diff
+///
+/// Displays the differences between two specification versions using colored output.
+/// Shows additions (+) and deletions (-) between the old and new specification text.
+///
+/// # Arguments
+///
+/// * `old_spec` - Original specification text
+/// * `new_spec` - Modified specification text
+///
+/// # Examples
+///
+/// ```rust
+/// let old_spec = "<project>...</project>";
+/// let new_spec = "<project>...</project>";
+/// print_diff(old_spec, new_spec);
+/// ```
 pub fn print_diff(old_spec: &str, new_spec: &str) {
     use similar::{ChangeTag, TextDiff};
 

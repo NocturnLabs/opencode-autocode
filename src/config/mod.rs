@@ -55,6 +55,20 @@ pub struct Config {
 
 impl Config {
     /// Resolve the config path using preferred and legacy filenames.
+    ///
+    /// # Arguments
+    ///
+    /// * `dir` - Optional directory path to search for config files
+    ///
+    /// # Returns
+    ///
+    /// PathBuf containing the resolved configuration file path
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let config_path = Config::resolve_config_path(Some(Path::new("/my/project")));
+    /// ```
     pub fn resolve_config_path(dir: Option<&Path>) -> PathBuf {
         resolve_config_path(dir)
     }
@@ -62,6 +76,25 @@ impl Config {
     /// Load configuration from the specified directory or search upwards for project root.
     ///
     /// Prefers `forger.toml` when present, otherwise falls back to `.forger/config.toml`.
+    /// If no config file is found, returns default configuration.
+    ///
+    /// # Arguments
+    ///
+    /// * `dir` - Optional directory path to search for config files
+    ///
+    /// # Returns
+    ///
+    /// Result containing the loaded Config instance
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// // Load config from current directory
+    /// let config = Config::load(None)?;
+    ///
+    /// // Load config from specific directory
+    /// let config = Config::load(Some(Path::new("/my/project")))?;
+    /// ```
     pub fn load(dir: Option<&Path>) -> Result<Self> {
         let root = match dir {
             Some(d) => Some(d.to_path_buf()),
@@ -96,6 +129,20 @@ impl Config {
     }
 
     /// Load configuration from a specific file path.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - Path to the configuration file
+    ///
+    /// # Returns
+    ///
+    /// Result containing the loaded Config instance
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let config = Config::load_from_file(Path::new("/path/to/forger.toml"))?;
+    /// ```
     pub fn load_from_file(path: &Path) -> Result<Self> {
         let content = fs::read_to_string(path)
             .with_context(|| format!("Failed to read config file: {}", path.display()))?;
@@ -109,6 +156,9 @@ impl Config {
     }
 
     /// Expand environment variables in path-like config values.
+    ///
+    /// Replaces environment variables like $HOME, ${HOME}, %APPDATA%, etc. with their actual values.
+    /// Also handles Discord bot token loading from environment variable.
     fn expand_env_vars(&mut self) {
         self.paths.log_dir = expand_env_var(&self.paths.log_dir);
         self.paths.vs_cache_dir = expand_env_var(&self.paths.vs_cache_dir);
@@ -149,6 +199,12 @@ impl Config {
     }
 
     /// Canonicalize relative paths based on the project root.
+    ///
+    /// Converts relative paths to absolute paths by joining them with the project root directory.
+    ///
+    /// # Arguments
+    ///
+    /// * `root` - The project root directory path
     fn canonicalize_paths(&mut self, root: &Path) {
         let canonicalize = |p: &str| -> String {
             if p.trim().is_empty() {
@@ -174,12 +230,27 @@ impl Config {
     }
 
     /// Apply configuration-driven runtime settings.
+    ///
+    /// Sets global application settings based on configuration values.
     fn apply_runtime_settings(&self) {
         crate::theming::set_colored_output(self.ui.colored_output);
     }
 }
 
 /// Resolve the most appropriate config file path.
+///
+/// Searches for config files in the following order:
+/// 1. `forger.toml` in the specified root directory
+/// 2. `.forger/config.toml` (legacy) in the specified root directory
+/// 3. Returns the preferred path even if it doesn't exist
+///
+/// # Arguments
+///
+/// * `root` - Optional root directory to search for config files
+///
+/// # Returns
+///
+/// PathBuf containing the resolved configuration file path
 fn resolve_config_path(root: Option<&Path>) -> PathBuf {
     let resolve_from_root = |root: &Path| {
         let preferred = root.join(CONFIG_FILENAME);
@@ -200,6 +271,21 @@ fn resolve_config_path(root: Option<&Path>) -> PathBuf {
 }
 
 /// Search upwards for the project root (containing .forger directory).
+///
+/// Walks up the directory tree from the current working directory until it finds
+/// a directory containing a `.forger` subdirectory, which indicates the project root.
+///
+/// # Returns
+///
+/// Option containing the project root path if found, None otherwise
+///
+/// # Examples
+///
+/// ```rust
+/// if let Some(root) = find_project_root() {
+///     println!("Project root: {}", root.display());
+/// }
+/// ```
 pub fn find_project_root() -> Option<PathBuf> {
     let current_dir = env::current_dir().ok()?;
     let mut current = current_dir.as_path();
@@ -223,6 +309,25 @@ pub fn find_project_root() -> Option<PathBuf> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Expand environment variables in a string (e.g., $HOME, ${HOME}, %APPDATA%)
+///
+/// Supports multiple environment variable formats:
+/// - Unix-style: $VAR, ${VAR}
+/// - Windows-style: %VAR%
+///
+/// # Arguments
+///
+/// * `s` - Input string containing environment variable references
+///
+/// # Returns
+///
+/// String with environment variables replaced by their values
+///
+/// # Examples
+///
+/// ```rust
+/// let expanded = expand_env_var("$HOME/.config");
+/// // Returns something like "/home/user/.config"
+/// ```
 fn expand_env_var(s: &str) -> String {
     let mut result = s.to_string();
 
@@ -246,6 +351,17 @@ fn expand_env_var(s: &str) -> String {
 }
 
 /// Simple environment variable expansion without regex dependency
+///
+/// Parses ${VAR} style environment variables and replaces them with their values.
+/// If a variable is not found, leaves the original reference intact.
+///
+/// # Arguments
+///
+/// * `s` - Input string containing ${VAR} style environment variables
+///
+/// # Returns
+///
+/// String with ${VAR} style variables replaced by their values
 fn regex_lite_expand(s: &str) -> String {
     let mut result = String::new();
     let mut chars = s.chars().peekable();

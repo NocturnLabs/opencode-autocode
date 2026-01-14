@@ -2,6 +2,19 @@ use crate::cli::ExampleTopic;
 use crate::docs;
 use anyhow::Result;
 
+/// Handles the `example` subcommand for displaying documentation topics.
+///
+/// This function routes to the appropriate documentation topic based on the provided
+/// `ExampleTopic`. It either shows a list of available topics or displays the
+/// specific documentation content.
+///
+/// # Arguments
+///
+/// * `topic` - The example topic to display, wrapped in `ExampleTopic` enum.
+///
+/// # Returns
+///
+/// Result indicating success or containing an error from doc retrieval.
 pub fn handle_example(topic: &ExampleTopic) -> Result<()> {
     match topic {
         ExampleTopic::Db { insert, query } => {
@@ -48,6 +61,15 @@ pub fn handle_example(topic: &ExampleTopic) -> Result<()> {
     }
 }
 
+/// Displays documentation for a given topic name.
+///
+/// # Arguments
+///
+/// * `name` - The name/key of the documentation topic to retrieve.
+///
+/// # Returns
+///
+/// Result indicating success (always Ok, even if doc not found).
 fn show_doc(name: &str) -> Result<()> {
     match docs::get_doc(name) {
         Some(doc) => println!("{}", doc),

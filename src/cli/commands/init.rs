@@ -2,6 +2,25 @@ use crate::services::scaffold;
 use crate::tui;
 use anyhow::Result;
 
+/// Handles the `init` subcommand for project initialization.
+///
+/// This function scaffolds a new project based on the provided options:
+/// - Dry-run mode previews scaffolding without creating files
+/// - Default mode uses the embedded app spec template
+/// - Custom spec mode uses a user-provided spec file
+/// - Interactive mode launches the TUI for guided spec building
+///
+/// # Arguments
+///
+/// * `output_dir` - Target directory for scaffolded files.
+/// * `default` - Whether to use the default embedded spec template.
+/// * `spec` - Optional path to a custom spec file.
+/// * `no_subagents` - Whether to disable parallel subagent spec generation.
+/// * `dry_run` - Whether to preview scaffolding without creating files.
+///
+/// # Returns
+///
+/// Result indicating success or containing an error from scaffolding/TUI.
 pub fn handle_init(
     output_dir: &std::path::Path,
     default: bool,
@@ -34,6 +53,11 @@ pub fn handle_init(
     }
 }
 
+/// Prints the next steps after scaffolding is complete.
+///
+/// # Arguments
+///
+/// * `output_dir` - The directory where the project was scaffolded.
 pub fn print_next_steps(output_dir: &std::path::Path) {
     println!("\n✅ Scaffolding complete!");
     println!("   Output directory: {}", output_dir.display());

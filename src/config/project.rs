@@ -5,17 +5,32 @@ use std::fmt;
 // Models Configuration
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// Configuration for AI model selection
+///
+/// Specifies which models to use for different types of tasks in the code generation process.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default)]
 pub struct ModelsConfig {
     /// Default model for spec generation
+    ///
+    /// Used for generating project specifications from user requirements.
     pub default: String,
+
     /// Model for autonomous coding sessions
+    ///
+    /// Used when the AI is working autonomously to implement features.
     pub autonomous: String,
+
     /// Model for reasoning/planning tasks
+    ///
+    /// Used for complex reasoning and planning activities.
     pub reasoning: String,
+
     /// Model for enhancement discovery
+    ///
+    /// Used for identifying potential enhancements and improvements.
     pub enhancement: String,
+
     /// We use this model specifically when retrying failed spec generations.
     /// It needs to be good at adhering to strict output formats (XML/JSON) to "fix" what the creative model broke.
     pub fixer: String,
@@ -38,18 +53,36 @@ impl Default for ModelsConfig {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// Complexity level selection for generated specs.
+///
+/// Determines the level of detail and comprehensiveness in generated specifications.
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum ComplexityLevel {
     /// Comprehensive specs cover production-ready detail.
+    ///
+    /// Includes extensive features, database tables, API endpoints, and implementation steps.
     #[default]
     Comprehensive,
+
     /// Minimal specs focus only on the core needs.
+    ///
+    /// Includes only essential features and basic structure.
     Minimal,
 }
 
 impl ComplexityLevel {
     /// Return the lowercase representation used in config files.
+    ///
+    /// # Returns
+    ///
+    /// String slice containing the lowercase name of the complexity level
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let level = ComplexityLevel::Comprehensive;
+    /// assert_eq!(level.as_str(), "comprehensive");
+    /// ```
     pub fn as_str(&self) -> &'static str {
         match self {
             ComplexityLevel::Comprehensive => "comprehensive",
@@ -58,6 +91,18 @@ impl ComplexityLevel {
     }
 
     /// Toggle between the two supported complexity levels.
+    ///
+    /// # Returns
+    ///
+    /// The opposite complexity level
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let comprehensive = ComplexityLevel::Comprehensive;
+    /// let minimal = comprehensive.toggle();
+    /// assert_eq!(minimal, ComplexityLevel::Minimal);
+    /// ```
     pub fn toggle(&self) -> Self {
         match self {
             ComplexityLevel::Comprehensive => ComplexityLevel::Minimal,
@@ -70,6 +115,21 @@ impl std::str::FromStr for ComplexityLevel {
     type Err = ();
 
     /// Parse a string into a complexity level, defaulting to comprehensive.
+    ///
+    /// # Arguments
+    ///
+    /// * `value` - String slice containing the complexity level name
+    ///
+    /// # Returns
+    ///
+    /// Result containing the parsed ComplexityLevel or error
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let level = ComplexityLevel::from_str("minimal").unwrap();
+    /// assert_eq!(level, ComplexityLevel::Minimal);
+    /// ```
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         Ok(match value.trim().to_lowercase().as_str() {
             "minimal" => ComplexityLevel::Minimal,
@@ -79,6 +139,22 @@ impl std::str::FromStr for ComplexityLevel {
 }
 
 impl fmt::Display for ComplexityLevel {
+    /// Format the complexity level for display.
+    ///
+    /// # Arguments
+    ///
+    /// * `f` - Formatter to write to
+    ///
+    /// # Returns
+    ///
+    /// Result of the formatting operation
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let level = ComplexityLevel::Comprehensive;
+    /// println!("{}", level); // Prints "comprehensive"
+    /// ```
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.as_str())
     }
@@ -133,7 +209,19 @@ pub struct GenerationRequirements {
 }
 
 impl GenerationConfig {
-    /// @returns Minimum requirements based on the selected complexity.
+    /// Get minimum requirements based on the selected complexity level.
+    ///
+    /// # Returns
+    ///
+    /// GenerationRequirements struct containing minimum counts for various spec elements
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// let config = GenerationConfig::default();
+    /// let requirements = config.requirements();
+    /// println!("Minimum features: {}", requirements.min_features);
+    /// ```
     pub fn requirements(&self) -> GenerationRequirements {
         if self.complexity == ComplexityLevel::Minimal {
             GenerationRequirements {
