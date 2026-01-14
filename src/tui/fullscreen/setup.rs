@@ -358,7 +358,7 @@ pub fn run_interactive(output_dir: &Path, use_subagents: bool) -> Result<()> {
         Some(InteractiveMode::Generated) => {
             crate::tui::generated::run_generated_mode(output_dir, &config, use_subagents)
         }
-        Some(InteractiveMode::Manual) => crate::tui::manual::run_manual_mode(output_dir),
+        Some(InteractiveMode::Manual) => crate::tui::manual::run_manual_mode(output_dir, &config),
         Some(InteractiveMode::FromSpecFile) => run_from_spec_file_mode(output_dir),
         Some(InteractiveMode::Default) => run_default_mode(output_dir),
         None => unreachable!(),
@@ -368,7 +368,13 @@ pub fn run_interactive(output_dir: &Path, use_subagents: bool) -> Result<()> {
 fn run_from_spec_file_mode(output_dir: &Path) -> Result<()> {
     use crate::tui::prompts::input;
     println!("\n📁 Spec File Mode");
-    let spec_path = input("Path to spec file", Some("app_spec.md"))?;
+    let config = Config::load(Some(output_dir)).unwrap_or_default();
+    let default_spec = if config.paths.app_spec_file.trim().is_empty() {
+        ".forger/app_spec.md".to_string()
+    } else {
+        config.paths.app_spec_file.clone()
+    };
+    let spec_path = input("Path to spec file", Some(&default_spec))?;
 
     let spec_path = std::path::PathBuf::from(&spec_path);
     if !spec_path.exists() {

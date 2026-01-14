@@ -23,26 +23,19 @@ After generating the blueprint, invoke these THREE subagents IN PARALLEL:
 ```
 @spec-product Generate comprehensive core features and user experience sections for: {{IDEA}}
 
-IMPORTANT: Generate 20-50 features depending on project complexity. Each feature must include:
-- Name
-- Detailed description (2-4 sentences)
-- Sub-features (list of specific capabilities)
-- Error handling approach
-- Edge cases to consider
+{{FEATURE_COUNT_GUIDANCE}}
 ```
 
 ```
 @spec-architecture Generate the complete database schema and ALL API endpoints for: {{IDEA}}
 
-IMPORTANT: 
-- Database: Define 8-20 tables with full column specifications, types, constraints, and relationships
-- API Endpoints: Define 20-60 endpoints in structured <endpoint> elements with method, path, and description
+{{ARCHITECTURE_COUNT_GUIDANCE}}
 ```
 
 ```
-@spec-quality Generate security, testing strategy, implementation steps, success criteria, and future enhancements for: {{IDEA}}
+@spec-quality {{QUALITY_TASK}}
 
-IMPORTANT: Implementation steps should have 8-15 phases with specific tasks and verification criteria.
+{{QUALITY_COUNT_GUIDANCE}}
 ```
 
 ## Phase 3: Aggregate and Validate
@@ -134,14 +127,10 @@ Once all subagents have returned their sections:
     </endpoint>
   </api_endpoints_summary>
 
-  <security>Security requirements and measures</security>
-  
-  <testing_strategy>
-    <unit_tests>Unit test approach and coverage</unit_tests>
-    <integration_tests>Integration test approach</integration_tests>
-    <e2e_tests>End-to-end test approach</e2e_tests>
-    <entry_point_verification>Entry point testing</entry_point_verification>
-  </testing_strategy>
+{{SECURITY_SECTION}}
+{{TESTING_STRATEGY_SECTION}}
+{{DEVOPS_SECTION}}
+{{ACCESSIBILITY_SECTION}}
   
   <implementation_steps>
     <!-- 8-15 phases -->
@@ -160,7 +149,7 @@ Once all subagents have returned their sections:
     <quality>Quality metrics</quality>
   </success_criteria>
   
-  <future_enhancements>Post-launch features</future_enhancements>
+{{FUTURE_ENHANCEMENTS_SECTION}}
 </project_specification>
 ```
 

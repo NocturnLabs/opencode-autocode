@@ -32,6 +32,7 @@ pub struct SessionOptions {
     pub session_id: Option<String>,
     pub timeout_minutes: u32,
     pub idle_timeout_seconds: u32,
+    pub opencode_path: String,
 }
 
 /// File checked for stop signal
@@ -51,13 +52,14 @@ pub fn execute_opencode_session(
     }
 
     let mut cmd = build_opencode_command(
+        &options.opencode_path,
         &options.command,
         &options.model,
         &options.log_level,
         options.session_id.as_deref(),
     );
     logger.log_command(
-        "opencode",
+        &options.opencode_path,
         &[
             "run",
             "--command",
@@ -88,12 +90,13 @@ pub fn clear_stop_signal() {
 }
 
 fn build_opencode_command(
+    opencode_path: &str,
     command: &str,
     model: &str,
     log_level: &str,
     session_id: Option<&str>,
 ) -> Command {
-    let mut cmd = Command::new("opencode");
+    let mut cmd = Command::new(opencode_path);
     cmd.arg("run")
         .arg("--command")
         .arg(command)

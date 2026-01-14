@@ -33,11 +33,12 @@ pub struct RegressionSummary {
 pub fn run_regression_check(
     features: &[Feature],
     category_filter: Option<&str>,
+    sample_size: Option<usize>,
     verbose: bool,
     security_config: Option<&SecurityConfig>,
 ) -> Result<RegressionSummary> {
     let total_features = features.len();
-    let passing_features: Vec<_> = features
+    let mut passing_features: Vec<_> = features
         .iter()
         .filter(|f| f.passes)
         .filter(|f| {
@@ -46,6 +47,10 @@ pub fn run_regression_check(
                 .unwrap_or(true)
         })
         .collect();
+
+    if let Some(limit) = sample_size {
+        passing_features.truncate(limit.max(1));
+    }
 
     let mut automated_passed = 0;
     let mut automated_failed = 0;
@@ -204,7 +209,7 @@ mod tests {
     #[test]
     fn test_run_regression_check() {
         let features = create_test_features();
-        let summary = run_regression_check(&features, None, false, None).unwrap();
+        let summary = run_regression_check(&features, None, None, false, None).unwrap();
 
         assert_eq!(summary.total_features, 2);
         assert_eq!(summary.passing_features, 1);

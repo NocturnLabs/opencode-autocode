@@ -18,7 +18,7 @@ pub fn run_parallel(
     developer_mode: bool,
 ) -> Result<()> {
     let pid = std::process::id();
-    let log_path = format!("opencode-parallel-{}.log", pid);
+    let log_name = format!("opencode-parallel-{}.log", pid);
 
     // We need to access init_session which is in autonomous/mod.rs (parent).
     // But since this is a separate module, we can access public functions of crate::autonomous
@@ -32,7 +32,7 @@ pub fn run_parallel(
         config_path,
         limit,
         false,
-        Some(&log_path),
+        Some(&log_name),
     )?;
 
     let logger = crate::common::logging::get();
@@ -40,7 +40,7 @@ pub fn run_parallel(
 
     // Register instance globally
     let instance_repo = crate::db::InstanceRepository::open()?;
-    let instance_id = instance_repo.register(pid, "coordinator", Some(&log_path))?;
+    let instance_id = instance_repo.register(pid, "coordinator", settings.log_path.as_deref())?;
     logger.info(&format!("Process registered as instance #{}", instance_id));
 
     let mut iteration = 0usize;

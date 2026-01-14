@@ -191,7 +191,18 @@ fn check_for_regressions(
     let db = crate::db::Database::open(db_path)?;
     let features = db.features().list_all()?;
 
-    let summary = regression::run_regression_check(&features, None, false, Some(&config.security))?;
+    let sample_size = if config.agent.verification_sample_size == 0 {
+        None
+    } else {
+        Some(config.agent.verification_sample_size as usize)
+    };
+    let summary = regression::run_regression_check(
+        &features,
+        None,
+        sample_size,
+        false,
+        Some(&config.security),
+    )?;
 
     if summary.automated_failed == 0 {
         return Ok(None);

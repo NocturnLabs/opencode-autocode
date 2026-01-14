@@ -19,7 +19,7 @@ This is the FIRST session. Set up the foundation for all future sessions.
 
 ### STEP 1: Read Project Specification
 
-Read `app_spec.md` in your working directory. Understand:
+Read `{{APP_SPEC_PATH}}` in your working directory. Understand:
 
 - What the project does
 - Technology stack
@@ -32,7 +32,7 @@ Read `app_spec.md` in your working directory. Understand:
 
 ### STEP 2: Populate Features Database
 
-**CRITICAL: Break down the specification into SEPARATE, testable features.** Based on your analysis of `app_spec.md` (which defines approximately **{{SPEC_FEATURE_COUNT}}** features and **{{SPEC_ENDPOINT_COUNT}}** API endpoints), insert ALL required features into the database.
+**CRITICAL: Break down the specification into SEPARATE, testable features.** Based on your analysis of `{{APP_SPEC_PATH}}` (which defines approximately **{{SPEC_FEATURE_COUNT}}** features and **{{SPEC_ENDPOINT_COUNT}}** API endpoints), insert ALL required features into the database.
 
 > [!TIP]
 > **Use `INSERT OR IGNORE` to safely re-run init without duplicate errors.**
@@ -66,11 +66,14 @@ opencode-forger db exec "INSERT OR IGNORE INTO features (category, description, 
 | Rule             | Description                                                            |
 | ---------------- | ---------------------------------------------------------------------- |
 | **Granularity**  | Each feature = ONE testable behavior. Not "implement the app".         |
-| **Count**        | **MINIMUM 200 features** for comprehensive coverage. Cover every requirement exhaustively. |
-| **Depth**        | At least **25 features MUST have 10+ testing steps** for thorough validation. |
-| **Categories**   | Mix `functional` (logic) and `style` (UI/UX)                           |
+| **Count**        | **MINIMUM {{MIN_FEATURES_REQUIRED}} features** with {{MIN_TABLES_REQUIRED}} tables, {{MIN_ENDPOINTS_REQUIRED}} endpoints, and {{MIN_IMPLEMENTATION_STEPS_REQUIRED}} implementation steps. |
+| **Depth**        | At least **{{COMPREHENSIVE_TEST_MIN_STEPS}} steps** for comprehensive coverage. |
+| **Categories**   | Use the configured categories: {{FEATURE_CATEGORY_LIST}} |
+| **Priorities**   | Use the configured priorities: {{PRIORITY_LEVEL_LIST}} |
 | **Passes**       | ALL start with `passes = 0`                                            |
-| **Verification** | Project-appropriate commands (e.g. `npm test`, `pytest`, `cargo test`) |
+| **Verification** | {{REQUIRE_VERIFICATION_COMMAND}} verification commands (e.g. `npm test`, `pytest`, `cargo test`) |
+
+For **narrow tests**, keep steps between {{NARROW_TEST_MIN_STEPS}} and {{NARROW_TEST_MAX_STEPS}}.
 
 > [!IMPORTANT]
 > **IT IS CATASTROPHIC TO REMOVE OR EDIT FEATURES IN FUTURE SESSIONS.**

@@ -12,10 +12,11 @@ This is a fallback template. Normally, the supervisor injects feature-specific c
 
 ### If You're Here
 
-1. Read `app_spec.md` to understand the project
+1. Read `{{APP_SPEC_PATH}}` to understand the project
 2. Query database for features: `opencode-forger db stats`
-3. Implement ONE pending feature
-4. Output `===SESSION_COMPLETE===` when done
+3. Run {{REGRESSION_SAMPLE_SIZE}} passing feature verification(s) to confirm no regressions
+4. Implement ONE pending feature
+5. Output `===SESSION_COMPLETE===` when done
 
 ### Rules
 

@@ -1,10 +1,13 @@
 use anyhow::Result;
+use std::collections::HashMap;
 use std::path::Path;
 use std::thread;
 use std::time::Duration;
 
 use crate::config::Config;
+use crate::db::features::Feature;
 
+use crate::autonomous::alternative;
 use crate::autonomous::decision::{determine_action, SupervisorAction};
 use crate::autonomous::display;
 use crate::autonomous::session;
@@ -33,6 +36,8 @@ pub fn run_supervisor_loop(
     let mut consecutive_errors = 0u32;
     let mut no_progress_count = 0u32;
     let mut last_run_success = true;
+    let mut alternative_attempts: HashMap<String, u32> = HashMap::new();
+    let mut last_error_context: Option<String> = None;
 
     // --- Main Loop (Bounded by max_iterations) ---
     loop {
@@ -83,7 +88,9 @@ pub fn run_supervisor_loop(
         // Now safe to print the session header
         logger.separator();
         logger.info(&format!("Session {} starting", iteration));
-        display::display_session_header(iteration, banner_width);
+        if config.ui.show_progress {
+            display::display_session_header(iteration, banner_width);
+        }
 
         // --- Step 2: Prepare Command ---
         let ActionCommand {
@@ -107,6 +114,13 @@ pub fn run_supervisor_loop(
 
         if action_no_progress {
             no_progress_count += 1;
+            maybe_generate_alternatives(
+                config,
+                active_feature.as_ref(),
+                no_progress_count,
+                last_error_context.as_deref(),
+                &mut alternative_attempts,
+            )?;
             if settings.max_no_progress != u32::MAX && no_progress_count == settings.max_no_progress
             {
                 println!(
@@ -137,14 +151,23 @@ pub fn run_supervisor_loop(
         let result = session::execute_opencode_session(
             session::SessionOptions {
                 command: command_name.to_string(),
-                model: settings.model.clone(),
+                model: if enhancement_mode {
+                    settings.enhancement_model.clone()
+                } else {
+                    settings.model.clone()
+                },
                 log_level: settings.log_level.clone(),
                 session_id: None,
                 timeout_minutes: settings.session_timeout,
                 idle_timeout_seconds: settings.idle_timeout,
+                opencode_path: settings.opencode_path.clone(),
             },
             logger,
         )?;
+
+        if let session::SessionResult::Error(msg) = &result {
+            last_error_context = Some(msg.clone());
+        }
 
         // --- Step 4: Verification ---
         // Both Continue and EarlyTerminated should trigger verification
@@ -164,7 +187,7 @@ pub fn run_supervisor_loop(
 
         if session_ok {
             if let Some(ref feature) = active_feature {
-                made_progress = perform_verification(
+                let outcome = perform_verification(
                     feature,
                     db_path,
                     config,
@@ -172,6 +195,10 @@ pub fn run_supervisor_loop(
                     iteration,
                     &mut last_run_success,
                 )?;
+                made_progress = outcome.made_progress;
+                if outcome.error_context.is_some() {
+                    last_error_context = outcome.error_context;
+                }
             } else {
                 made_progress = true;
             }
@@ -182,6 +209,13 @@ pub fn run_supervisor_loop(
             no_progress_count = 0;
         } else {
             no_progress_count += 1;
+            maybe_generate_alternatives(
+                config,
+                active_feature.as_ref(),
+                no_progress_count,
+                last_error_context.as_deref(),
+                &mut alternative_attempts,
+            )?;
             if settings.max_no_progress != u32::MAX && no_progress_count == settings.max_no_progress
             {
                 println!(
@@ -200,8 +234,10 @@ pub fn run_supervisor_loop(
         }
 
         // Display token usage
-        if let Some(ref stats) = stats::fetch_token_stats() {
-            display::display_token_stats(stats, banner_width);
+        if config.ui.show_progress {
+            if let Some(ref stats) = stats::fetch_token_stats() {
+                display::display_token_stats(stats, banner_width);
+            }
         }
 
         // --- Step 5: Handle Loop Continuation ---
@@ -239,4 +275,54 @@ pub fn run_supervisor_loop(
         );
         anyhow::bail!("Autonomous run complete but the last feature failed verification.")
     }
+}
+
+/// @param config Loaded configuration.
+/// @param feature Active feature reference.
+/// @param no_progress_count Current no-progress counter.
+/// @param error_context Optional error context string.
+/// @param attempt_tracker Tracks how many generations ran per feature.
+/// @returns Result of generation attempt.
+fn maybe_generate_alternatives(
+    config: &Config,
+    feature: Option<&Feature>,
+    no_progress_count: u32,
+    error_context: Option<&str>,
+    attempt_tracker: &mut HashMap<String, u32>,
+) -> Result<()> {
+    if !config.alternative_approaches.enabled {
+        return Ok(());
+    }
+    if config.alternative_approaches.retry_threshold == 0 {
+        return Ok(());
+    }
+    if no_progress_count < config.alternative_approaches.retry_threshold {
+        return Ok(());
+    }
+
+    let feature = match feature {
+        Some(feature) => feature,
+        None => return Ok(()),
+    };
+
+    let attempts = attempt_tracker
+        .entry(feature.description.clone())
+        .or_insert(0);
+    let max_attempts = if config.agent.max_research_attempts == 0 {
+        u32::MAX
+    } else {
+        config.agent.max_research_attempts
+    };
+    if *attempts >= max_attempts {
+        return Ok(());
+    }
+    *attempts += 1;
+
+    let cache_path = alternative::generate_alternative_approaches(config, feature, error_context)?;
+    println!(
+        "⚠️ Alternative approaches saved at {}",
+        cache_path.display()
+    );
+
+    Ok(())
 }

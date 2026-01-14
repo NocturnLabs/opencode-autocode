@@ -3,7 +3,7 @@
 use anyhow::Result;
 use std::fs;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::services::generator::refine_spec_from_idea;
 use crate::services::scaffold::scaffold_with_spec_text;
@@ -48,8 +48,12 @@ pub fn handle_edit(spec_text: &mut String) -> Result<()> {
 }
 
 /// Handle save action - write to file
-pub fn handle_save(output_dir: &Path, spec_text: &str) -> Result<()> {
-    let spec_path = output_dir.join("app_spec.md");
+pub fn handle_save(
+    output_dir: &Path,
+    spec_text: &str,
+    config: &crate::config::Config,
+) -> Result<()> {
+    let spec_path = resolve_spec_path(output_dir, &config.paths.app_spec_file);
     fs::write(&spec_path, spec_text)?;
     print_success(&format!("Saved to: {}", spec_path.display()));
 
@@ -117,4 +121,21 @@ fn display_spec_with_line_numbers(spec_text: &str) {
         println!("     │ ... ({} more lines)", total_lines - 50);
     }
     println!("{}", "─".repeat(60));
+}
+
+/// @param output_dir The base output directory.
+/// @param configured_path The configured spec file path.
+/// @returns The resolved spec output path.
+fn resolve_spec_path(output_dir: &Path, configured_path: &str) -> PathBuf {
+    let trimmed = configured_path.trim();
+    if trimmed.is_empty() {
+        return output_dir.join(".forger/app_spec.md");
+    }
+
+    let path = Path::new(trimmed);
+    if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        output_dir.join(path)
+    }
 }

@@ -6,6 +6,7 @@
 use anyhow::Result;
 use std::path::PathBuf;
 
+use crate::config::Config;
 use crate::config_tui;
 use crate::services::scaffold;
 use crate::theming::{accent, error, highlight, muted, primary, symbols};
@@ -19,7 +20,14 @@ use super::{Cli, Commands, Mode};
 ///
 /// Parses the CLI arguments and dispatches to the appropriate handler.
 pub fn run(cli: Cli) -> Result<()> {
-    let output_dir = cli.output.clone().unwrap_or_else(|| PathBuf::from("."));
+    let output_dir = cli.output.clone().unwrap_or_else(|| {
+        let config = Config::load(None).unwrap_or_default();
+        if config.scaffolding.output_dir.trim().is_empty() {
+            PathBuf::from(".")
+        } else {
+            PathBuf::from(config.scaffolding.output_dir)
+        }
+    });
 
     // Handle subcommands first
     if let Some(command) = &cli.command {

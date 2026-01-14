@@ -4,7 +4,7 @@ use anyhow::Result;
 use std::path::Path;
 
 use super::fullscreen::run_fullscreen_spec_review;
-use crate::validation::validate_spec;
+use crate::validation::validate_spec_with_config;
 
 /// Actions available after spec generation
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -24,7 +24,7 @@ pub fn run_validation_loop(
     config: &crate::config::Config,
 ) -> Result<()> {
     loop {
-        let validation = validate_spec(spec_text)?;
+        let validation = validate_spec_with_config(spec_text, config)?;
 
         // Run fullscreen TUI for spec review
         let action = run_fullscreen_spec_review(
@@ -41,7 +41,7 @@ pub fn run_validation_loop(
             }
             SpecAction::Edit => super::actions::handle_edit(spec_text)?,
             SpecAction::SaveToFile => {
-                super::actions::handle_save(output_dir, spec_text)?;
+                super::actions::handle_save(output_dir, spec_text, config)?;
                 break;
             }
             SpecAction::Refine => super::actions::handle_refine(spec_text, config)?,

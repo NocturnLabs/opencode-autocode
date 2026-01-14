@@ -46,7 +46,7 @@ pub struct Cli {
     #[arg(long)]
     pub no_subagents: bool,
 
-    /// Reset project: clean up stale files and re-scaffold using existing app_spec.md
+    /// Reset project: clean up stale files and re-scaffold using existing spec file
     #[arg(long)]
     pub reset: bool,
 
@@ -333,7 +333,7 @@ pub enum Mode {
     Interactive,
     /// Configure settings
     Config,
-    /// Reset: clean up and re-scaffold with existing app_spec.md
+    /// Reset: clean up and re-scaffold with existing spec file
     Reset,
 }
 

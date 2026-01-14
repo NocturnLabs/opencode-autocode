@@ -98,6 +98,41 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     config.generation.enable_subagents.to_string(),
                 ),
                 (
+                    "Min Features".to_string(),
+                    config.generation.min_features.to_string(),
+                ),
+                (
+                    "Min Database Tables".to_string(),
+                    config.generation.min_database_tables.to_string(),
+                ),
+                (
+                    "Min API Endpoints".to_string(),
+                    config.generation.min_api_endpoints.to_string(),
+                ),
+                (
+                    "Min Implementation Steps".to_string(),
+                    config.generation.min_implementation_steps.to_string(),
+                ),
+                (
+                    "Minimal Min Features".to_string(),
+                    config.generation.minimal_min_features.to_string(),
+                ),
+                (
+                    "Minimal Min Database Tables".to_string(),
+                    config.generation.minimal_min_database_tables.to_string(),
+                ),
+                (
+                    "Minimal Min API Endpoints".to_string(),
+                    config.generation.minimal_min_api_endpoints.to_string(),
+                ),
+                (
+                    "Minimal Min Implementation Steps".to_string(),
+                    config
+                        .generation
+                        .minimal_min_implementation_steps
+                        .to_string(),
+                ),
+                (
                     "Security Section".to_string(),
                     config.generation.include_security_section.to_string(),
                 ),
@@ -134,6 +169,10 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                 (
                     "Idle Timeout (sec)".to_string(),
                     config.autonomous.idle_timeout_seconds.to_string(),
+                ),
+                (
+                    "Max No Progress".to_string(),
+                    config.autonomous.max_no_progress.to_string(),
                 ),
                 (
                     "Auto Commit".to_string(),
@@ -358,22 +397,60 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                         val.to_lowercase() == "true"
                                 }
                                 2 => {
+                                    config.generation.min_features =
+                                        val.parse().unwrap_or(config.generation.min_features)
+                                }
+                                3 => {
+                                    config.generation.min_database_tables =
+                                        val.parse().unwrap_or(config.generation.min_database_tables)
+                                }
+                                4 => {
+                                    config.generation.min_api_endpoints =
+                                        val.parse().unwrap_or(config.generation.min_api_endpoints)
+                                }
+                                5 => {
+                                    config.generation.min_implementation_steps = val
+                                        .parse()
+                                        .unwrap_or(config.generation.min_implementation_steps)
+                                }
+                                6 => {
+                                    config.generation.minimal_min_features = val
+                                        .parse()
+                                        .unwrap_or(config.generation.minimal_min_features)
+                                }
+                                7 => {
+                                    config.generation.minimal_min_database_tables = val
+                                        .parse()
+                                        .unwrap_or(config.generation.minimal_min_database_tables)
+                                }
+                                8 => {
+                                    config.generation.minimal_min_api_endpoints = val
+                                        .parse()
+                                        .unwrap_or(config.generation.minimal_min_api_endpoints)
+                                }
+                                9 => {
+                                    config.generation.minimal_min_implementation_steps =
+                                        val.parse().unwrap_or(
+                                            config.generation.minimal_min_implementation_steps,
+                                        )
+                                }
+                                10 => {
                                     config.generation.include_security_section =
                                         val.to_lowercase() == "true"
                                 }
-                                3 => {
+                                11 => {
                                     config.generation.include_testing_strategy =
                                         val.to_lowercase() == "true"
                                 }
-                                4 => {
+                                12 => {
                                     config.generation.include_devops_section =
                                         val.to_lowercase() == "true"
                                 }
-                                5 => {
+                                13 => {
                                     config.generation.include_accessibility =
                                         val.to_lowercase() == "true"
                                 }
-                                6 => {
+                                14 => {
                                     config.generation.include_future_enhancements =
                                         val.to_lowercase() == "true"
                                 }
@@ -399,8 +476,12 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                         .parse()
                                         .unwrap_or(config.autonomous.idle_timeout_seconds)
                                 }
-                                4 => config.autonomous.auto_commit = val.to_lowercase() == "true",
-                                5 => config.autonomous.log_level = val,
+                                4 => {
+                                    config.autonomous.max_no_progress =
+                                        val.parse().unwrap_or(config.autonomous.max_no_progress)
+                                }
+                                5 => config.autonomous.auto_commit = val.to_lowercase() == "true",
+                                6 => config.autonomous.log_level = val,
                                 _ => {}
                             },
                             3 => match field_idx {
@@ -606,11 +687,22 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                             1 => match field_idx {
                                 0 => config.generation.complexity.to_string(),
                                 1 => config.generation.enable_subagents.to_string(),
-                                2 => config.generation.include_security_section.to_string(),
-                                3 => config.generation.include_testing_strategy.to_string(),
-                                4 => config.generation.include_devops_section.to_string(),
-                                5 => config.generation.include_accessibility.to_string(),
-                                6 => config.generation.include_future_enhancements.to_string(),
+                                2 => config.generation.min_features.to_string(),
+                                3 => config.generation.min_database_tables.to_string(),
+                                4 => config.generation.min_api_endpoints.to_string(),
+                                5 => config.generation.min_implementation_steps.to_string(),
+                                6 => config.generation.minimal_min_features.to_string(),
+                                7 => config.generation.minimal_min_database_tables.to_string(),
+                                8 => config.generation.minimal_min_api_endpoints.to_string(),
+                                9 => config
+                                    .generation
+                                    .minimal_min_implementation_steps
+                                    .to_string(),
+                                10 => config.generation.include_security_section.to_string(),
+                                11 => config.generation.include_testing_strategy.to_string(),
+                                12 => config.generation.include_devops_section.to_string(),
+                                13 => config.generation.include_accessibility.to_string(),
+                                14 => config.generation.include_future_enhancements.to_string(),
                                 _ => String::new(),
                             },
                             2 => match field_idx {
@@ -618,8 +710,9 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                                 1 => config.autonomous.delay_between_sessions.to_string(),
                                 2 => config.autonomous.session_timeout_minutes.to_string(),
                                 3 => config.autonomous.idle_timeout_seconds.to_string(),
-                                4 => config.autonomous.auto_commit.to_string(),
-                                5 => config.autonomous.log_level.clone(),
+                                4 => config.autonomous.max_no_progress.to_string(),
+                                5 => config.autonomous.auto_commit.to_string(),
+                                6 => config.autonomous.log_level.clone(),
                                 _ => String::new(),
                             },
                             3 => match field_idx {
@@ -717,28 +810,28 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                             match section_idx {
                                 1 => match field_idx {
                                     1 => config.generation.enable_subagents = new_val == "true",
-                                    2 => {
+                                    10 => {
                                         config.generation.include_security_section =
                                             new_val == "true"
                                     }
-                                    3 => {
+                                    11 => {
                                         config.generation.include_testing_strategy =
                                             new_val == "true"
                                     }
-                                    4 => {
+                                    12 => {
                                         config.generation.include_devops_section = new_val == "true"
                                     }
-                                    5 => {
+                                    13 => {
                                         config.generation.include_accessibility = new_val == "true"
                                     }
-                                    6 => {
+                                    14 => {
                                         config.generation.include_future_enhancements =
                                             new_val == "true"
                                     }
                                     _ => {}
                                 },
                                 2 => {
-                                    if field_idx == 4 {
+                                    if field_idx == 5 {
                                         config.autonomous.auto_commit = new_val == "true";
                                     }
                                 }
