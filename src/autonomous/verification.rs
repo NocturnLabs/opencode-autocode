@@ -55,10 +55,25 @@ pub fn classify_verification_failure(error: &str) -> VerificationFailure {
         || lower.contains("not recognized")
         || lower.contains("spawn unknown")
         || lower.contains("permission denied")
+        || lower.contains("unrecognized cli parameter")
+        || lower.contains("unknown option")
     {
         return VerificationFailure::CommandError;
     }
 
     // Default: assume actual test failure (code issue)
     VerificationFailure::AssertionFailure
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{classify_verification_failure, VerificationFailure};
+
+    /// @description Ensures unrecognized CLI parameters are classified as command errors.
+    #[test]
+    fn classify_unrecognized_cli_parameter_as_command_error() {
+        let error = "Unrecognized CLI Parameter: --grep \"certificate validation\"";
+        let failure = classify_verification_failure(error);
+        assert_eq!(failure, VerificationFailure::CommandError);
+    }
 }
