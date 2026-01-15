@@ -4,10 +4,11 @@
 //! extracted from main.rs to improve modularity and testability.
 
 use anyhow::Result;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::config::Config;
 use crate::config_tui;
+use crate::ipc::{self, IpcServer, ModeInfo};
 use crate::services::scaffold;
 use crate::theming::{accent, error, highlight, muted, primary, symbols};
 use crate::tui;
@@ -147,7 +148,201 @@ pub fn run(cli: Cli) -> Result<()> {
                 scaffold::preview_scaffold(&output_dir);
                 return Ok(());
             }
-            tui::run_interactive(&output_dir, !cli.no_subagents)?;
+
+            // Try Go TUI first, fall back to legacy Rust TUI
+            if IpcServer::is_available() {
+                run_interactive_ipc(&output_dir, !cli.no_subagents)
+            } else {
+                // Fall back to legacy Rust TUI
+                tui::run_interactive(&output_dir, !cli.no_subagents)?;
+                Ok(())
+            }
+        }
+    }
+}
+
+/// Run the interactive mode using the Go TUI via IPC.
+///
+/// This function spawns the Go Bubble Tea client and communicates with it
+/// via JSON-RPC over stdin/stdout.
+fn run_interactive_ipc(output_dir: &Path, use_subagents: bool) -> Result<()> {
+    use crate::tui::fullscreen::types::InteractiveMode;
+
+    // Spawn the Go TUI
+    let server = IpcServer::spawn()?;
+
+    // Get version from cargo
+    let version = env!("CARGO_PKG_VERSION");
+    let work_dir = output_dir
+        .canonicalize()
+        .unwrap_or_else(|_| output_dir.to_path_buf())
+        .display()
+        .to_string();
+
+    // Send engine ready event
+    server.send_engine_ready(version, &work_dir)?;
+
+    // Check for existing config
+    let config_path = output_dir.join(".forger/config.toml");
+    let has_existing_config = config_path.exists();
+    let config_path_str = config_path.display().to_string();
+    server.send_config_loaded(
+        has_existing_config,
+        has_existing_config.then_some(config_path_str.as_str()),
+    )?;
+
+    // Send available modes
+    let modes = InteractiveMode::all();
+    let mode_infos: Vec<ModeInfo> = modes
+        .iter()
+        .map(|m: &InteractiveMode| ModeInfo {
+            id: m.id().to_string(),
+            label: m.label().to_string(),
+            description: m.description().to_string(),
+        })
+        .collect();
+    server.send_mode_list(mode_infos)?;
+
+    // Wait for mode selection
+    #[allow(unused_assignments)]
+    let mut selected_mode: Option<InteractiveMode> = None;
+    #[allow(unused_assignments)]
+    let mut should_configure = false;
+
+    loop {
+        let msg = server.recv_command()?;
+
+        match msg.name.as_str() {
+            ipc::commands::CONFIRM => {
+                if let Some(payload) = msg.payload {
+                    if let Ok(confirm) = serde_json::from_value::<ipc::ConfirmPayload>(payload) {
+                        should_configure = confirm.confirmed;
+                    }
+                }
+            }
+            ipc::commands::SELECT_MODE => {
+                if let Some(payload) = msg.payload {
+                    if let Ok(select) = serde_json::from_value::<ipc::SelectModePayload>(payload) {
+                        selected_mode = modes
+                            .iter()
+                            .find(|m: &&InteractiveMode| m.id() == select.mode_id)
+                            .copied();
+                        if selected_mode.is_some() {
+                            break;
+                        }
+                    }
+                }
+            }
+            ipc::commands::CANCEL => {
+                server.send_finished(false, Some("Cancelled by user"))?;
+                server.shutdown()?;
+                println!("Cancelled.");
+                return Ok(());
+            }
+            _ => {}
+        }
+    }
+
+    // Handle configuration if requested
+    let config = if should_configure {
+        server.send_log("info", "Opening configuration editor...")?;
+        // Note: config_tui is still Rust-based for now
+        // In the future, this could also be handled via IPC
+        config_tui::run_config_tui(Some(output_dir))?
+    } else {
+        Config::load(Some(output_dir)).unwrap_or_default()
+    };
+
+    // Execute the selected mode
+    match selected_mode {
+        Some(InteractiveMode::Generated) => {
+            server.send_progress(
+                "scaffolding",
+                0,
+                1,
+                Some("Generating project specification..."),
+            )?;
+
+            // Run the generated mode (still uses Rust TUI for AI interactions)
+            // In the future, we can send prompts via IPC
+            let result =
+                crate::tui::generated::run_generated_mode(output_dir, &config, use_subagents);
+
+            match &result {
+                Ok(()) => {
+                    server.send_progress("scaffolding", 1, 1, Some("Complete!"))?;
+                    server.send_finished(true, Some("Project scaffolded successfully!"))?;
+                }
+                Err(e) => {
+                    server.send_error(&e.to_string(), true)?;
+                    server.send_finished(false, Some(&e.to_string()))?;
+                }
+            }
+            server.shutdown()?;
+            result
+        }
+        Some(InteractiveMode::Manual) => {
+            server.send_progress("scaffolding", 0, 1, Some("Starting manual mode..."))?;
+            let result = crate::tui::manual::run_manual_mode(output_dir, &config);
+            match &result {
+                Ok(()) => {
+                    server.send_finished(true, Some("Project scaffolded successfully!"))?;
+                }
+                Err(e) => {
+                    server.send_finished(false, Some(&e.to_string()))?;
+                }
+            }
+            server.shutdown()?;
+            result
+        }
+        Some(InteractiveMode::FromSpecFile) => {
+            server.send_progress("scaffolding", 0, 1, Some("Loading spec file..."))?;
+
+            // Prompt for spec file path
+            let default_spec = if config.paths.app_spec_file.trim().is_empty() {
+                ".forger/app_spec.md".to_string()
+            } else {
+                config.paths.app_spec_file.clone()
+            };
+
+            let selection = server.prompt_select(
+                "spec_file",
+                "Enter path to spec file:",
+                vec![default_spec.clone()],
+            )?;
+
+            let spec_path = std::path::PathBuf::from(&selection.value);
+            if !spec_path.exists() {
+                server.send_error(
+                    &format!("Spec file not found: {}", spec_path.display()),
+                    true,
+                )?;
+                server.send_finished(false, Some("Spec file not found"))?;
+                server.shutdown()?;
+                return Ok(());
+            }
+
+            scaffold::scaffold_custom(output_dir, &spec_path)?;
+            server.send_finished(true, Some("Project scaffolded from spec file!"))?;
+            server.shutdown()?;
+            Ok(())
+        }
+        Some(InteractiveMode::Default) => {
+            server.send_progress(
+                "scaffolding",
+                0,
+                1,
+                Some("Scaffolding with default spec..."),
+            )?;
+            scaffold::scaffold_default(output_dir)?;
+            server.send_progress("scaffolding", 1, 1, Some("Complete!"))?;
+            server.send_finished(true, Some("Project scaffolded with default spec!"))?;
+            server.shutdown()?;
+            Ok(())
+        }
+        None => {
+            server.send_finished(false, Some("No mode selected"))?;
+            server.shutdown()?;
             Ok(())
         }
     }

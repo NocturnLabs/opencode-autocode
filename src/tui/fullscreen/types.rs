@@ -20,6 +20,16 @@ impl InteractiveMode {
         ]
     }
 
+    /// Returns a unique identifier for this mode (used for IPC).
+    pub fn id(&self) -> &'static str {
+        match self {
+            InteractiveMode::Generated => "generated",
+            InteractiveMode::Manual => "manual",
+            InteractiveMode::FromSpecFile => "from_spec_file",
+            InteractiveMode::Default => "default",
+        }
+    }
+
     pub fn label(&self) -> &'static str {
         match self {
             InteractiveMode::Generated => {

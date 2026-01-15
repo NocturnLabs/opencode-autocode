@@ -19,6 +19,7 @@ pub mod docs;
 pub mod regression;
 // pub mod scaffold; // moved to services
 
+pub mod ipc;
 pub mod spec;
 pub mod template_xml;
 pub mod templates;

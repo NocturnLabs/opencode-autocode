@@ -27,7 +27,13 @@ jobs:
       with:
         components: clippy, rustfmt
 
-    - name: Cache dependencies
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+        cache-dependency-path: tui-go/go.sum
+
+    - name: Cache Rust dependencies
       uses: actions/cache@v3
       with:
         path: |
@@ -45,6 +51,15 @@ jobs:
       run: |
         cargo clippy -- -D warnings
         cargo fmt --check
+
+    - name: Lint Go code
+      run: |
+        cd tui-go && go fmt ./...
+        cd tui-go && go vet ./...
+
+    - name: Build Go TUI
+      run: |
+        cd tui-go && go build -o ../target/debug/opencode-forger-tui ./cmd/opencode-forger-tui
 
     - name: Run regression tests
       run: make regression

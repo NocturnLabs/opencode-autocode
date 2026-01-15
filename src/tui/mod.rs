@@ -20,9 +20,9 @@
 
 mod actions;
 pub mod components;
-mod fullscreen;
-mod generated;
-mod manual;
+pub mod fullscreen;
+pub mod generated;
+pub mod manual;
 pub mod prompts;
 pub mod stats;
 pub mod theme;

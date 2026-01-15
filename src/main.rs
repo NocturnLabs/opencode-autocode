@@ -22,6 +22,7 @@ mod docs;
 mod regression;
 // mod scaffold; // moved to services
 
+mod ipc;
 mod spec;
 mod template_xml;
 mod templates;

@@ -6,11 +6,14 @@
 use anyhow::{bail, Result};
 use std::io::Read;
 use std::path::Path;
-use std::process::{Command, Output, Stdio};
+use std::process::{Child, Command, Output, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
 use crate::config::SecurityConfig;
+
+#[cfg(unix)]
+use std::os::unix::process::CommandExt;
 
 /// Validate and run a verification command safely.
 ///
@@ -37,6 +40,14 @@ pub fn run_verified_command(
     command.stdout(Stdio::piped());
     command.stderr(Stdio::piped());
 
+    // On Unix, spawn the verification command in a new process group.
+    // This allows us to reliably terminate any backgrounded descendants
+    // that keep stdout/stderr pipes open and would otherwise hang output collection.
+    #[cfg(unix)]
+    {
+        command.process_group(0);
+    }
+
     if let Some(dir) = working_dir {
         command.current_dir(dir);
     }
@@ -48,6 +59,9 @@ pub fn run_verified_command(
             e
         )
     })?;
+
+    #[cfg(unix)]
+    let process_group_id = child.id() as libc::pid_t;
 
     // Handle stdout/stderr in threads to prevent buffer blocking
     let stdout = child.stdout.take().expect("Failed to open stdout");
@@ -63,6 +77,14 @@ pub fn run_verified_command(
     loop {
         match child.try_wait() {
             Ok(Some(status)) => {
+                // Even if the shell process exits, background descendants can keep the
+                // stdout/stderr pipes open, which would cause the reader threads (read_to_end)
+                // to block forever. Kill the whole process group before joining.
+                #[cfg(unix)]
+                terminate_process_group(&mut child, process_group_id);
+                #[cfg(not(unix))]
+                terminate_child(&mut child);
+
                 let stdout = stdout_handle.join().unwrap_or_default();
                 let stderr = stderr_handle.join().unwrap_or_default();
                 return Ok(Output {
@@ -73,8 +95,10 @@ pub fn run_verified_command(
             }
             Ok(None) => {
                 if start_time.elapsed() > timeout {
-                    let _ = child.kill();
-                    let _ = child.wait(); // Ensure it's reaped
+                    #[cfg(unix)]
+                    terminate_process_group(&mut child, process_group_id);
+                    #[cfg(not(unix))]
+                    terminate_child(&mut child);
 
                     let stdout = stdout_handle.join().unwrap_or_default();
                     let stderr = stderr_handle.join().unwrap_or_default();
@@ -89,11 +113,30 @@ pub fn run_verified_command(
                 thread::sleep(Duration::from_millis(100));
             }
             Err(e) => {
-                let _ = child.kill();
+                #[cfg(unix)]
+                terminate_process_group(&mut child, process_group_id);
+                #[cfg(not(unix))]
+                terminate_child(&mut child);
                 bail!("Failed to wait on verification command: {}", e);
             }
         }
     }
+}
+
+#[cfg(unix)]
+fn terminate_process_group(child: &mut Child, process_group_id: libc::pid_t) {
+    // Send SIGKILL to the process group (negative PID targets the group).
+    // Ignore errors here; the group may already be gone.
+    unsafe {
+        libc::kill(-process_group_id, libc::SIGKILL);
+    }
+    let _ = child.wait();
+}
+
+#[cfg(not(unix))]
+fn terminate_child(child: &mut Child) {
+    let _ = child.kill();
+    let _ = child.wait();
 }
 
 /// Check if a command matches any blocked pattern.
@@ -166,5 +209,21 @@ mod tests {
 
         // Even dangerous commands pass when enforcement is off
         assert!(!is_command_blocked("sudo rm -rf /", &config));
+    }
+
+    #[test]
+    fn test_run_verified_command_does_not_hang_on_background_processes() {
+        let config = test_security_config();
+
+        // If the command backgrounds a process, that descendant can keep stdout/stderr
+        // pipes open and hang output collection unless we terminate the process group.
+        let start = Instant::now();
+        let output = run_verified_command("sleep 60 & echo done", &config, None).unwrap();
+
+        assert!(output.status.success());
+        assert!(String::from_utf8_lossy(&output.stdout).contains("done"));
+
+        // This should return quickly; it must not wait for the background sleep.
+        assert!(start.elapsed() < Duration::from_secs(5));
     }
 }

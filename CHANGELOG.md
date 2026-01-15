@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Go Bubble Tea TUI**: Replaced the Rust `iocraft`-based TUI with a modern, high-performance Go Bubble Tea client.
+- **JSON-RPC IPC Protocol**: Introduced a newline-delimited JSON protocol over stdin/stdout for communication between the Rust engine and UI frontends.
+- **Dual-Binary Architecture**: The project now builds and ships two binaries: `opencode-forger` (engine) and `opencode-forger-tui` (UI).
+- **IPC Protocol Versioning**: Built-in version checks to ensure compatibility between the engine and UI binaries.
+
+### Changed
+- **Interactive Mode**: `--interactive` now attempts to launch the Go TUI client if available, falling back to the legacy Rust UI if not found.
+- **Packaging**: Updated build and release workflows to include both Rust and Go binaries.
+
+### Deprecated
+- **Legacy Rust TUI**: The `iocraft`-based TUI is now legacy and will be removed in a future release. Users are encouraged to ensure the Go TUI is installed for the best experience.
+
+### Migration Notes
+- **Installation**: When upgrading, ensure both `opencode-forger` and `opencode-forger-tui` are in your PATH.
+- **Building from source**: Run `make build` from the project root to compile both components. You will need both Rust and Go (v1.22+) installed.
+- **Plugin developers**: The TUI code has moved to the `tui-go/` directory.
+
 ## [0.10.0] - 2026-01-13
 
 ### Added

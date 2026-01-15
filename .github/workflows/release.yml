@@ -7,6 +7,7 @@ on:
 
 env:
   BIN_NAME: opencode-forger
+  TUI_BIN_NAME: opencode-forger-tui
 
 permissions:
   contents: write
@@ -21,21 +22,30 @@ jobs:
           - release_for: Linux-x86_64
             os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            go_os: linux
+            go_arch: amd64
             bin: opencode-forger
+            tui_bin: opencode-forger-tui
             name: opencode-forger-Linux-x86_64.tar.gz
             command: build
 
           - release_for: macOS-x86_64
             os: macos-latest
             target: x86_64-apple-darwin
+            go_os: darwin
+            go_arch: amd64
             bin: opencode-forger
+            tui_bin: opencode-forger-tui
             name: opencode-forger-Darwin-x86_64.tar.gz
             command: build
 
           - release_for: macOS-aarch64
             os: macos-latest
             target: aarch64-apple-darwin
+            go_os: darwin
+            go_arch: arm64
             bin: opencode-forger
+            tui_bin: opencode-forger-tui
             name: opencode-forger-Darwin-aarch64.tar.gz
             command: build
 
@@ -48,17 +58,33 @@ jobs:
         with:
           targets: ${{ matrix.platform.target }}
 
-      - name: Build Binary
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache-dependency-path: tui-go/go.sum
+
+      - name: Build Rust Binary
         run: cargo build --release --locked --target ${{ matrix.platform.target }}
+
+      - name: Build Go TUI Binary
+        run: |
+          cd tui-go
+          GOOS=${{ matrix.platform.go_os }} GOARCH=${{ matrix.platform.go_arch }} \
+          go build -ldflags "-X main.Version=${{ github.ref_name }}" \
+            -o ../target/${{ matrix.platform.target }}/release/${{ matrix.platform.tui_bin }} \
+            ./cmd/opencode-forger-tui
 
       - name: Package as archive
         shell: bash
         run: |
           cd target/${{ matrix.platform.target }}/release
           if [ "${{ matrix.platform.os }}" = "windows-latest" ]; then
-            7z a ../../../${{ env.BIN_NAME }}-${{ github.ref_name }}-${{ matrix.platform.target }}.zip ${{ matrix.platform.bin }}
+            7z a ../../../${{ env.BIN_NAME }}-${{ github.ref_name }}-${{ matrix.platform.target }}.zip \
+              ${{ matrix.platform.bin }} ${{ matrix.platform.tui_bin }}
           else
-            tar czvf ../../../${{ env.BIN_NAME }}-${{ github.ref_name }}-${{ matrix.platform.target }}.tar.gz ${{ matrix.platform.bin }}
+            tar czvf ../../../${{ env.BIN_NAME }}-${{ github.ref_name }}-${{ matrix.platform.target }}.tar.gz \
+              ${{ matrix.platform.bin }} ${{ matrix.platform.tui_bin }}
           fi
           cd -
 
