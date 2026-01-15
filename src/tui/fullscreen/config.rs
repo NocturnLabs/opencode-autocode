@@ -996,11 +996,11 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
         fields_len,
         visible_field_count,
     );
+    let start_field = scroll_target.min(fields_len);
     if scroll_target != scroll_offset.get() {
         scroll_offset.set(scroll_target);
     }
 
-    let start_field = scroll_offset.get().min(fields_len);
     let end_field = (start_field + visible_field_count).min(fields_len);
     let visible_slice_len = end_field.saturating_sub(start_field);
     let selected_field_display = if fields_len == 0 {
