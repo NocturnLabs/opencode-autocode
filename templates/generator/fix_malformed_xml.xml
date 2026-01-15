@@ -19,8 +19,9 @@ You previously attempted to generate a project specification, but it contained X
 1. **MAINTAIN DEPTH**: Do not simplify or truncate the content to fix the error. The goal is a **COMPREHENSIVE, PRODUCTION-READY** specification.
 2. **RESTORE ALL SECTIONS**: Ensure Features (20+), Database (8+ tables), and Endpoints (20+) are all present and detailed.
 3. **FIX SYNTAX**:
-   - Ensure all tags are properly closed.
-   - Ensure special characters like `&`, `<`, `>` are escaped (e.g., `&amp;`, `&lt;`, `&gt;`).
+   - Ensure all tags are properly closed with the EXACT same name (e.g., `</api_style>` not `</api>`)
+   - Ensure special characters like `&`, `<`, `>` are escaped (e.g., `&amp;`, `&lt;`, `&gt;`)
+   - Common mistake: `<100ms` should be `&lt;100ms`, `R&D` should be `R&amp;D`
    - If the previous output was truncated, complete the missing sections logically based on the {{IDEA}}.
 4. **FORMAT**: Output ONLY the repaired XML specification. Do not include markdown code blocks around the XML.
 

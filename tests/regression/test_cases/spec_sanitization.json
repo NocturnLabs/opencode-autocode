@@ -1,0 +1,34 @@
+{
+  "name": "spec_sanitization_test",
+  "category": "functional",
+  "test_type": "spec_sanitization",
+  "config": {
+    "malformed_specs": [
+      {
+        "name": "raw_ampersand",
+        "input": "<project_specification>\n<project_name>R&D Project</project_name>\n<overview>Our R&D team works on Q&A systems</overview>\n<core_features>\n<feature>Feature with R&D focus</feature>\n</core_features>\n</project_specification>",
+        "expected_sanitized_contains": ["R&amp;D", "Q&amp;A"],
+        "should_parse": true
+      },
+      {
+        "name": "less_than_in_text",
+        "input": "<project_specification>\n<project_name>Fast API</project_name>\n<overview>Response time <100ms for all endpoints</overview>\n<success_criteria>Latency <50ms</success_criteria>\n</project_specification>",
+        "expected_sanitized_contains": ["&lt;100ms", "&lt;50ms"],
+        "should_parse": true
+      },
+      {
+        "name": "combined_issues",
+        "input": "<project_specification>\n<project_name>R&D Fast API</project_name>\n<overview>Our R&D achieves <100ms latency for P&L</overview>\n</project_specification>",
+        "expected_sanitized_contains": ["R&amp;D", "&lt;100ms", "P&amp;L"],
+        "should_parse": true
+      },
+      {
+        "name": "preserves_valid_entities",
+        "input": "<project_specification>\n<project_name>Clean Project</project_name>\n<overview>Uses &amp; and &lt; properly</overview>\n</project_specification>",
+        "expected_sanitized_contains": ["&amp;", "&lt;"],
+        "expected_not_double_escaped": ["&amp;amp;", "&amp;lt;"],
+        "should_parse": true
+      }
+    ]
+  }
+}

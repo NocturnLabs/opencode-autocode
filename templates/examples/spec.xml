@@ -11,7 +11,7 @@
 </core_features>
 <database_schema> - users: id, email, password_hash - resources: id, name, user_id
 </database_schema>
-<success_criteria> - All E2E tests pass - <100ms API response time
+<success_criteria> - All E2E tests pass - &lt;100ms API response time
 </success_criteria>
 </project_specification>
 ]]></content>

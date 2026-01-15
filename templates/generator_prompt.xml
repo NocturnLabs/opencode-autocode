@@ -39,6 +39,11 @@ The specification scope should **scale with the project's complexity**. Generate
 
 Output ONLY valid XML following this structure. Fill every section with substantial content—no placeholders.
 
+**XML Rules:**
+- Always close tags with the EXACT same name (e.g., `</api_style>` not `</api>`)
+- Escape special characters: use `&lt;` for `<` and `&amp;` for `&`
+- Example: write `&lt;100ms` instead of `<100ms`, write `R&amp;D` instead of `R&D`
+
 ```xml
 <project_specification>
 <project_name>Name of the Project</project_name>
@@ -118,13 +123,13 @@ Output ONLY valid XML following this structure. Fill every section with substant
 </tables>
 </database_schema>
 
-<api_endpoints_summary>
+<api_endpoints>
 <endpoint>
   <method>GET|POST|PUT|DELETE</method>
   <path>/api/v1/resource</path>
   <description>Description of the endpoint [auth: required|public]</description>
 </endpoint>
-</api_endpoints_summary>
+</api_endpoints>
 
 {{SECURITY_SECTION}}
 {{TESTING_STRATEGY_SECTION}}

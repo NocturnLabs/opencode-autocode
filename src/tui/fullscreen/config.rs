@@ -33,14 +33,18 @@ fn is_complexity_field(section_idx: usize, field_idx: usize) -> bool {
     section_idx == 1 && field_idx == 0
 }
 
-const CONFIG_SCROLL_RESERVED_HEIGHT: usize = 10;
-const CONFIG_FIELD_ROW_HEIGHT: usize = 3;
+const CONFIG_SCROLL_RESERVED_HEIGHT: usize = 16;
+const CONFIG_FIELD_ROW_HEIGHT: usize = 4;
+const CONFIG_VIEWPORT_BUFFER_FIELDS: usize = 1;
 
 /// Estimate how many configuration fields can fit in the current viewport.
 fn estimate_visible_field_count(height: u16) -> usize {
     let reserved = CONFIG_SCROLL_RESERVED_HEIGHT.min(height as usize);
     let available = (height as usize).saturating_sub(reserved);
-    available.saturating_div(CONFIG_FIELD_ROW_HEIGHT).max(1)
+    let estimated = available.saturating_div(CONFIG_FIELD_ROW_HEIGHT);
+    estimated
+        .saturating_sub(CONFIG_VIEWPORT_BUFFER_FIELDS)
+        .max(1)
 }
 
 /// Clamp the scroll offset so it never exposes an invalid range of fields.
@@ -1147,7 +1151,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                     }))
                 }
 
-                    View(margin_top: 2, padding: 1, border_style: BorderStyle::Single, border_color: Color::DarkGrey) {
+                    View(margin_top: 1, padding: 1, border_style: BorderStyle::Single, border_color: Color::DarkGrey) {
                         Text(content: tip_text.clone(), color: Color::Grey)
                     }
                 }

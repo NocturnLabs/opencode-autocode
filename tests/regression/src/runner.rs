@@ -199,6 +199,9 @@ impl RegressionRunner {
             "end_to_end" => {
                 functional_tests::test_end_to_end_workflow(config, &test_case.config).await
             }
+            "spec_sanitization" => {
+                functional_tests::test_spec_sanitization(config, &test_case.config).await
+            }
             // Integration tests
             "full_project_generation" => {
                 integration_tests::test_full_project_generation(config, &test_case.config).await

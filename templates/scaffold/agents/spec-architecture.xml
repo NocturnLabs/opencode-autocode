@@ -35,7 +35,9 @@ Generate the `<database_schema>` and `<api_endpoints>` XML sections based on the
 
 ## Output Format
 
-Output ONLY valid XML fragments. Use proper escaping.
+Output ONLY valid XML fragments. Use proper escaping:
+- Escape `<` as `&lt;` and `&` as `&amp;` in text content
+- Close every tag with the EXACT same name (e.g., `</api_endpoints>` not `</api>`)
 
 ```xml
 <database_schema>

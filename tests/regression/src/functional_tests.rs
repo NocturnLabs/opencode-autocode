@@ -219,3 +219,100 @@ pub async fn test_end_to_end_workflow(
 
     Ok(())
 }
+
+/// Test specification sanitization functionality
+pub async fn test_spec_sanitization(
+    _config: &RegressionConfig,
+    test_config: &HashMap<String, serde_json::Value>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let malformed_specs = test_config
+        .get("malformed_specs")
+        .and_then(|v| v.as_array())
+        .ok_or("Missing 'malformed_specs' parameter")?;
+
+    for spec_case in malformed_specs {
+        let name = spec_case
+            .get("name")
+            .and_then(|v| v.as_str())
+            .unwrap_or("unnamed");
+
+        let input = spec_case
+            .get("input")
+            .and_then(|v| v.as_str())
+            .ok_or(format!("Missing 'input' for case: {}", name))?;
+
+        let expected_contains = spec_case
+            .get("expected_sanitized_contains")
+            .and_then(|v| v.as_array())
+            .ok_or(format!(
+                "Missing 'expected_sanitized_contains' for case: {}",
+                name
+            ))?;
+
+        let should_parse = spec_case
+            .get("should_parse")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(true);
+
+        // Use the sanitizer
+        let sanitized = opencode_forger::generator::sanitize::sanitize_spec_xml(input);
+
+        // Check expected strings are present
+        for expected in expected_contains {
+            if let Some(expected_str) = expected.as_str() {
+                if !sanitized.contains(expected_str) {
+                    return Err(format!(
+                        "Case '{}': Expected '{}' not found in sanitized output",
+                        name, expected_str
+                    )
+                    .into());
+                }
+            }
+        }
+
+        // Check nothing was double-escaped
+        if let Some(not_expected) = spec_case.get("expected_not_double_escaped") {
+            if let Some(not_expected_arr) = not_expected.as_array() {
+                for not_exp in not_expected_arr {
+                    if let Some(not_exp_str) = not_exp.as_str() {
+                        if sanitized.contains(not_exp_str) {
+                            return Err(format!(
+                                "Case '{}': Double-escaped '{}' found in output",
+                                name, not_exp_str
+                            )
+                            .into());
+                        }
+                    }
+                }
+            }
+        }
+
+        // If should_parse, verify it can be validated without XML errors
+        if should_parse {
+            let result = opencode_forger::validation::validate_spec(&sanitized);
+            match result {
+                Ok(validation) => {
+                    // Check there are no XML parsing errors
+                    let has_xml_error = validation
+                        .errors
+                        .iter()
+                        .any(|e| e.contains("XML parsing error"));
+                    if has_xml_error {
+                        return Err(format!(
+                            "Case '{}': Sanitized spec still has XML parsing errors: {:?}",
+                            name, validation.errors
+                        )
+                        .into());
+                    }
+                }
+                Err(e) => {
+                    return Err(
+                        format!("Case '{}': Validation failed unexpectedly: {}", name, e).into(),
+                    );
+                }
+            }
+        }
+    }
+
+    Ok(())
+}

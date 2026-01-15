@@ -8,6 +8,7 @@ use crate::validation;
 
 use super::parser;
 use super::prompts;
+use super::sanitize;
 
 /// Generate a project specification from a user's idea using OpenCode CLI.
 ///
@@ -127,7 +128,10 @@ where
 
         // Extract and validate XML
         match parser::extract_spec_from_output(&full_output) {
-            Ok(spec) => {
+            Ok(raw_spec) => {
+                // Sanitize the extracted XML before validation to fix common LLM issues
+                let spec = sanitize::sanitize_spec_xml(&raw_spec);
+
                 // Validate XML structure
                 match validation::validate_spec_with_config(&spec, config) {
                     Ok(result) => {
@@ -240,7 +244,10 @@ where
     }
 
     // Extract the XML specification from the output
-    let spec = parser::extract_spec_from_output(&full_output)?;
+    let raw_spec = parser::extract_spec_from_output(&full_output)?;
+
+    // Sanitize the extracted XML before returning to fix common LLM issues
+    let spec = sanitize::sanitize_spec_xml(&raw_spec);
 
     Ok(spec)
 }

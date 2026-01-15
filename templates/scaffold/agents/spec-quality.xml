@@ -54,7 +54,9 @@ Each step includes:
 
 ## Output Format
 
-Output ONLY valid XML fragments.
+Output ONLY valid XML fragments. Use proper escaping:
+- Escape `<` as `&lt;` and `&` as `&amp;` in text content (e.g., `&lt;100ms` not `<100ms`)
+- Close every tag with the EXACT same name (e.g., `</testing_strategy>` not `</testing>`)
 
 ```xml
 <security>...</security>
