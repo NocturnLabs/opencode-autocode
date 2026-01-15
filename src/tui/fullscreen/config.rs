@@ -33,12 +33,58 @@ fn is_complexity_field(section_idx: usize, field_idx: usize) -> bool {
     section_idx == 1 && field_idx == 0
 }
 
+const CONFIG_SCROLL_RESERVED_HEIGHT: usize = 10;
+const CONFIG_FIELD_ROW_HEIGHT: usize = 3;
+
+/// Estimate how many configuration fields can fit in the current viewport.
+fn estimate_visible_field_count(height: u16) -> usize {
+    let reserved = CONFIG_SCROLL_RESERVED_HEIGHT.min(height as usize);
+    let available = (height as usize).saturating_sub(reserved);
+    available.saturating_div(CONFIG_FIELD_ROW_HEIGHT).max(1)
+}
+
+/// Clamp the scroll offset so it never exposes an invalid range of fields.
+fn clamp_scroll_offset(scroll_offset: usize, fields_len: usize, visible_count: usize) -> usize {
+    if fields_len <= visible_count {
+        0
+    } else {
+        scroll_offset.min(fields_len - visible_count)
+    }
+}
+
+/// Return a scroll offset that keeps the selected field visible in the viewport.
+fn ensure_selection_visible(
+    scroll_offset: usize,
+    selected_field: usize,
+    fields_len: usize,
+    visible_count: usize,
+) -> usize {
+    if fields_len == 0 {
+        return 0;
+    }
+
+    let visible_count = visible_count.max(1);
+    if fields_len <= visible_count {
+        return 0;
+    }
+
+    let mut target = scroll_offset;
+    if selected_field < target {
+        target = selected_field;
+    } else if selected_field >= target + visible_count {
+        target = selected_field + 1 - visible_count;
+    }
+
+    clamp_scroll_offset(target, fields_len, visible_count)
+}
+
 #[component]
 fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyElement<'static>> {
     let (width, height) = hooks.use_terminal_size();
     let mut system = hooks.use_context_mut::<SystemContext>();
     let mut selected_section = hooks.use_state(|| 0usize);
     let mut selected_field = hooks.use_state(|| 0usize);
+    let mut scroll_offset = hooks.use_state(|| 0usize);
     let mut is_editing = hooks.use_state(|| false);
     let mut edit_buffer = hooks.use_state(String::new);
     let mut should_exit = hooks.use_state(|| false);
@@ -360,6 +406,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
     };
 
     let fields_len = fields.len();
+    let visible_field_count = estimate_visible_field_count(height);
 
     // Calculate dynamic label width (max label length + padding)
     let max_label_width = fields
@@ -653,20 +700,35 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                         }
                     }
                     KeyCode::Down | KeyCode::Char('j') => {
-                        if selected_field.get() < fields_len - 1 {
+                        if selected_field.get() + 1 < fields_len {
                             selected_field.set(selected_field.get() + 1);
+                        }
+                    }
+                    KeyCode::PageUp => {
+                        let step = visible_field_count.max(1);
+                        let new_index = selected_field.get().saturating_sub(step);
+                        selected_field.set(new_index);
+                    }
+                    KeyCode::PageDown => {
+                        if fields_len > 0 {
+                            let step = visible_field_count.max(1);
+                            let last_index = fields_len - 1;
+                            let target = selected_field.get().saturating_add(step).min(last_index);
+                            selected_field.set(target);
                         }
                     }
                     KeyCode::Left | KeyCode::Char('h') => {
                         if selected_section.get() > 0 {
                             selected_section.set(selected_section.get() - 1);
                             selected_field.set(0);
+                            scroll_offset.set(0);
                         }
                     }
                     KeyCode::Right | KeyCode::Char('l') => {
                         if selected_section.get() < sections_len - 1 {
                             selected_section.set(selected_section.get() + 1);
                             selected_field.set(0);
+                            scroll_offset.set(0);
                         }
                     }
                     KeyCode::Enter | KeyCode::Char(' ') => {
@@ -928,6 +990,31 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
         system.exit();
     }
 
+    let scroll_target = ensure_selection_visible(
+        scroll_offset.get(),
+        selected_field.get(),
+        fields_len,
+        visible_field_count,
+    );
+    if scroll_target != scroll_offset.get() {
+        scroll_offset.set(scroll_target);
+    }
+
+    let start_field = scroll_offset.get().min(fields_len);
+    let end_field = (start_field + visible_field_count).min(fields_len);
+    let visible_slice_len = end_field.saturating_sub(start_field);
+    let selected_field_display = if fields_len == 0 {
+        0
+    } else {
+        selected_field.get().min(fields_len - 1) + 1
+    };
+    let tip_text = format!(
+        "Tip: Toggle switches with Enter/Space. Edit text fields with Enter. Scroll: ↑↓ PageUp/PageDown. Field {}/{} (v{})",
+        selected_field_display,
+        fields_len,
+        config_version.get()
+    );
+
     element! {
         View(width, height, flex_direction: FlexDirection::Column) {
             // Header - Clean Minimalist
@@ -958,7 +1045,12 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
 
                    // Fields List
                 View(flex_direction: FlexDirection::Column, flex_grow: 1.0, margin_top: 1) {
-                    #(fields.iter().enumerate().map(|(i, (label, value)): (usize, &(String, String))| {
+                    #(fields
+                        .iter()
+                        .enumerate()
+                        .skip(start_field)
+                        .take(visible_slice_len)
+                        .map(|(i, (label, value)): (usize, &(String, String))| {
                         let label = label.to_string();
                          let value_str = value.to_string();
                          let is_selected = i == selected_field.get();
@@ -1056,7 +1148,7 @@ fn ConfigEditor(props: &ConfigEditorProps, mut hooks: Hooks) -> impl Into<AnyEle
                 }
 
                     View(margin_top: 2, padding: 1, border_style: BorderStyle::Single, border_color: Color::DarkGrey) {
-                        Text(content: format!("Tip: Toggle switches with Enter/Space. Edit text fields with Enter. (v{})", config_version.get()), color: Color::Grey)
+                        Text(content: tip_text.clone(), color: Color::Grey)
                     }
                 }
             }
