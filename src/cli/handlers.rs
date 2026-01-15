@@ -85,7 +85,6 @@ pub fn run(cli: Cli) -> Result<()> {
                     std::process::exit(1);
                 }
             },
-            Commands::Web { port, open } => crate::web::run_server(*port, *open),
         };
     }
 

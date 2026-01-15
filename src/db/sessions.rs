@@ -18,6 +18,7 @@ pub struct SessionRepository {
 
 /// Session data for API responses
 #[derive(Debug, Clone, serde::Serialize)]
+#[allow(dead_code)]
 pub struct Session {
     pub id: i64,
     pub session_number: i32,
@@ -30,6 +31,7 @@ pub struct Session {
 
 /// Session event data for API responses
 #[derive(Debug, Clone, serde::Serialize)]
+#[allow(dead_code)]
 pub struct SessionEvent {
     pub id: i64,
     pub session_id: i64,
@@ -45,6 +47,7 @@ impl SessionRepository {
     }
 
     /// List all sessions, ordered by most recent first
+    #[allow(dead_code)]
     pub fn list_sessions(&self) -> Result<Vec<Session>> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
@@ -71,6 +74,7 @@ impl SessionRepository {
     }
 
     /// Get a session by ID with its events
+    #[allow(dead_code)]
     pub fn get_session_with_events(
         &self,
         session_id: i64,

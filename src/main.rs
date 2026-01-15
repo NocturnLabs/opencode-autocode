@@ -30,7 +30,6 @@ mod tui;
 mod updater;
 mod utils;
 mod validation;
-mod web;
 
 use anyhow::Result;
 use clap::Parser;

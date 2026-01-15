@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 /// Represents a running instance of the application
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct Instance {
     pub id: i64,
     pub pid: u32,
@@ -85,6 +86,7 @@ impl InstanceRepository {
     }
 
     /// Update the heartbeat/status of an instance
+    #[allow(dead_code)]
     pub fn heartbeat(&self, id: i64) -> Result<()> {
         self.conn.execute(
             "UPDATE instances SET updated_at = datetime('now') WHERE id = ?1",
@@ -103,6 +105,7 @@ impl InstanceRepository {
     }
 
     /// List all instances (optionally filtering by status)
+    #[allow(dead_code)]
     pub fn list(&self, active_only: bool) -> Result<Vec<Instance>> {
         let mut sql =
             "SELECT id, pid, role, start_time, status, log_path, updated_at, project_path FROM instances"
@@ -134,6 +137,7 @@ impl InstanceRepository {
     }
 
     /// Get a specific instance
+    #[allow(dead_code)]
     pub fn get(&self, id: i64) -> Result<Option<Instance>> {
         let mut stmt = self.conn.prepare(
             "SELECT id, pid, role, start_time, status, log_path, updated_at, project_path FROM instances WHERE id = ?1"
