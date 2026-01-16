@@ -4,6 +4,7 @@
 //! extracted from main.rs to improve modularity and testability.
 
 use anyhow::Result;
+use std::env;
 use std::path::{Path, PathBuf};
 
 use crate::config::Config;
@@ -29,6 +30,7 @@ pub fn run(cli: Cli) -> Result<()> {
             PathBuf::from(config.scaffolding.output_dir)
         }
     });
+    let output_dir = resolve_output_dir(output_dir);
 
     // Handle subcommands first
     if let Some(command) = &cli.command {
@@ -165,6 +167,17 @@ pub fn run(cli: Cli) -> Result<()> {
 ///
 /// This function spawns the Go Bubble Tea client and communicates with it
 /// via JSON-RPC over stdin/stdout.
+fn resolve_output_dir(output_dir: PathBuf) -> PathBuf {
+    if output_dir.is_absolute() {
+        return output_dir;
+    }
+
+    match env::current_dir() {
+        Ok(current_dir) => current_dir.join(output_dir),
+        Err(_) => output_dir,
+    }
+}
+
 fn run_interactive_ipc(output_dir: &Path, use_subagents: bool) -> Result<()> {
     use crate::tui::fullscreen::types::InteractiveMode;
 

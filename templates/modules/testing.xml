@@ -13,6 +13,23 @@ Read this module when you need to verify features with automated or interactive 
 
 ---
 
+## Token-Efficient Test Running
+
+When verifying features, use **quiet reporters** to minimize context consumption:
+
+| Framework  | Quiet Command                                  |
+|------------|------------------------------------------------|
+| Vitest     | `vitest run --reporter=basic --silent`         |
+| Jest       | `jest --silent --noStackTrace`                 |
+| Pytest     | `pytest -q --tb=short`                         |
+| Cargo      | `cargo test -q 2>&1 \| head -50`               |
+| Playwright | `playwright test --reporter=line`              |
+
+> [!TIP]
+> If tests fail, you can re-run with verbose output for the specific failing test.
+
+---
+
 ## E2E Testing (Playwright) for Web Projects
 
 For web projects, every feature MUST have a Playwright E2E test.

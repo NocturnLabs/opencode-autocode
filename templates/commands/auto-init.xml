@@ -4,6 +4,7 @@
 
 {{INCLUDE core/identity.xml}}
 {{INCLUDE core/security.xml}}
+{{INCLUDE core/efficiency.xml}}
 
 ---
 

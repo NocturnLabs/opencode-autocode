@@ -1,0 +1,87 @@
+<template>
+<content><![CDATA[
+# Context Efficiency Guidelines
+
+> [!CAUTION]
+> **Token budget is limited.** Follow these rules to avoid wasting context window space.
+
+---
+
+## File Search: ALWAYS Exclude Build Artifacts
+
+When listing or searching files, **ALWAYS** exclude these directories:
+
+```bash
+# ✅ DO: Use git ls-files (respects .gitignore)
+git ls-files
+
+# ✅ DO: Explicit exclusions with find
+find . -type f \( -path './node_modules' -o -path './.git' -o -path './target' -o -path './dist' -o -path './__pycache__' -o -path './build' -o -path './.next' -o -path './vendor' \) -prune -o -print
+
+# ✅ DO: Use fd if available (respects .gitignore by default)
+fd --type f
+
+# ❌ NEVER: Raw find without exclusions
+# find . -maxdepth 2  ← This dumps node_modules into context!
+```
+
+---
+
+## Test Output: Minimize Noise
+
+When running tests, use **quiet/summary reporters** to avoid flooding context with skipped tests:
+
+```bash
+# ✅ DO: Vitest with minimal output
+vitest run --reporter=basic --silent
+
+# ✅ DO: Jest with minimal output
+jest --silent --noStackTrace
+
+# ✅ DO: Pytest with quiet mode
+pytest -q --tb=short
+
+# ✅ DO: Cargo test with quiet mode
+cargo test -q 2>&1 | head -50
+
+# ❌ NEVER: Default verbose test output
+# vitest run  ← Dumps every skipped test into context!
+```
+
+---
+
+## Command Output: Truncate Long Results
+
+If a command produces more than ~100 lines, **pipe to head/tail**:
+
+```bash
+# ✅ DO: Limit output
+npm ls --depth=0 2>/dev/null | head -30
+grep -rn "pattern" src/ | head -50
+
+# ❌ NEVER: Unbounded output
+# npm ls  ← Can produce thousands of lines!
+```
+
+---
+
+## Search Strategy: Targeted Over Broad
+
+1. **Start narrow**: Search specific directories first (`src/`, `lib/`)
+2. **Use patterns**: `grep -rn "ClassName" src/` instead of `grep -rn "ClassName" .`
+3. **Prefer git-aware tools**: `git grep "pattern"` respects .gitignore
+
+---
+
+## Error Context: Extract Key Lines
+
+When diagnosing errors, extract only the relevant portion:
+
+```bash
+# ✅ DO: Get first error + context
+npm test 2>&1 | grep -A5 "FAIL\|Error:" | head -20
+
+# ❌ NEVER: Dump entire test output into context
+```
+]]></content>
+</template>

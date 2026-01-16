@@ -13,6 +13,20 @@ Use semantic search for efficient pattern matching with minimal context window u
 grep -rn "pattern" src/
 ```
 
+## File Discovery Best Practices
+
+> [!CAUTION]
+> **NEVER use `find .` without exclusions.** This dumps node_modules, .git, and build artifacts into context.
+
+**Preferred methods (in order):**
+
+1. `git ls-files` - Fast, respects .gitignore
+2. `fd --type f` - Fast, respects .gitignore by default
+3. `find` with explicit exclusions:
+   ```bash
+   find . -type f \( -path './node_modules' -o -path './.git' -o -path './target' \) -prune -o -name "*.ts" -print
+   ```
+
 ## 2. Chrome DevTools (for web projects)
 
 **MANDATORY for web projects.** Use to:

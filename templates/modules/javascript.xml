@@ -15,6 +15,26 @@ Read this module when working on web projects with JavaScript or TypeScript.
 
 ---
 
+## Test Output: Keep It Quiet
+
+**ALWAYS use quiet test reporters to avoid flooding context with skipped tests.**
+
+```bash
+# ✅ Vitest: Basic reporter (no skipped test spam)
+vitest run --reporter=basic
+
+# ✅ Jest: Silent mode
+bun test --silent
+
+# ✅ Playwright: Summary only
+bun x playwright test --reporter=line
+```
+
+> [!CAUTION]
+> Default test output includes EVERY skipped test. A single test run can consume 2-5k tokens of noise.
+
+---
+
 ## Port Conflict Prevention
 
 Before starting any servers or running tests, verify required ports are free:
