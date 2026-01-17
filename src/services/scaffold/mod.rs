@@ -200,21 +200,13 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
         .with_context(|| format!("Failed to initialize database: {}", db_path.display()))?;
     println!("   🗃️  Created {}", db_path.display());
 
-    // Write user configuration file inside .forger/ (if not already configured)
-    let config_path = forger_dir.join("config.toml");
-    let config_content = if !config_path.exists() {
-        write_file(&config_path, USER_CONFIG_TEMPLATE)?;
-        println!("   ⚙️  Created .forger/config.toml");
-        USER_CONFIG_TEMPLATE.to_string()
-    } else {
-        println!("   ⚙️  Using existing .forger/config.toml");
-        std::fs::read_to_string(&config_path).unwrap_or_else(|_| USER_CONFIG_TEMPLATE.to_string())
-    };
-
+    // Write user configuration file at project root (if not already configured)
     let root_config_path = output_dir.join("forger.toml");
     if !root_config_path.exists() {
-        write_file(&root_config_path, &config_content)?;
+        write_file(&root_config_path, USER_CONFIG_TEMPLATE)?;
         println!("   ⚙️  Created forger.toml");
+    } else {
+        println!("   ⚙️  Using existing forger.toml");
     }
 
     if config.scaffolding.create_opencode_dir {
@@ -325,7 +317,6 @@ pub fn preview_scaffold(output_dir: &Path) {
     }
     println!("   📄 {}", allowlist_path.display());
     println!("   🗃️  {}", db_path.display());
-    println!("   ⚙️  {}", forger_dir.join("config.toml").display());
     println!("   ⚙️  {}", output_dir.join("forger.toml").display());
     println!("   ⚙️  {}", output_dir.join("opencode.json").display());
     println!("   📝 {}", output_dir.join("AGENTS.md").display());
@@ -353,7 +344,6 @@ fn generate_opencode_json(config: &crate::config::Config) -> String {
   "$schema": "https://opencode.ai/config.json",
   "instructions": [
     "forger.toml",
-    ".forger/config.toml",
     "{app_spec_path}"
   ],
   "provider": {{

@@ -306,7 +306,7 @@ fn format_opencode_json(config: &Config) -> String {
         r#"{{
   "$schema": "https://opencode.ai/config.json",
   "instructions": [
-    ".forger/config.toml",
+    "forger.toml",
     "{app_spec_path}"
   ],
   "mcp": {{

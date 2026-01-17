@@ -15,7 +15,7 @@ fn test_scaffold_creates_expected_files() {
     let result = opencode_forger::scaffold::scaffold_default(output_path);
     assert!(result.is_ok(), "Scaffold should succeed");
 
-    // Verify expected files exist
+    // Verify expected files exist (forger.toml at project root, not .forger/config.toml)
     let expected_files = vec![
         ".forger/app_spec.md",
         ".opencode/command/auto-init.md",
@@ -23,7 +23,7 @@ fn test_scaffold_creates_expected_files() {
         ".opencode/command/auto-enhance.md",
         ".forger/security-allowlist.json",
         ".forger/progress.db",
-        ".forger/config.toml",
+        "forger.toml",
         "opencode.json",
     ];
 
@@ -78,9 +78,12 @@ fn test_scaffold_generates_valid_config() {
 
     opencode_forger::scaffold::scaffold_default(output_path).expect("Scaffold should succeed");
 
-    // Verify config file exists and is valid TOML
-    let config_path = output_path.join(".forger/config.toml");
-    assert!(config_path.exists(), ".forger/config.toml should exist");
+    // Verify config file exists at project root (not .forger/config.toml)
+    let config_path = output_path.join("forger.toml");
+    assert!(
+        config_path.exists(),
+        "forger.toml should exist at project root"
+    );
 
     let content = fs::read_to_string(&config_path).expect("Failed to read config");
     assert!(

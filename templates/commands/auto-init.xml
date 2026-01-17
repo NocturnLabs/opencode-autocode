@@ -8,7 +8,7 @@
 
 ---
 
-> [!IMPORTANT] > **DO NOT modify the configuration file (`forger.toml` or `.forger/config.toml`).**
+> [!IMPORTANT] > **DO NOT modify the configuration file (`forger.toml`).**
 > Your task is to set up the project structure and database, NOT to reconfigure the agent models or settings.
 
 > [!CAUTION]

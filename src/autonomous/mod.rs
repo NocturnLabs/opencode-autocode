@@ -140,7 +140,7 @@ fn log_startup_info(
         if single_model {
             "disabled (--single-model)"
         } else {
-            "enabled (reasoning + @coder)"
+            "enabled (reasoning + coding phases)"
         }
     ));
     logger.info(&format!(

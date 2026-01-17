@@ -9,7 +9,7 @@ Use this guide to orient yourself quickly when starting a session in an existing
 **DO NOT** run `ls -R`. Instead, check for these markers to identify the project state:
 
 - **`.forger/progress.db`**: SQLite database tracking all features and their status.
-- **`.forger/config.toml`**: Agent settings (models, timeouts, etc.).
+- **`forger.toml`**: Agent settings (models, timeouts, etc.).
 - **`.conductor/tracks/`**: Active development plans and session history.
 - **`app_spec.md`**: The source of truth for requirements.
 

@@ -13,7 +13,7 @@ pub fn generate_fix_template(
     feature: &Feature,
     error: &str,
     _db_path: &Path,
-    dual_model: bool,
+    _dual_model: bool,
 ) -> Result<()> {
     // Read template
     let template_path = Path::new("templates/commands/auto-fix.xml");
@@ -25,11 +25,9 @@ pub fn generate_fix_template(
         "# Regression Fix\nFix {{failing_feature}}\nError: {{error_message}}\n\n{{dual_model_instructions}}\n\n{{explore_instructions}}".to_string()
     };
 
-    let dual_model_instructions = if dual_model {
-        "\n> **Dual Model**: Delegate code changes to `@coder`."
-    } else {
-        ""
-    };
+    // Note: @coder subagent is deprecated per Proposal 2.
+    // Two-phase workflow (Reasoning → Coding) replaces the need for @coder delegation.
+    let dual_model_instructions = "";
 
     let explore_msg = "Use `@explore` to understand the failure context.";
 
@@ -61,13 +59,11 @@ pub fn generate_fix_template(
 pub fn generate_continue_template(
     feature: &Feature,
     config: &Config,
-    dual_model: bool,
+    _dual_model: bool,
 ) -> Result<()> {
-    let dual_model_section = if dual_model {
-        "\n## Dual Model Architecture\nYou are the **Reasoning Agent**. Plan the solution and delegate implementation to `@coder`.\n"
-    } else {
-        ""
-    };
+    // Note: @coder subagent is deprecated per Proposal 2.
+    // Phase context is now handled by the supervisor's two-phase orchestration.
+    let dual_model_section = "";
 
     let regression_sample = config.agent.verification_sample_size.max(1);
 

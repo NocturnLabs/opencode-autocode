@@ -151,14 +151,15 @@ pub fn run(cli: Cli) -> Result<()> {
                 return Ok(());
             }
 
-            // Try Go TUI first, fall back to legacy Rust TUI
+            // Use Go TUI via Unix socket IPC if available, otherwise fall back to Rust TUI.
+            // The Unix socket approach allows Go to use stdin for keyboard input while
+            // IPC happens over the socket, avoiding the /dev/tty conflicts.
             if IpcServer::is_available() {
-                run_interactive_ipc(&output_dir, !cli.no_subagents)
+                run_interactive_ipc(&output_dir, !cli.no_subagents)?;
             } else {
-                // Fall back to legacy Rust TUI
                 tui::run_interactive(&output_dir, !cli.no_subagents)?;
-                Ok(())
             }
+            Ok(())
         }
     }
 }
@@ -178,6 +179,7 @@ fn resolve_output_dir(output_dir: PathBuf) -> PathBuf {
     }
 }
 
+#[allow(dead_code)] // TODO: Re-enable once IPC-based prompting is implemented
 fn run_interactive_ipc(output_dir: &Path, use_subagents: bool) -> Result<()> {
     use crate::tui::fullscreen::types::InteractiveMode;
 
@@ -195,8 +197,8 @@ fn run_interactive_ipc(output_dir: &Path, use_subagents: bool) -> Result<()> {
     // Send engine ready event
     server.send_engine_ready(version, &work_dir)?;
 
-    // Check for existing config
-    let config_path = output_dir.join(".forger/config.toml");
+    // Check for existing config (forger.toml is the single source of truth per Proposal 1)
+    let config_path = output_dir.join("forger.toml");
     let has_existing_config = config_path.exists();
     let config_path_str = config_path.display().to_string();
     server.send_config_loaded(
@@ -256,106 +258,32 @@ fn run_interactive_ipc(output_dir: &Path, use_subagents: bool) -> Result<()> {
         }
     }
 
-    // Handle configuration if requested
+    // Close the Go TUI before running mode-specific logic.
+    // This frees up the terminal for Rust's prompt-based interactions.
+    server.send_finished(true, Some("Mode selected, continuing..."))?;
+    server.shutdown()?;
+
+    // Handle configuration if requested (uses iocraft TUI)
     let config = if should_configure {
-        server.send_log("info", "Opening configuration editor...")?;
-        // Note: config_tui is still Rust-based for now
-        // In the future, this could also be handled via IPC
         config_tui::run_config_tui(Some(output_dir))?
     } else {
         Config::load(Some(output_dir)).unwrap_or_default()
     };
 
-    // Execute the selected mode
+    // Execute the selected mode using Rust's standard TUI prompts
     match selected_mode {
         Some(InteractiveMode::Generated) => {
-            server.send_progress(
-                "scaffolding",
-                0,
-                1,
-                Some("Generating project specification..."),
-            )?;
-
-            // Run the generated mode (still uses Rust TUI for AI interactions)
-            // In the future, we can send prompts via IPC
-            let result =
-                crate::tui::generated::run_generated_mode(output_dir, &config, use_subagents);
-
-            match &result {
-                Ok(()) => {
-                    server.send_progress("scaffolding", 1, 1, Some("Complete!"))?;
-                    server.send_finished(true, Some("Project scaffolded successfully!"))?;
-                }
-                Err(e) => {
-                    server.send_error(&e.to_string(), true)?;
-                    server.send_finished(false, Some(&e.to_string()))?;
-                }
-            }
-            server.shutdown()?;
-            result
+            crate::tui::generated::run_generated_mode(output_dir, &config, use_subagents)
         }
-        Some(InteractiveMode::Manual) => {
-            server.send_progress("scaffolding", 0, 1, Some("Starting manual mode..."))?;
-            let result = crate::tui::manual::run_manual_mode(output_dir, &config);
-            match &result {
-                Ok(()) => {
-                    server.send_finished(true, Some("Project scaffolded successfully!"))?;
-                }
-                Err(e) => {
-                    server.send_finished(false, Some(&e.to_string()))?;
-                }
-            }
-            server.shutdown()?;
-            result
-        }
+        Some(InteractiveMode::Manual) => crate::tui::manual::run_manual_mode(output_dir, &config),
         Some(InteractiveMode::FromSpecFile) => {
-            server.send_progress("scaffolding", 0, 1, Some("Loading spec file..."))?;
-
-            // Prompt for spec file path
-            let default_spec = if config.paths.app_spec_file.trim().is_empty() {
-                ".forger/app_spec.md".to_string()
-            } else {
-                config.paths.app_spec_file.clone()
-            };
-
-            let selection = server.prompt_select(
-                "spec_file",
-                "Enter path to spec file:",
-                vec![default_spec.clone()],
-            )?;
-
-            let spec_path = std::path::PathBuf::from(&selection.value);
-            if !spec_path.exists() {
-                server.send_error(
-                    &format!("Spec file not found: {}", spec_path.display()),
-                    true,
-                )?;
-                server.send_finished(false, Some("Spec file not found"))?;
-                server.shutdown()?;
-                return Ok(());
-            }
-
-            scaffold::scaffold_custom(output_dir, &spec_path)?;
-            server.send_finished(true, Some("Project scaffolded from spec file!"))?;
-            server.shutdown()?;
-            Ok(())
+            crate::tui::fullscreen::setup::run_from_spec_file_mode_internal(output_dir)
         }
         Some(InteractiveMode::Default) => {
-            server.send_progress(
-                "scaffolding",
-                0,
-                1,
-                Some("Scaffolding with default spec..."),
-            )?;
-            scaffold::scaffold_default(output_dir)?;
-            server.send_progress("scaffolding", 1, 1, Some("Complete!"))?;
-            server.send_finished(true, Some("Project scaffolded with default spec!"))?;
-            server.shutdown()?;
-            Ok(())
+            crate::tui::fullscreen::setup::run_default_mode_internal(output_dir)
         }
         None => {
-            server.send_finished(false, Some("No mode selected"))?;
-            server.shutdown()?;
+            println!("No mode selected.");
             Ok(())
         }
     }

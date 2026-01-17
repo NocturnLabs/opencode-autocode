@@ -21,6 +21,7 @@ impl InteractiveMode {
     }
 
     /// Returns a unique identifier for this mode (used for IPC).
+    #[allow(dead_code)] // TODO: Re-enable once Go TUI is re-enabled
     pub fn id(&self) -> &'static str {
         match self {
             InteractiveMode::Generated => "generated",

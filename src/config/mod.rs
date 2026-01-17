@@ -21,10 +21,8 @@ pub use project::{
     PathsConfig, ScaffoldingConfig,
 };
 
-/// Default config filename (preferred)
+/// Default config filename
 const CONFIG_FILENAME: &str = "forger.toml";
-/// Legacy config filename (scaffolded)
-const LEGACY_CONFIG_FILENAME: &str = ".forger/config.toml";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Config Struct
@@ -54,7 +52,7 @@ pub struct Config {
 // ─────────────────────────────────────────────────────────────────────────────
 
 impl Config {
-    /// Resolve the config path using preferred and legacy filenames.
+    /// Resolve the config path.
     ///
     /// # Arguments
     ///
@@ -77,8 +75,8 @@ impl Config {
 
     /// Load configuration from the specified directory or search upwards for project root.
     ///
-    /// Prefers `forger.toml` when present, otherwise falls back to `.forger/config.toml`.
-    /// If no config file is found, returns default configuration.
+    /// Reads from `forger.toml` if it exists; otherwise returns default configuration.
+    /// Logs a deprecation warning if `.forger/config.toml` exists.
     ///
     /// # Arguments
     ///
@@ -106,6 +104,21 @@ impl Config {
         };
 
         let config_path = resolve_config_path(root.as_deref());
+
+        // Check for legacy config and log deprecation warning
+        if let Some(ref r) = root {
+            let legacy_config = r.join(".forger").join("config.toml");
+            if legacy_config.exists() {
+                eprintln!("⚠️  WARNING: .forger/config.toml is deprecated and will be ignored.");
+                eprintln!(
+                    "   Please migrate your settings to {} at the project root.",
+                    CONFIG_FILENAME
+                );
+                eprintln!(
+                    "   See https://github.com/NocturnLabs/opencode-forger for migration guide."
+                );
+            }
+        }
 
         if config_path.exists() {
             let content = fs::read_to_string(&config_path).with_context(|| {
@@ -243,12 +256,10 @@ impl Config {
     }
 }
 
-/// Resolve the most appropriate config file path.
+/// Resolve the config file path.
 ///
-/// Searches for config files in the following order:
-/// 1. `forger.toml` in the specified root directory
-/// 2. `.forger/config.toml` (legacy) in the specified root directory
-/// 3. Returns the preferred path even if it doesn't exist
+/// Searches for `forger.toml` in the specified root directory,
+/// or returns the preferred path if it doesn't exist.
 ///
 /// # Arguments
 ///
@@ -258,17 +269,7 @@ impl Config {
 ///
 /// PathBuf containing the resolved configuration file path
 fn resolve_config_path(root: Option<&Path>) -> PathBuf {
-    let resolve_from_root = |root: &Path| {
-        let preferred = root.join(CONFIG_FILENAME);
-        if preferred.exists() {
-            return preferred;
-        }
-        let legacy = root.join(LEGACY_CONFIG_FILENAME);
-        if legacy.exists() {
-            return legacy;
-        }
-        preferred
-    };
+    let resolve_from_root = |root: &Path| root.join(CONFIG_FILENAME);
 
     match root {
         Some(root) => resolve_from_root(root),
@@ -469,4 +470,55 @@ num_approaches = 5
         let result = expand_env_var("${TEST_VAR}/path");
         assert_eq!(result, "test_value/path");
     }
+}
+
+#[test]
+fn test_config_loader_with_no_config_file() {
+    use tempfile::TempDir;
+
+    let temp_dir = TempDir::new().unwrap();
+    let _forger_toml = temp_dir.path().join("forger.toml");
+    let legacy_dir = temp_dir.path().join(".forger");
+    let _ = std::fs::create_dir_all(&legacy_dir).unwrap();
+
+    // Write no config files
+    let config = Config::load(Some(temp_dir.path())).unwrap();
+
+    // Check that default was used
+    assert_eq!(config.models.default, "opencode/glm-4.7-free");
+    assert_eq!(config.models.autonomous, "opencode/minimax-m2.1-free");
+}
+
+#[test]
+fn test_config_loader_ignores_legacy_config() {
+    use tempfile::TempDir;
+
+    let temp_dir = TempDir::new().unwrap();
+    let _forger_toml = temp_dir.path().join("forger.toml");
+    let legacy_dir = temp_dir.path().join(".forger");
+    let _ = std::fs::create_dir_all(&legacy_dir).unwrap();
+    let legacy_config = legacy_dir.join("config.toml");
+
+    // Write both config files
+    std::fs::write(
+        &_forger_toml,
+        r#"[models]
+default = "test-model"
+"#,
+    )
+    .unwrap();
+    std::fs::write(
+        &legacy_config,
+        r#"[models]
+default = "legacy-model"
+"#,
+    )
+    .unwrap();
+
+    // Load config and check that forger.toml was used, not legacy
+    let config = Config::load(Some(temp_dir.path())).unwrap();
+
+    // Check that forger.toml was used
+    assert_eq!(config.models.default, "test-model");
+    assert!(!config.models.default.contains("legacy-model"));
 }

@@ -21,7 +21,7 @@ use crate::regression;
 ///
 /// Result indicating success or containing an error from the database operation.
 pub fn handle_db(action: &DbAction) -> Result<()> {
-    // Load config to get database_file path (from .forger/config.toml)
+    // Load config to get database_file path (from forger.toml)
     let config = Config::load(None).unwrap_or_default();
     let default_db_path = PathBuf::from(&config.paths.database_file);
 

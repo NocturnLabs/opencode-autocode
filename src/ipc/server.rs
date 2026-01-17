@@ -1,13 +1,15 @@
 //! IPC server for communicating with the Go TUI client.
 //!
-//! The server spawns the Go process and communicates via stdin/stdout.
+//! The server creates a Unix socket and spawns the Go process, which connects back.
+//! This allows the Go TUI to use stdin for keyboard input while IPC happens over the socket.
 
 #![allow(dead_code)] // Some methods are reserved for future use
 
 use super::protocol::*;
 use anyhow::{bail, Context, Result};
 use std::io::{BufRead, BufReader, Write};
-use std::path::Path;
+use std::os::unix::net::UnixListener;
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::thread;
@@ -15,16 +17,20 @@ use std::thread;
 /// Name of the Go TUI binary.
 const TUI_BINARY_NAME: &str = "opencode-forger-tui";
 
+/// Environment variable for the socket path.
+const SOCKET_PATH_ENV: &str = "OPENCODE_IPC_SOCKET";
+
 /// IPC server for managing communication with the Go TUI process.
 pub struct IpcServer {
     child: Child,
     tx: Sender<Message>,
     rx: Receiver<Message>,
+    socket_path: PathBuf,
     debug: bool,
 }
 
 impl IpcServer {
-    /// Spawn the Go TUI process and establish IPC channels.
+    /// Spawn the Go TUI process and establish IPC via Unix socket.
     pub fn spawn() -> Result<Self> {
         Self::spawn_with_path(None)
     }
@@ -40,36 +46,64 @@ impl IpcServer {
             Self::find_tui_binary()?
         };
 
+        // Create a unique socket path in temp directory
+        let socket_path =
+            std::env::temp_dir().join(format!("opencode-forger-{}.sock", std::process::id()));
+
+        // Remove any stale socket file
+        let _ = std::fs::remove_file(&socket_path);
+
+        if debug {
+            eprintln!("[IPC DEBUG] Creating socket: {:?}", socket_path);
+        }
+
+        // Create the Unix socket listener
+        let listener = UnixListener::bind(&socket_path)
+            .with_context(|| format!("Failed to create Unix socket: {:?}", socket_path))?;
+
         if debug {
             eprintln!("[IPC DEBUG] Spawning TUI: {:?}", tui_path);
         }
 
-        // Spawn the Go process
-        let mut child = Command::new(&tui_path)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::inherit()) // Let stderr pass through for debug output
+        // Spawn the Go process with socket path in environment
+        // stdin/stdout are inherited so the TUI can use them for keyboard/display
+        let child = Command::new(&tui_path)
+            .env(SOCKET_PATH_ENV, &socket_path)
+            .stdin(Stdio::inherit())
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
             .spawn()
             .with_context(|| format!("Failed to spawn TUI binary: {:?}", tui_path))?;
+
+        if debug {
+            eprintln!("[IPC DEBUG] Waiting for TUI to connect...");
+        }
+
+        // Wait for the Go TUI to connect (with timeout)
+        listener
+            .set_nonblocking(false)
+            .context("Failed to set socket to blocking")?;
+
+        let (stream, _) = listener
+            .accept()
+            .context("Failed to accept connection from TUI")?;
+
+        if debug {
+            eprintln!("[IPC DEBUG] TUI connected!");
+        }
 
         // Set up channels
         let (cmd_tx, cmd_rx) = mpsc::channel::<Message>();
         let (event_tx, event_rx) = mpsc::channel::<Message>();
 
-        // Take ownership of stdin/stdout
-        let stdin = child
-            .stdin
-            .take()
-            .context("Failed to get stdin of TUI process")?;
-        let stdout = child
-            .stdout
-            .take()
-            .context("Failed to get stdout of TUI process")?;
+        // Clone stream for reader/writer
+        let reader_stream = stream.try_clone().context("Failed to clone socket")?;
+        let writer_stream = stream;
 
         // Spawn writer thread (sends events to Go)
         let debug_writer = debug;
         thread::spawn(move || {
-            let mut writer = stdin;
+            let mut writer = writer_stream;
             while let Ok(msg) = event_rx.recv() {
                 if let Ok(json) = serde_json::to_string(&msg) {
                     if debug_writer {
@@ -88,7 +122,7 @@ impl IpcServer {
         // Spawn reader thread (receives commands from Go)
         let debug_reader = debug;
         thread::spawn(move || {
-            let reader = BufReader::new(stdout);
+            let reader = BufReader::new(reader_stream);
             for line in reader.lines() {
                 match line {
                     Ok(json) => {
@@ -117,6 +151,7 @@ impl IpcServer {
             child,
             tx: event_tx,
             rx: cmd_rx,
+            socket_path,
             debug,
         })
     }
@@ -322,23 +357,19 @@ impl IpcServer {
     }
 
     /// Gracefully shut down the TUI process.
-    pub fn shutdown(self) -> Result<()> {
-        // Simply dropping self will trigger the Drop impl which kills the process
-        // We just wait for it to finish here
-        let mut server = self;
-
+    pub fn shutdown(mut self) -> Result<()> {
         // Wait for process to exit
-        let status = server
+        let status = self
             .child
             .wait()
             .context("Failed to wait for TUI process")?;
 
-        if server.debug {
+        if self.debug {
             eprintln!("[IPC DEBUG] TUI process exited with: {:?}", status);
         }
 
-        // Prevent Drop from running
-        std::mem::forget(server);
+        // Clean up socket file
+        let _ = std::fs::remove_file(&self.socket_path);
 
         Ok(())
     }
@@ -348,6 +379,8 @@ impl Drop for IpcServer {
     fn drop(&mut self) {
         // Try to kill the process if it's still running
         let _ = self.child.kill();
+        // Clean up socket file
+        let _ = std::fs::remove_file(&self.socket_path);
     }
 }
 

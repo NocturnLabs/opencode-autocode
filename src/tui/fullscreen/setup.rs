@@ -335,7 +335,7 @@ pub fn run_fullscreen_setup(has_existing_config: bool) -> Result<SetupResult> {
 }
 
 pub fn run_interactive(output_dir: &Path, use_subagents: bool) -> Result<()> {
-    let config_path = output_dir.join(".forger/config.toml");
+    let config_path = output_dir.join("forger.toml");
     let has_existing_config = config_path.exists();
 
     // Run fullscreen TUI for mode selection
@@ -387,6 +387,11 @@ fn run_from_spec_file_mode(output_dir: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Public entry point for spec file mode (used by IPC handler)
+pub fn run_from_spec_file_mode_internal(output_dir: &Path) -> Result<()> {
+    run_from_spec_file_mode(output_dir)
+}
+
 fn run_default_mode(output_dir: &Path) -> Result<()> {
     use crate::tui::prompts::confirm;
 
@@ -400,4 +405,9 @@ fn run_default_mode(output_dir: &Path) -> Result<()> {
         println!("❌ Cancelled.");
     }
     Ok(())
+}
+
+/// Public entry point for default mode (used by IPC handler)
+pub fn run_default_mode_internal(output_dir: &Path) -> Result<()> {
+    run_default_mode(output_dir)
 }
