@@ -45,7 +45,7 @@ opencode-forger/
 - **SQLite Persistence**: Robust progress tracking with persistent state
 - **Autonomous Vibe Loop**: Automated session management with intelligent continuation
 - **Parallel Execution**: Concurrent feature implementation using git worktrees
-- **Dual-Model Architecture**: Reasoning model plans while coding subagent implements
+- **Dual-Model Architecture**: Two-phase orchestration with reasoning model planning and coding model executing
 - **Progressive Discovery**: Modular template system reduces context window usage
 - **Auto-Commit**: Automatically commits completed features to Git
 

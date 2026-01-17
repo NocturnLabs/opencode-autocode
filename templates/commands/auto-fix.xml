@@ -9,8 +9,6 @@
 You have broken a previously passing feature. You are now in **REGRESSION FIX MODE**.
 You CANNOT proceed to new features until you fix the regression you introduced.
 
-{{dual_model_instructions}}
-
 ## The Situation
 
 1. **Failing Feature**: `{{failing_feature}}`

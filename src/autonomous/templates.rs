@@ -9,12 +9,7 @@ use std::path::Path;
 use super::settings::{LoopAction, LoopSettings};
 
 /// Generate a standard fix template
-pub fn generate_fix_template(
-    feature: &Feature,
-    error: &str,
-    _db_path: &Path,
-    _dual_model: bool,
-) -> Result<()> {
+pub fn generate_fix_template(feature: &Feature, error: &str, _db_path: &Path) -> Result<()> {
     // Read template
     let template_path = Path::new("templates/commands/auto-fix.xml");
     let template = if template_path.exists() {
@@ -22,12 +17,8 @@ pub fn generate_fix_template(
         template_xml::render_template(&raw_template).unwrap_or(raw_template)
     } else {
         // Fallback
-        "# Regression Fix\nFix {{failing_feature}}\nError: {{error_message}}\n\n{{dual_model_instructions}}\n\n{{explore_instructions}}".to_string()
+        "# Regression Fix\nFix {{failing_feature}}\nError: {{error_message}}\n\n{{explore_instructions}}".to_string()
     };
-
-    // Note: @coder subagent is deprecated per Proposal 2.
-    // Two-phase workflow (Reasoning → Coding) replaces the need for @coder delegation.
-    let dual_model_instructions = "";
 
     let explore_msg = "Use `@explore` to understand the failure context.";
 
@@ -36,7 +27,6 @@ pub fn generate_fix_template(
         .replace("{{failing_feature}}", &feature.description)
         .replace("{{error_message}}", error)
         .replace("{{current_feature}}", "latest changes")
-        .replace("{{dual_model_instructions}}", dual_model_instructions)
         .replace("{{explore_instructions}}", explore_msg)
         .replace(
             "{{verification_command}}",
@@ -56,15 +46,7 @@ pub fn generate_fix_template(
 /// This removes LLM responsibility for querying the database.
 /// Generate a minimal continue template with feature context injected by supervisor.
 /// This removes LLM responsibility for querying the database.
-pub fn generate_continue_template(
-    feature: &Feature,
-    config: &Config,
-    _dual_model: bool,
-) -> Result<()> {
-    // Note: @coder subagent is deprecated per Proposal 2.
-    // Phase context is now handled by the supervisor's two-phase orchestration.
-    let dual_model_section = "";
-
+pub fn generate_continue_template(feature: &Feature, config: &Config) -> Result<()> {
     let regression_sample = config.agent.verification_sample_size.max(1);
 
     let content = format!(
@@ -76,7 +58,6 @@ Implement this feature completely:
 **Feature #{}: {}**
 
 ## Acceptance Criteria
-{}
 {}
 
 ## 🛑 MANDATORY: GET YOUR BEARINGS
@@ -127,7 +108,6 @@ The supervisor will automatically handle after your session:
                 .collect::<Vec<_>>()
                 .join("\n")
         },
-        dual_model_section,
         config.paths.app_spec_file,
         regression_sample,
         feature.id.unwrap_or(0),

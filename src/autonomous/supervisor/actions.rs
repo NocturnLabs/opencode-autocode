@@ -98,11 +98,7 @@ pub fn prepare_command(
                 };
 
                 if let Some(feature) = feature_opt {
-                    templates::generate_continue_template(
-                        &feature,
-                        config,
-                        !settings.single_model, // two_phase_enabled = !single_model
-                    )?;
+                    templates::generate_continue_template(&feature, config)?;
                     println!(
                         "📋 Feature #{}: {}",
                         feature.id.unwrap_or(0),
@@ -143,12 +139,7 @@ pub fn prepare_command(
             println!("→ Switching to auto-fix mode...");
 
             // Generate dynamic auto-fix template
-            templates::generate_fix_template(
-                &feature,
-                &error,
-                db_path,
-                !settings.single_model, // two_phase_enabled = !single_model
-            )?;
+            templates::generate_fix_template(&feature, &error, db_path)?;
             Ok(ActionCommand {
                 name: "auto-fix-active".to_string(),
                 active_feature: Some(feature),

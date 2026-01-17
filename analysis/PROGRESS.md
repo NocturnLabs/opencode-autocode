@@ -1,9 +1,9 @@
 # Progress Tracker
 
-**Last updated**: 2026-01-16
+**Last updated**: 2026-01-17
 
 ## Current Phase
-Proposal 1 (deprecate-legacy-project-config) - **COMPLETED**; validating Proposal 2.
+Proposal 2 (orchestrate-reasoning-and-coding-phases) - **COMPLETED**
 
 ## Completed
 - [x] Log analysis across `forger-reprompt` and `forger-gh-wrapped` projects
@@ -19,15 +19,22 @@ Proposal 1 (deprecate-legacy-project-config) - **COMPLETED**; validating Proposa
   - Updated scaffolder to stop creating `.forger/config.toml`
   - Updated `generate_opencode_json()` to exclude legacy config
   - Updated config editor to only save to `forger.toml`
+- [x] **Proposal 2**: `orchestrate-reasoning-and-coding-phases` - COMPLETED
+  - Two-phase orchestration implemented in `src/autonomous/supervisor/two_phase.rs`
+  - `ImplementationPacket` JSON schema defined for reasoning → coding handoff
+  - Removed deprecated `@coder` subagent references throughout codebase
+  - Removed `coder.xml` template and `CODER_AGENT` asset
+  - Updated scaffold to no longer generate `coder.md`
+  - Cleaned up `dual_model` parameters from template functions
+  - `--single-model` CLI flag controls single vs two-phase mode
+  - Updated documentation (README.md, ARCHITECTURE.md, INTERNAL_ARCHITECTURE.md)
 
 ## In Progress
-- [ ] **Proposal 2**: `orchestrate-reasoning-and-coding-phases` (reviewing)
+- [ ] **Proposal 3**: `improve-autonomous-reliability-and-fallbacks`
 
 ## Next Up
-- [ ] Implement Proposal 2: Two-phase orchestration (reasoning → coding)
 - [ ] Implement Proposal 3: Reliability and fallbacks
 - [ ] Implement Proposal 4: Regression tests
-- [ ] Run `cargo fmt && cargo clippy` (after all proposals)
 
 ## Blockers
 None currently.
@@ -38,33 +45,42 @@ None currently.
 3. `@coder` subagent concept removed; replaced with explicit two-phase Reasoning → Coding workflow.
 4. `analysis/` is local-only debugging workspace, NOT product functionality.
 5. **Proposal 1 implementation completed** - core deprecation functionality done.
+6. **Proposal 2 implementation completed** - two-phase orchestration fully operational.
 
 ## Files Modified This Session
-**Proposal 1 (deprecate-legacy-project-config) - COMPLETED:**
-- `analysis/PROGRESS.md` (updated)
-- `src/config/mod.rs`:
-  - Removed `LEGACY_CONFIG_FILENAME` constant
-  - Updated `Config::load()` - now only reads `forger.toml`, warns about `.forger/config.toml`
-  - Updated `resolve_config_path()` - simplified to only check `forger.toml`
+**Proposal 2 (orchestrate-reasoning-and-coding-phases) - COMPLETED:**
+- `templates/scaffold/agents/coder.xml` - DELETED (deprecated @coder subagent)
+- `templates/commands/auto-fix.xml` - Removed `{{dual_model_instructions}}` placeholder
+- `src/services/scaffold/assets.rs`:
+  - Removed `CODER_AGENT` constant and `coder_agent()` function
 - `src/services/scaffold/mod.rs`:
-  - Removed `.forger/config.toml` creation in `scaffold_with_spec_text()`
-  - Updated `generate_opencode_json()` - removed `.forger/config.toml` from instructions
-- `src/config_tui/mod.rs`:
-  - Removed dual-save logic for `.forger/config.toml`
-  - Updated help text to not mention `.forger/config.toml`
+  - Removed `coder.md` generation from scaffolding
+- `src/autonomous/templates.rs`:
+  - Removed `_dual_model` parameter from `generate_fix_template()`
+  - Removed `_dual_model` parameter from `generate_continue_template()`
+  - Removed `dual_model_section` and `dual_model_instructions` dead code
+- `src/autonomous/supervisor/actions.rs`:
+  - Updated function calls to remove dual_model parameter
+- `src/autonomous/supervisor/loop.rs`:
+  - Updated function calls to remove dual_model parameter
+- `README.md`:
+  - Updated dual-model architecture description
+- `docs/INTERNAL_ARCHITECTURE.md`:
+  - Removed `coder.md` from directory structure
+  - Updated ADR-003 consequences to reflect two-phase orchestration
 
-## Tests Added
-- `src/config/mod.rs`:
-  - `test_config_loader_ignores_legacy_config()` - Verifies forger.toml is used when legacy exists
-  - `test_config_loader_with_only_legacy_config()` - Verifies default is used when only legacy exists
+## Tests
+- Existing tests in `src/autonomous/supervisor/two_phase.rs` verify:
+  - `ImplementationPacket` serialization/deserialization
+  - Packet validation (feature_id, description, verification_command)
+  - JSON parsing from string input
 
 ## Context for Next Session
-Proposal 1 is **COMPLETED**. Core deprecation functionality implemented:
-- Legacy config (`.forger/config.toml`) is no longer generated or read
-- Single source of truth: `forger.toml` at project root
-- Migration warning shown when `.forger/config.toml` exists
-- Config TUI only writes to `forger.toml`
-- Generated `opencode.json` only includes `forger.toml` in instructions
-- Tests verify config precedence behavior
+Proposal 2 is **COMPLETED**. Two-phase orchestration fully implemented:
+- Reasoning phase produces structured `ImplementationPacket` JSON
+- Coding phase executes the packet with the coding model
+- `--single-model` flag allows bypassing reasoning phase
+- All `@coder` subagent references removed
+- Clean separation: `models.reasoning` for planning, `models.autonomous` for execution
 
-Next: Review Proposal 2 to begin implementation of two-phase orchestration.
+Next: Review Proposal 3 to begin implementation of reliability and fallbacks.

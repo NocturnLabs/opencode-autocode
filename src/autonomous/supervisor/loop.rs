@@ -67,9 +67,7 @@ fn execute_two_phase_feature(
             } else {
                 println!("⚠️ Max retries exceeded, falling back to single-phase");
                 // Fall back to traditional single-phase session
-                crate::autonomous::templates::generate_continue_template(
-                    feature, config, false, // No @coder references
-                )?;
+                crate::autonomous::templates::generate_continue_template(feature, config)?;
                 logger.info("Falling back to single-phase implementation");
 
                 session::execute_opencode_session(

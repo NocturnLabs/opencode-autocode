@@ -908,7 +908,6 @@ output_dir/
 │  │  ├─ auto-context.md  - Context setup command
 │  │  └─ auto-fix.md      - Fix regression command
 │  └─ agent/
-│     ├─ coder.md         - Coding subagent
 │     ├─ spec-product.md  - Spec product agent
 │     ├─ spec-architecture.md
 │     └─ spec-quality.md
@@ -1500,7 +1499,7 @@ cargo test --test integration # Integration tests
 
 **Decision**: Separate reasoning and coding models  
 **Rationale**: Specialized models for planning vs implementation  
-**Consequences**: `@coder` subagent, `--single-model` fallback
+**Consequences**: Two-phase orchestration (reasoning → coding), `--single-model` fallback
 
 ### ADR-004: Git Worktrees for Parallelism
 

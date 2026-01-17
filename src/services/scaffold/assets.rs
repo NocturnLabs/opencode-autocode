@@ -34,9 +34,6 @@ pub const SPEC_ARCHITECTURE_AGENT: &str =
 pub const SPEC_QUALITY_AGENT: &str =
     include_str!("../../../templates/scaffold/agents/spec-quality.xml");
 
-/// Embedded coder subagent for dual-model architecture
-pub const CODER_AGENT: &str = include_str!("../../../templates/scaffold/agents/coder.xml");
-
 /// Embedded AGENTS.md template
 pub const AGENTS_MD_TEMPLATE: &str = include_str!("../../../templates/AGENTS.md");
 
@@ -82,8 +79,4 @@ pub fn spec_architecture_agent() -> Result<String> {
 
 pub fn spec_quality_agent() -> Result<String> {
     template_xml::render_template(SPEC_QUALITY_AGENT)
-}
-
-pub fn coder_agent() -> Result<String> {
-    template_xml::render_template(CODER_AGENT)
 }

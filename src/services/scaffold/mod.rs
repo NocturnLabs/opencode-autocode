@@ -222,11 +222,6 @@ pub fn scaffold_with_spec_text(output_dir: &Path, spec_content: &str) -> Result<
         let spec_quality_path = agent_dir.join("spec-quality.md");
         write_file(&spec_quality_path, &spec_quality_agent()?)?;
         println!("   🤖 Created .opencode/agent/spec-quality.md");
-
-        // Write coder subagent for dual-model architecture
-        let coder_path = agent_dir.join("coder.md");
-        write_file(&coder_path, &coder_agent()?)?;
-        println!("   🤖 Created .opencode/agent/coder.md");
     }
 
     // Write .gitignore at project root if it doesn't exist

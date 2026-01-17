@@ -43,13 +43,13 @@
 - [ ] Remove `LEGACY_CONFIG_FILENAME` constant usage
 
 ### Two-Phase Orchestration
-- [ ] Define `ImplementationPacket` struct (JSON-serializable)
-- [ ] Create reasoning phase prompt template
-- [ ] Create coding phase prompt template
-- [ ] Update `SessionOptions` to support phase context
-- [ ] Modify supervisor loop to run two phases per feature
-- [ ] Remove `@coder` references from templates and logging
-- [ ] Update `dual_model_enabled` semantics or deprecate flag
+- [x] Define `ImplementationPacket` struct (JSON-serializable)
+- [x] Create reasoning phase prompt template
+- [x] Create coding phase prompt template
+- [x] Update `SessionOptions` to support phase context
+- [x] Modify supervisor loop to run two phases per feature
+- [x] Remove `@coder` references from templates and logging
+- [x] Update `dual_model_enabled` semantics or deprecate flag
 
 ### Reliability + Fallbacks
 - [ ] Add `FailureType` enum (IdleTimeout, SessionTimeout, ExitFailure, VerificationFailed, Unknown)
