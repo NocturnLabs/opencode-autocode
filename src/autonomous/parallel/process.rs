@@ -77,7 +77,7 @@ pub fn run_parallel(
         // Calculate width for parallel mode (similar to banner logic)
         let title = "OpenCode Autonomous Agent";
         let title_w = 7 + crate::theming::visual_width(title);
-        let model_w = 7 + 5 + crate::theming::visual_width(&settings.model); // "Model: " label is 7 chars + value
+        let model_w = 7 + 5 + crate::theming::visual_width(&settings.coding_model); // "Model: " label is 7 chars + value
         let width = title_w.max(model_w).max(60); // Minimum 60 for parallel mode info
 
         logger.separator();

@@ -18,7 +18,87 @@ use crate::autonomous::webhook::{notify_failure, FailureReason};
 use crate::common::logging as debug_logger;
 
 use super::actions::{prepare_command, ActionCommand};
+use super::two_phase::{execute_coding_phase, execute_reasoning_phase, ReasoningResult};
 use super::verification_step::perform_verification;
+
+/// Execute a feature using two-phase orchestration (reasoning → coding)
+fn execute_two_phase_feature(
+    feature: &Feature,
+    config: &Config,
+    settings: &LoopSettings,
+    iteration: &mut usize,
+    logger: &debug_logger::DebugLogger,
+) -> Result<session::SessionResult> {
+    logger.separator();
+    logger.info(&format!(
+        "Two-phase orchestration for feature #{}: {}",
+        feature.id.unwrap_or(0),
+        feature.description
+    ));
+
+    // Phase 1: Reasoning
+    let reasoning_result = execute_reasoning_phase(feature, config, settings, logger)?;
+
+    match reasoning_result {
+        ReasoningResult::Success(packet) => {
+            println!("\n✓ Reasoning phase produced valid implementation packet");
+            logger.info(&format!(
+                "Implementation packet has {} files, {} edits, {} commands",
+                packet.files_to_modify.len(),
+                packet.edits.len(),
+                packet.commands_to_run.len()
+            ));
+
+            // Phase 2: Coding
+            let coding_result = execute_coding_phase(&packet, feature, settings, logger)?;
+            Ok(coding_result)
+        }
+        ReasoningResult::InvalidJson(msg) => {
+            println!("\n❌ Reasoning phase failed: Invalid JSON");
+            println!("   Error: {}", msg);
+            logger.error(&format!("Invalid JSON from reasoning: {}", msg));
+
+            // Retry reasoning phase with simpler prompt (up to max_retry_attempts)
+            if *iteration < settings.max_retries as usize {
+                println!("→ Retrying reasoning phase...");
+                thread::sleep(Duration::from_secs(settings.delay_seconds as u64));
+                *iteration += 1;
+                execute_two_phase_feature(feature, config, settings, iteration, logger)
+            } else {
+                println!("⚠️ Max retries exceeded, falling back to single-phase");
+                // Fall back to traditional single-phase session
+                crate::autonomous::templates::generate_continue_template(
+                    feature, config, false, // No @coder references
+                )?;
+                logger.info("Falling back to single-phase implementation");
+
+                session::execute_opencode_session(
+                    session::SessionOptions {
+                        command: "auto-continue-active".to_string(),
+                        model: settings.coding_model.clone(),
+                        log_level: settings.log_level.clone(),
+                        session_id: None,
+                        timeout_minutes: settings.session_timeout,
+                        idle_timeout_seconds: settings.idle_timeout,
+                        opencode_path: settings.opencode_path.clone(),
+                    },
+                    logger,
+                )
+            }
+        }
+        ReasoningResult::ValidationError(msg) => {
+            println!("\n❌ Reasoning phase failed: Validation error");
+            println!("   Error: {}", msg);
+            logger.error(&format!("Validation error from reasoning: {}", msg));
+            Ok(session::SessionResult::Error(msg))
+        }
+        ReasoningResult::Error(msg) => {
+            println!("\n❌ Reasoning phase failed: {}", msg);
+            logger.error(&format!("Reasoning phase error: {}", msg));
+            Ok(session::SessionResult::Error(msg))
+        }
+    }
+}
 
 /// Runs the main supervisor loop.
 pub fn run_supervisor_loop(
@@ -147,23 +227,49 @@ pub fn run_supervisor_loop(
         println!("→ Running: opencode run --command /{}", command_name);
         println!();
 
-        // --- Step 3: Execute Session ---
-        let result = session::execute_opencode_session(
-            session::SessionOptions {
-                command: command_name.to_string(),
-                model: if enhancement_mode {
-                    settings.enhancement_model.clone()
-                } else {
-                    settings.model.clone()
+        // --- Step 3: Execute Session (with two-phase orchestration if applicable) ---
+        let result = if !settings.single_model && active_feature.is_some() {
+            // Two-phase orchestration for feature implementation
+            if let Some(ref feature) = active_feature {
+                execute_two_phase_feature(feature, config, settings, &mut iteration, logger)?
+            } else {
+                // Fallback to single session if no feature context
+                session::execute_opencode_session(
+                    session::SessionOptions {
+                        command: command_name.to_string(),
+                        model: if enhancement_mode {
+                            settings.enhancement_model.clone()
+                        } else {
+                            settings.coding_model.clone()
+                        },
+                        log_level: settings.log_level.clone(),
+                        session_id: None,
+                        timeout_minutes: settings.session_timeout,
+                        idle_timeout_seconds: settings.idle_timeout,
+                        opencode_path: settings.opencode_path.clone(),
+                    },
+                    logger,
+                )?
+            }
+        } else {
+            // Single-model mode or enhancement mode - use traditional single session
+            session::execute_opencode_session(
+                session::SessionOptions {
+                    command: command_name.to_string(),
+                    model: if enhancement_mode {
+                        settings.enhancement_model.clone()
+                    } else {
+                        settings.coding_model.clone()
+                    },
+                    log_level: settings.log_level.clone(),
+                    session_id: None,
+                    timeout_minutes: settings.session_timeout,
+                    idle_timeout_seconds: settings.idle_timeout,
+                    opencode_path: settings.opencode_path.clone(),
                 },
-                log_level: settings.log_level.clone(),
-                session_id: None,
-                timeout_minutes: settings.session_timeout,
-                idle_timeout_seconds: settings.idle_timeout,
-                opencode_path: settings.opencode_path.clone(),
-            },
-            logger,
-        )?;
+                logger,
+            )?
+        };
 
         if let session::SessionResult::Error(msg) = &result {
             last_error_context = Some(msg.clone());

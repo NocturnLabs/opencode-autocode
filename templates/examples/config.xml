@@ -4,8 +4,8 @@
 
 [models]
 default = "anthropic/claude-sonnet-4" # spec generation
-autonomous = "anthropic/claude-sonnet-4" # coding (@coder)
-reasoning = "anthropic/claude-3.5-sonnet" # planning/review
+autonomous = "anthropic/claude-sonnet-4" # coding (Phase 2)
+reasoning = "anthropic/claude-3.5-sonnet" # planning (Phase 1)
 
 [autonomous]
 delay_between_sessions = 5
@@ -18,7 +18,7 @@ auto_commit = true
  use_sequential_thinking = true
  required_tools = ["chrome-devtools"]
 
-
+ 
 [notifications]
 webhook_enabled = true
 webhook_url = "https://discord.com/api/webhooks/..."

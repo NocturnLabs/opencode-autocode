@@ -279,12 +279,12 @@
   },
   {
     "category": "functional",
-    "description": "Dual-model architecture: Reasoning model delegates to coding subagent via @coder",
+    "description": "Two-phase architecture: Reasoning model produces implementation packet, coding model executes it",
     "steps": [
       "Run vibe loop on a feature requiring implementation",
-      "Check logs for @coder subagent invocation",
-      "Verify reasoning model produces plan",
-      "Verify coding model executes implementation",
+      "Check logs for reasoning phase execution",
+      "Verify reasoning model produces valid JSON implementation packet",
+      "Verify coding model executes implementation based on packet",
       "Check that roles are properly separated in output"
     ],
     "passes": false

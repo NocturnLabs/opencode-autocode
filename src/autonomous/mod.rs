@@ -76,12 +76,22 @@ pub fn run(
 
     log_startup_info(logger, &settings, developer_mode, single_model);
 
-    let banner_width = display::display_banner(
-        &settings.model,
-        settings.max_iterations,
-        settings.delay_seconds,
-        developer_mode,
-    );
+    let banner_width = if single_model {
+        display::display_banner(
+            &settings.coding_model,
+            settings.max_iterations,
+            settings.delay_seconds,
+            developer_mode,
+        )
+    } else {
+        display::display_banner_two_phase(
+            Some(&settings.reasoning_model),
+            Some(&settings.coding_model),
+            settings.max_iterations,
+            settings.delay_seconds,
+            developer_mode,
+        )
+    };
 
     let result = supervisor::run_supervisor_loop(
         &config,
@@ -134,7 +144,12 @@ fn log_startup_info(
             .map(|p| p.display().to_string())
             .unwrap_or_default()
     ));
-    logger.info(&format!("Model: {}", settings.model));
+    if single_model {
+        logger.info(&format!("Model: {}", settings.coding_model));
+    } else {
+        logger.info(&format!("Reasoning model: {}", settings.reasoning_model));
+        logger.info(&format!("Coding model: {}", settings.coding_model));
+    }
     logger.info(&format!(
         "Dual-model: {}",
         if single_model {

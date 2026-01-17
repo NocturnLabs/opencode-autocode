@@ -345,3 +345,155 @@ fn format_number(n: u64) -> String {
     }
     result
 }
+
+/// Display startup banner with two-phase model information
+pub fn display_banner_two_phase(
+    reasoning_model: Option<&str>,
+    coding_model: Option<&str>,
+    max_iterations: usize,
+    delay_seconds: u32,
+    developer_mode: bool,
+) -> usize {
+    let title = "OpenCode Autonomous Agent";
+    let dev_msg = "DEVELOPER MODE ENABLED";
+
+    // Build info rows
+    let mut rows = vec![(
+        "Project",
+        std::env::current_dir()
+            .map(|p| {
+                p.file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string()
+            })
+            .unwrap_or_default(),
+    )];
+
+    // Add model information if both models provided
+    if let (Some(rm), Some(cm)) = (reasoning_model, coding_model) {
+        rows.push(("Reasoning model", rm.to_string()));
+        rows.push(("Coding model", cm.to_string()));
+    }
+
+    rows.extend(vec![
+        (
+            "Limit",
+            if max_iterations == usize::MAX {
+                "∞".to_string()
+            } else {
+                max_iterations.to_string()
+            },
+        ),
+        ("Delay", format!("{}s", delay_seconds)),
+    ]);
+
+    // Calculate dynamic width
+    let title_content = format!("{} {}", symbols::SPARKLE, title);
+    let max_row_width = rows
+        .iter()
+        .map(|(key, value)| {
+            let content = format!("{} {}: {}", symbols::BULLET, key, value);
+            visual_width(&content)
+        })
+        .max()
+        .unwrap_or(0);
+
+    let dev_width = if developer_mode {
+        visual_width(&format!("{} {}", symbols::WARNING, dev_msg))
+    } else {
+        0
+    };
+
+    let preferred_inner = visual_width(&title_content)
+        .max(max_row_width)
+        .max(dev_width)
+        .max(10);
+
+    let terminal_inner = terminal_size()
+        .map(|(Width(w), _)| w as usize)
+        .unwrap_or(usize::MAX)
+        .saturating_sub(4);
+    let available_inner = terminal_inner.max(10);
+    let inner_width = preferred_inner.min(available_inner);
+    let width = inner_width + 4;
+
+    println!(
+        "{}{}{}",
+        accent(boxes::TOP_LEFT),
+        accent(boxes::line(width - 2)),
+        accent(boxes::TOP_RIGHT)
+    );
+
+    // Title with sparkle
+    let title_padding = inner_width.saturating_sub(visual_width(&title_content));
+    let title_styled = format!("{} {}", accent(symbols::SPARKLE), highlight(title));
+    println!(
+        "{} {}{} {}",
+        accent(boxes::VERTICAL),
+        title_styled,
+        " ".repeat(title_padding),
+        accent(boxes::VERTICAL)
+    );
+
+    println!(
+        "{}{}{}",
+        accent(boxes::TOP_LEFT),
+        accent(boxes::line(width - 2)),
+        accent(boxes::TOP_RIGHT)
+    );
+
+    for (key, value) in rows {
+        let prefix = format!("{} {}: ", symbols::BULLET, key);
+        let prefix_width = visual_width(&prefix);
+        let available_value_width = inner_width.saturating_sub(prefix_width).max(1);
+        let segments = wrap_to_width(&value, available_value_width);
+        let indent = " ".repeat(prefix_width);
+
+        for (idx, segment) in segments.iter().enumerate() {
+            let plain = if idx == 0 {
+                format!("{}{}", prefix, segment)
+            } else {
+                format!("{}{}", indent, segment)
+            };
+
+            let styled = if idx == 0 {
+                format!("{} {}: {}", muted(symbols::BULLET), key, highlight(segment))
+            } else {
+                format!("{}{}", indent, highlight(segment))
+            };
+
+            let padding = inner_width.saturating_sub(visual_width(&plain));
+            println!(
+                "{} {}{} {}",
+                accent(boxes::VERTICAL),
+                styled,
+                " ".repeat(padding),
+                accent(boxes::VERTICAL)
+            );
+        }
+    }
+
+    if developer_mode {
+        let dev_content = format!("{} {}", symbols::WARNING, dev_msg);
+        let padding = inner_width.saturating_sub(visual_width(&dev_content));
+        let dev_styled = format!("{} {}", warning(symbols::WARNING), warning(dev_msg));
+        println!(
+            "{} {}{} {}",
+            accent(boxes::VERTICAL),
+            dev_styled,
+            " ".repeat(padding),
+            accent(boxes::VERTICAL)
+        );
+    }
+
+    println!(
+        "{}{}{}",
+        crate::theming::accent(boxes::BOTTOM_LEFT),
+        crate::theming::accent(boxes::line(width - 2)),
+        crate::theming::accent(boxes::BOTTOM_RIGHT)
+    );
+    println!();
+
+    width
+}

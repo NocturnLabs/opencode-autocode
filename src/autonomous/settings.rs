@@ -14,8 +14,10 @@ pub struct LoopSettings {
     pub max_retries: u32,
     /// Warn after this many iterations without progress (0 = unlimited)
     pub max_no_progress: u32,
-    /// Model for standard autonomous sessions.
-    pub model: String,
+    /// Model for reasoning phase (expensive, good at planning)
+    pub reasoning_model: String,
+    /// Model for coding phase (fast, tool execution)
+    pub coding_model: String,
     /// Model for enhancement mode sessions.
     pub enhancement_model: String,
     /// OpenCode binary path used for sessions.
@@ -29,7 +31,8 @@ pub struct LoopSettings {
     pub idle_timeout: u32,
     pub auto_commit: bool,
     pub verbose: bool,
-    pub dual_model_enabled: bool,
+    /// If true, skip reasoning phase and use coding model only
+    pub single_model: bool,
     pub mcp: McpConfig,
 }
 
@@ -65,7 +68,8 @@ impl LoopSettings {
             enforce_max_iterations,
             max_retries: config.agent.max_retry_attempts,
             max_no_progress,
-            model: config.models.autonomous.clone(),
+            reasoning_model: config.models.reasoning.clone(),
+            coding_model: config.models.autonomous.clone(),
             enhancement_model: config.models.enhancement.clone(),
             opencode_path: config
                 .paths
@@ -80,7 +84,7 @@ impl LoopSettings {
             idle_timeout: config.autonomous.idle_timeout_seconds,
             auto_commit: config.autonomous.auto_commit,
             verbose: config.ui.verbose,
-            dual_model_enabled: true,
+            single_model: false, // Will be set by init_session based on CLI flag
             mcp: config.mcp.clone(),
         }
     }
@@ -172,12 +176,7 @@ pub fn init_session(
     let mut settings = LoopSettings::from_config(&config, limit);
     settings.log_path = resolved_log_path;
     settings.opencode_path = which_opencode(&config)?;
-    settings.dual_model_enabled = !single_model;
-    settings.model = if settings.dual_model_enabled {
-        config.models.reasoning.clone()
-    } else {
-        config.models.autonomous.clone()
-    };
+    settings.single_model = single_model;
 
     // Clear any lingering stop signal from a previous run
     session::clear_stop_signal();

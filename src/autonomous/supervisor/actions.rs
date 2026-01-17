@@ -101,7 +101,7 @@ pub fn prepare_command(
                     templates::generate_continue_template(
                         &feature,
                         config,
-                        settings.dual_model_enabled,
+                        !settings.single_model, // two_phase_enabled = !single_model
                     )?;
                     println!(
                         "📋 Feature #{}: {}",
@@ -147,7 +147,7 @@ pub fn prepare_command(
                 &feature,
                 &error,
                 db_path,
-                settings.dual_model_enabled,
+                !settings.single_model, // two_phase_enabled = !single_model
             )?;
             Ok(ActionCommand {
                 name: "auto-fix-active".to_string(),

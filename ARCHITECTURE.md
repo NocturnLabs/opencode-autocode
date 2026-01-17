@@ -83,24 +83,24 @@ The system uses two models with distinct roles:
 │         REASONING MODEL             │
 │  models.reasoning                   │
 │  Plans • Reviews • Architects       │
-│  Never writes code                  │
+│  Outputs structured Implementation  │
+│  Packet (JSON)                      │
 └─────────────────────────────────────┘
-            │ delegates via @coder
+            │ handoff via JSON packet
             ▼
 ┌─────────────────────────────────────┐
-│         CODING SUBAGENT             │
+│         CODING MODEL                │
 │  models.autonomous                  │
 │  Implements exactly as specified    │
 │  No opinions, no questions          │
 └─────────────────────────────────────┘
 ```
 
-The `@coder` subagent is defined in `.opencode/agent/coder.md` and scaffolded automatically. Use `--single-model` to disable this split.
+The two-phase workflow orchestrates reasoning → coding for each feature. Use `--single-model` to skip the reasoning phase and use only the coding model.
 
 ## Key Directories
 
 - `.forger/`: Stores `config.toml`, `progress.db`, and `app_spec.md`.
 - `.opencode/command/`: Stores target-specific command templates for OpenCode.
-- `.opencode/agent/`: Stores subagent definitions (including `coder.md`).
 - `.conductor/`: Stores product and technical context.
 - `tracks/`: Stores per-feature specifications and execution plans.
