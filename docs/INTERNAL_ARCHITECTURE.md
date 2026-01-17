@@ -791,10 +791,10 @@ pub fn load(dir: Option<&Path>) -> Result<Self>
 **Search Order**:
 
 1. `forger.toml` in specified directory
-2. `.forger/config.toml` in specified directory
-3. Current directory `forger.toml`
-4. Current directory `.forger/config.toml`
-5. Default values if not found
+2. Current directory `forger.toml`
+3. Default values if not found
+
+**Legacy Config Handling**: If `.forger/config.toml` exists, a deprecation warning is logged and the file is ignored.
 
 ---
 

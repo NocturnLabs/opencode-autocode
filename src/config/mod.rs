@@ -479,7 +479,7 @@ fn test_config_loader_with_no_config_file() {
     let temp_dir = TempDir::new().unwrap();
     let _forger_toml = temp_dir.path().join("forger.toml");
     let legacy_dir = temp_dir.path().join(".forger");
-    let _ = std::fs::create_dir_all(&legacy_dir).unwrap();
+    std::fs::create_dir_all(&legacy_dir).unwrap();
 
     // Write no config files
     let config = Config::load(Some(temp_dir.path())).unwrap();
@@ -496,7 +496,7 @@ fn test_config_loader_ignores_legacy_config() {
     let temp_dir = TempDir::new().unwrap();
     let _forger_toml = temp_dir.path().join("forger.toml");
     let legacy_dir = temp_dir.path().join(".forger");
-    let _ = std::fs::create_dir_all(&legacy_dir).unwrap();
+    std::fs::create_dir_all(&legacy_dir).unwrap();
     let legacy_config = legacy_dir.join("config.toml");
 
     // Write both config files

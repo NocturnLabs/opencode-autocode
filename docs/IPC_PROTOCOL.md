@@ -80,7 +80,7 @@ Sent after checking for existing configuration.
   "name": "ConfigLoaded",
   "payload": {
     "has_existing_config": true,
-    "config_path": "/path/to/.forger/config.toml"
+    "config_path": "/path/to/forger.toml"
   }
 }
 ```
