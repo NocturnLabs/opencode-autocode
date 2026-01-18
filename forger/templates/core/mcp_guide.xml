@@ -1,0 +1,64 @@
+<template>
+<content><![CDATA[
+# MCP Usage Guide
+
+When you need information, use the available MCPs in this priority order:
+
+## 1. Code Search (ripgrep)
+
+Use semantic search for efficient pattern matching with minimal context window usage.
+
+```bash
+# Find code patterns, function definitions, usages
+grep -rn "pattern" src/
+```
+
+## File Discovery Best Practices
+
+> [!CAUTION]
+> **NEVER use `find .` without exclusions.** This dumps node_modules, .git, and build artifacts into context.
+
+**Preferred methods (in order):**
+
+1. `git ls-files` - Fast, respects .gitignore
+2. `fd --type f` - Fast, respects .gitignore by default
+3. `find` with explicit exclusions:
+   ```bash
+   find . -type f \( -path './node_modules' -o -path './.git' -o -path './target' \) -prune -o -name "*.ts" -print
+   ```
+
+## 2. Chrome DevTools (for web projects)
+
+**MANDATORY for web projects.** Use to:
+
+1. Open the application in a browser
+2. Navigate to features you implemented
+3. Check browser console (`list_console_messages`) for errors
+4. Interact with elements (click, fill forms)
+5. Take screenshots to verify UI
+
+If there are ANY console errors, the feature does NOT pass.
+
+## 3. Documentation (deepwiki)
+
+Look up official documentation for libraries and frameworks.
+
+## 4. Web Search
+
+Search for solutions, patterns, and best practices when local knowledge is insufficient.
+
+## 6. Tool Calling Protocol
+
+**CRITICAL**: All tool calls MUST use standard markdown code blocks. DO NOT use pipes (`|`) or other custom syntaxes.
+
+**Correct Format:**
+
+```bash
+# Example: Check port status
+ss -tulpn | grep :3000
+```
+
+**Incorrect Format:**
+| Bash ss -tulpn | grep :3000
+]]></content>
+</template>

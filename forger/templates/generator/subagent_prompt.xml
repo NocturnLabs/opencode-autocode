@@ -1,0 +1,169 @@
+<template>
+<content><![CDATA[
+# Task: Generate Comprehensive Project Specification (Parallel Subagent Mode)
+
+You are orchestrating parallel subagents to generate a production-grade project specification.
+
+> [!CRITICAL]
+> This must be a **COMPREHENSIVE, PRODUCTION-READY** specification—not an MVP. Think: what would a well-funded startup need to launch? Include ALL features, ALL endpoints, ALL database tables. Be exhaustive.
+
+## Phase 1: Generate Blueprint (You do this directly)
+
+First, create the foundation:
+
+- **Project name**: Descriptive, memorable name
+- **Overview**: 5-10 sentences explaining the project scope, users, and business value
+- **Technology stack**: Structured with frontend, backend, database, devops subsections
+- **Prerequisites**: Required tools, accounts, environment setup, and knowledge
+
+## Phase 2: Invoke Subagents
+
+After generating the blueprint, invoke these THREE subagents IN PARALLEL:
+
+```
+@spec-product Generate comprehensive core features and user experience sections for: {{IDEA}}
+
+{{FEATURE_COUNT_GUIDANCE}}
+```
+
+```
+@spec-architecture Generate the complete database schema and ALL API endpoints for: {{IDEA}}
+
+{{ARCHITECTURE_COUNT_GUIDANCE}}
+```
+
+```
+@spec-quality {{QUALITY_TASK}}
+
+{{QUALITY_COUNT_GUIDANCE}}
+```
+
+## Phase 3: Aggregate and Validate
+
+Once all subagents have returned their sections:
+
+1. **Merge** all XML fragments into a single document
+2. **Self-validate** the output:
+   - Verify ALL closing tags are present
+   - Ensure no truncated content
+   - Confirm features have corresponding endpoints and database tables
+
+## Output Format
+
+> [!CRITICAL]
+> Output ONLY the complete, valid XML specification. Follow the EXACT structure below—especially the nested elements.
+> - Always close tags with the EXACT same name as the opening tag (e.g., `</api_style>` not `</api>`)
+> - Escape special characters in text: use `&lt;` for `<` and `&amp;` for `&`
+> - Example: write `&lt;100ms` instead of `<100ms`, write `R&amp;D` instead of `R&D`
+
+```xml
+<project_specification>
+  <project_name>Name</project_name>
+  <overview>5-10 detailed sentences about scope, users, differentiators</overview>
+  
+  <technology_stack>
+    <frontend>
+      <framework>Framework with justification</framework>
+      <styling>CSS approach</styling>
+      <state_management>State solution</state_management>
+      <testing>Test framework</testing>
+    </frontend>
+    <backend>
+      <runtime>Language/runtime</runtime>
+      <framework>Framework choice</framework>
+      <database>Database with justification</database>
+      <auth>Auth approach</auth>
+      <api_style>REST/GraphQL/tRPC</api_style>
+      <testing>Test framework</testing>
+    </backend>
+  </technology_stack>
+  
+  <prerequisites>
+    <environment_setup>
+      - Environment variables
+      - System dependencies
+      - Port requirements
+    </environment_setup>
+  </prerequisites>
+
+  <core_features>
+    <!-- 20+ features for production-ready app -->
+    <feature priority="high">
+      <name>Feature Name</name>
+      <description>2-4 sentence description</description>
+      <sub_features>
+        - Sub-feature 1
+        - Sub-feature 2
+      </sub_features>
+      <error_handling>How errors are handled</error_handling>
+      <edge_cases>Edge case considerations</edge_cases>
+    </feature>
+  </core_features>
+  
+  <ui_layout>
+    <main_structure>Layout description</main_structure>
+    <sidebar>Navigation structure</sidebar>
+    <main_area>Primary content area</main_area>
+    <modals_overlays>Dialogs and modals</modals_overlays>
+  </ui_layout>
+
+  <database_schema>
+    <tables>
+      <table name="users">
+        <column name="id" type="uuid" constraints="PRIMARY KEY" />
+        <column name="email" type="varchar(255)" constraints="UNIQUE NOT NULL" />
+      </table>
+    </tables>
+  </database_schema>
+
+  <api_endpoints>
+    <!-- 20+ endpoints -->
+    <endpoint>
+      <method>POST</method>
+      <path>/api/v1/auth/login</path>
+      <description>Authenticate user [auth: public]</description>
+    </endpoint>
+    <endpoint>
+      <method>GET</method>
+      <path>/api/v1/users/me</path>
+      <description>Get current user profile [auth: required]</description>
+    </endpoint>
+  </api_endpoints>
+
+{{SECURITY_SECTION}}
+{{TESTING_STRATEGY_SECTION}}
+{{DEVOPS_SECTION}}
+{{ACCESSIBILITY_SECTION}}
+  
+  <implementation_steps>
+    <!-- 8-15 phases -->
+    <step number="1">
+      <title>Phase Title</title>
+      <tasks>
+        - Task 1
+        - Task 2
+      </tasks>
+      <verification>How to verify completion</verification>
+    </step>
+  </implementation_steps>
+  
+  <success_criteria>
+    <functionality>Functional requirements</functionality>
+    <quality>Quality metrics</quality>
+  </success_criteria>
+  
+{{FUTURE_ENHANCEMENTS_SECTION}}
+</project_specification>
+```
+
+## User's Idea
+
+{{IDEA}}
+
+{{TESTING_PREFERENCE}}
+
+---
+
+ULTRATHINK
+]]></content>
+</template>

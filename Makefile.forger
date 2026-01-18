@@ -1,0 +1,42 @@
+.PHONY: build run clean test install
+
+# Build the forger binary
+build:
+	cd forger && go build -o ../bin/forger ./cmd/forger
+
+# Run the forger binary
+run: build
+	./bin/forger
+
+# Clean build artifacts
+clean:
+	rm -rf bin/
+	cd forger && go clean
+
+# Run tests
+test:
+	cd forger && go test ./...
+
+# Install forger to GOPATH/bin
+install:
+	cd forger && go install ./cmd/forger
+
+# Format code
+fmt:
+	cd forger && go fmt ./...
+
+# Run linter
+lint:
+	cd forger && golangci-lint run
+
+# Run go mod tidy
+mod-tidy:
+	cd forger && go mod tidy
+
+# Initialize database
+init-db:
+	./bin/forger db init
+
+# Show version
+version:
+	./bin/forger version

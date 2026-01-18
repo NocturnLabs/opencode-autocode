@@ -1,0 +1,152 @@
+<template>
+<content><![CDATA[
+<project_specification>
+<project_name>{{PROJECT_NAME}}</project_name>
+
+<overview>
+A RESTful API service for {{DESCRIPTION}}.
+Built with Python/FastAPI for rapid development, featuring automatic OpenAPI docs,
+async support, and SQLAlchemy ORM.
+</overview>
+
+<technology_stack>
+<framework>FastAPI</framework>
+<server>Uvicorn</server>
+<database>PostgreSQL with SQLAlchemy</database>
+<validation>Pydantic</validation>
+<authentication>OAuth2 with JWT</authentication>
+<testing>pytest + httpx</testing>
+</technology_stack>
+
+<prerequisites>
+<environment_setup>
+- Python 3.11+
+- uv or pip for package management
+- PostgreSQL database
+- .env file with DATABASE_URL, SECRET_KEY
+</environment_setup>
+</prerequisites>
+
+<core_features>
+<api_design>
+- RESTful resource endpoints
+- Versioned API routes (/api/v1/)
+- Automatic OpenAPI documentation
+- Request/response validation
+</api_design>
+
+<authentication>
+- OAuth2 password flow
+- JWT access tokens
+- Refresh token rotation
+- Role-based permissions
+</authentication>
+
+<database>
+- SQLAlchemy ORM models
+- Alembic migrations
+- Connection pooling
+- Transaction management
+</database>
+
+<observability>
+- Structured logging
+- Health check endpoint
+- Request timing middleware
+- Error tracking
+</observability>
+</core_features>
+
+<database_schema>
+<tables>
+<users>
+- id, email, hashed_password, is_active, is_superuser, created_at
+</users>
+<items>
+- id, title, description, owner_id, created_at, updated_at
+</items>
+</tables>
+</database_schema>
+
+<api_endpoints>
+<auth>
+- POST /api/v1/auth/login (OAuth2 token)
+- POST /api/v1/auth/refresh (Refresh token)
+- GET /api/v1/users/me (Current user)
+</auth>
+<users>
+- POST /api/v1/users (Create user)
+- GET /api/v1/users (List users - admin)
+- GET /api/v1/users/{id} (Get user)
+- PUT /api/v1/users/{id} (Update user)
+</users>
+<items>
+- GET /api/v1/items (List items)
+- POST /api/v1/items (Create item)
+- GET /api/v1/items/{id} (Get item)
+- PUT /api/v1/items/{id} (Update item)
+- DELETE /api/v1/items/{id} (Delete item)
+</items>
+<system>
+- GET /health (Health check)
+- GET /docs (OpenAPI docs)
+</system>
+</api_endpoints>
+
+<implementation_steps>
+<step number="1">
+<title>Project Setup</title>
+<tasks>
+- Create project with uv init
+- Add FastAPI and dependencies
+- Set up project structure
+- Configure environment variables
+</tasks>
+</step>
+
+<step number="2">
+<title>Database Layer</title>
+<tasks>
+- Configure SQLAlchemy
+- Create database models
+- Set up Alembic migrations
+- Create initial migration
+</tasks>
+</step>
+
+<step number="3">
+<title>Authentication</title>
+<tasks>
+- Implement OAuth2 password flow
+- Create JWT token utilities
+- Add auth dependencies
+- Create user endpoints
+</tasks>
+</step>
+
+<step number="4">
+<title>API Endpoints</title>
+<tasks>
+- Create CRUD router pattern
+- Implement item endpoints
+- Add request validation
+- Write tests
+</tasks>
+</step>
+</implementation_steps>
+
+<success_criteria>
+<functionality>
+- All endpoints return correct responses
+- Authentication works correctly
+- Database operations are transactional
+- OpenAPI docs are complete
+</functionality>
+<performance>
+- Endpoints respond under 100ms
+- Handles 100 concurrent requests
+</performance>
+</success_criteria>
+</project_specification>
+]]></content>
+</template>

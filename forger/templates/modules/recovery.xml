@@ -1,0 +1,84 @@
+<template>
+<content><![CDATA[
+# Recovery Module (Stuck Protocol)
+
+Read this module when you've failed 3+ times on the same feature.
+
+---
+
+## STOP - You Are Stuck
+
+If an edit or fix fails 3 times in a row:
+
+1. **STOP** - Do NOT try the same approach again
+
+2. **DOCUMENT**:
+
+   ```
+   BLOCKED: [feature name] - [brief reason]
+   Attempted: [what you tried]
+   ```
+
+3. **RESEARCH** - Use ALL available tools:
+1. **STOP** - Do NOT try the same approach again
+
+   - **Documentation**: Look up official docs
+   - **Web Search**: Search for similar issues
+   - **Read the actual error messages** carefully
+   - **Check imports and dependencies** that might be missing
+
+---
+
+## Generate Alternative Approaches
+
+Think through 5-7 fundamentally different ways to implement this feature:
+
+- What's the simplest possible approach? (even if not ideal)
+- What would a different framework/library enable?
+- What if you restructured the data model?
+- What if you changed the API contract?
+- What approach would prioritize debuggability over elegance?
+- What's an unconventional solution you'd normally dismiss?
+
+```
+ALTERNATIVE_APPROACHES: [feature name]
+1. [approach] - [trade-off]
+2. [approach] - [trade-off]
+...
+Selected: [which approach and why]
+```
+
+---
+
+## Try a Different Solution
+
+Pick an approach that is **NOT** a variation of what you already tried.
+
+---
+
+## If Still Stuck After 3 Different Approaches
+
+Document everything and **move to the next feature**:
+
+```
+BLOCKED: [feature name]
+Reason: [root cause if known]
+Research findings: [what you learned]
+Approaches tried: [list]
+Recommended next step: [suggestion for future session]
+```
+
+Then pick the next highest-priority feature with `passes = 0` and continue.
+
+---
+
+## Signs You Are Stuck (Trigger This Protocol Immediately)
+
+- Repeating "Let me try a different approach" multiple times
+- Same file edit failing with "oldString and newString must be different"
+- Same compilation error appearing after multiple fix attempts
+- Trying the same fix pattern with minor variations
+
+**NEVER** get stuck in infinite retry loops. Generate alternatives FIRST, then act.
+]]></content>
+</template>

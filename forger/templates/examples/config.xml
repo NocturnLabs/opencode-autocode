@@ -1,0 +1,26 @@
+<template>
+<content><![CDATA[
+# Example: forger.toml configuration sections
+
+[models]
+default = "anthropic/claude-sonnet-4" # spec generation
+autonomous = "anthropic/claude-sonnet-4" # coding (Phase 2)
+reasoning = "anthropic/claude-3.5-sonnet" # planning (Phase 1)
+
+[autonomous]
+delay_between_sessions = 5
+max_iterations = 0 # 0 = unlimited
+session_timeout_minutes = 60
+auto_commit = true
+
+[mcp]
+
+ use_sequential_thinking = true
+ required_tools = ["chrome-devtools"]
+
+ 
+[notifications]
+webhook_enabled = true
+webhook_url = "https://discord.com/api/webhooks/..."
+]]></content>
+</template>

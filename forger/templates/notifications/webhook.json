@@ -1,0 +1,37 @@
+{
+  "embeds": [
+    {
+      "title": "🚀 OpenCode Project Status",
+      "description": "Real-time autonomous development dashboard.",
+      "color": 3066993,
+      "fields": [
+        {
+          "name": "📊 Progress",
+          "value": "{{progress_bar}}\n`{{progress_current}}/{{progress_total}} features ({{progress_percent}}%)`",
+          "inline": false
+        },
+        {
+          "name": "🆕 Latest Activity",
+          "value": "**Completed Feature:** {{feature_name}}\n**Category:** `{{feature_category}}`",
+          "inline": false
+        },
+        {
+          "name": "📁 Project Context",
+          "value": "Project: `{{project_name}}`\nSession: `{{session_number}}`",
+          "inline": false
+        },
+        {
+          "name": "⚡ Verification Stats",
+          "value": "Passed: `{{progress_current}}`\nRemaining: `{{progress_remaining}}`",
+          "inline": true
+        }
+      ],
+      "footer": {
+        "text": "Last Updated: {{timestamp}} • OpenCode Forger"
+      },
+      "thumbnail": {
+        "url": "https://raw.githubusercontent.com/NocturnLabs/.github/main/assets/opencode-icon.png"
+      }
+    }
+  ]
+}
